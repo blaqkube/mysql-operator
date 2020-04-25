@@ -15,5 +15,5 @@ build:
 .PHONY: bundle
 bundle:
 	operator-sdk generate csv --csv-version=$(VERSION) --update-crds
-	operator-sdk bundle create quay.io/blaqkube/mysql-operator:v$(VERSION) --package mysql-operator --channels alpha --default-channel alpha
-	docker push quay.io/blaqkube/mysql-operator:v$(VERSION)
+	operator-sdk bundle create quay.io/blaqkube/mysql-operator:$(VERSION) --package mysql-operator --channels alpha --default-channel alpha
+	docker push quay.io/blaqkube/mysql-operator:$(VERSION)
