@@ -20,7 +20,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-  name: mysql-operator.v0.0.1
+  name: mysql-operator.v0.0.2
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -64,7 +64,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: mysql-operator
-                image: quay.io/blaqkube/mysql-controller:54db26d
+                image: quay.io/blaqkube/mysql-controller:d113ef4
                 imagePullPolicy: Always
                 name: mysql-operator
                 resources: {}
@@ -165,4 +165,5 @@ spec:
   maturity: alpha
   provider:
     name: blaqkube
-  version: 0.0.1
+  replaces: mysql-operator.v0.0.1
+  version: 0.0.2
