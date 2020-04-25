@@ -30,6 +30,7 @@ spec:
       kind: Instance
       name: instances.mysql.blaqkube.io
       version: v1alpha1
+  description: Manages MySQL databases and backups
   displayName: Mysql Operator
   icon:
   - base64data: ""

@@ -7,4 +7,4 @@ scorecard:
     - olm:
         cr-manifest:
           - "deploy/crds/mysql.blaqkube.io_v1alpha1_instance_cr.yaml"
-        csv-path: "deploy/olm-catalog/simple-op/0.0.1/simple-op.v0.0.1.clusterserviceversion.yaml"
+        csv-path: "deploy/olm-catalog/mysql-operator/manifests/mysql-operator.clusterserviceversion.yaml"
