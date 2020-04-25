@@ -1,0 +1,167 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "mysql.blaqkube.io/v1alpha1",
+          "kind": "Instance",
+          "metadata": {
+            "name": "blue"
+          },
+          "spec": {
+            "database": "blue",
+            "image": "mysql:8",
+            "password": "me",
+            "rootpwd": "root",
+            "username": "me"
+          }
+        }
+      ]
+    capabilities: Basic Install
+  name: mysql-operator.v0.0.1
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: Instance is the Schema for the instances API
+      kind: Instance
+      name: instances.mysql.blaqkube.io
+      version: v1alpha1
+  displayName: Mysql Operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments:
+      - name: mysql-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: mysql-operator
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                name: mysql-operator
+            spec:
+              containers:
+              - command:
+                - mysql-operator
+                env:
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: mysql-operator
+                image: quay.io/blaqkube/mysql-controller:54db26d
+                imagePullPolicy: Always
+                name: mysql-operator
+                resources: {}
+              serviceAccountName: mysql-operator
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - services/finalizers
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - apps
+          resourceNames:
+          - mysql-operator
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          verbs:
+          - get
+        - apiGroups:
+          - apps
+          resources:
+          - replicasets
+          - deployments
+          verbs:
+          - get
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - '*'
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        serviceAccountName: mysql-operator
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - operator
+  - mysql
+  maintainers:
+  - email: contact@blaqkube.io
+    name: blaqkube
+  maturity: alpha
+  provider:
+    name: blaqkube
+  version: 0.0.1

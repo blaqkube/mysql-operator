@@ -1,0 +1,10 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Instance
+metadata:
+  name: blue
+spec:
+  database: blue
+  username: me
+  password: me
+  rootpwd: root
+  image: mysql:8
