@@ -6,6 +6,18 @@ metadata:
       [
         {
           "apiVersion": "mysql.blaqkube.io/v1alpha1",
+          "kind": "Backup",
+          "metadata": {
+            "name": "blue-backup"
+          },
+          "spec": {
+            "executor": {
+              "type": "mysqldump"
+            }
+          }
+        },
+        {
+          "apiVersion": "mysql.blaqkube.io/v1alpha1",
           "kind": "Instance",
           "metadata": {
             "name": "blue"
@@ -26,6 +38,10 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
+    - description: Backup is the Schema for the backups API
+      kind: Backup
+      name: backups.mysql.blaqkube.io
+      version: v1alpha1
     - description: Instance is the Schema for the instances API
       kind: Instance
       name: instances.mysql.blaqkube.io
@@ -137,6 +153,7 @@ spec:
           - mysql.blaqkube.io
           resources:
           - '*'
+          - backups
           verbs:
           - create
           - delete

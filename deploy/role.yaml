@@ -70,6 +70,7 @@ rules:
   - mysql.blaqkube.io
   resources:
   - '*'
+  - backups
   verbs:
   - create
   - delete
