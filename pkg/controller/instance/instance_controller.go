@@ -149,9 +149,12 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:    "busybox",
-							Image:   "busybox",
-							Command: []string{"sleep", "3600"},
+							Name:  "mysql",
+							Image: "mysql:8.0.20",
+						},
+						{
+							Name:  "agent",
+							Image: "quay.io/blaqkube/mysql-agent:29bf654",
 						},
 					},
 				},
