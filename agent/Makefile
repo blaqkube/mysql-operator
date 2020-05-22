@@ -6,7 +6,7 @@ SHA := $(shell git log -1 --format='%h' .)
 
 .PHONY: build
 build:
-	docker build -t quay.io/blaqkube/mysql-agent:$(SHA) .
+	docker build --network=host -t quay.io/blaqkube/mysql-agent:$(SHA) .
 	docker push quay.io/blaqkube/mysql-agent:$(SHA)
 
 .PHONY: api

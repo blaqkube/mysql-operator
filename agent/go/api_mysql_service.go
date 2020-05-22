@@ -32,6 +32,13 @@ func (s *MysqlApiService) CreateBackup(backup Backup, apiKey string) (interface{
 	return nil, errors.New("service method 'CreateBackup' not implemented")
 }
 
+// DeleteBackup - Deletes a backup
+func (s *MysqlApiService) DeleteBackup(backup string, apiKey string) (interface{}, error) {
+	// TODO - update DeleteBackup with the required logic for this service method.
+	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	return nil, errors.New("service method 'DeleteBackup' not implemented")
+}
+
 // GetBackupByName - Get backup properties
 func (s *MysqlApiService) GetBackupByName(backup string, apiKey string) (interface{}, error) {
 	// TODO - update GetBackupByName with the required logic for this service method.

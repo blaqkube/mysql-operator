@@ -23,10 +23,7 @@ func main() {
 	MysqlApiService := openapi.NewMysqlApiService()
 	MysqlApiController := openapi.NewMysqlApiController(MysqlApiService)
 
-	PetApiService := openapi.NewPetApiService()
-	PetApiController := openapi.NewPetApiController(PetApiService)
-
-	router := openapi.NewRouter(MysqlApiController, PetApiController)
+	router := openapi.NewRouter(MysqlApiController)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

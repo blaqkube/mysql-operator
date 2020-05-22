@@ -20,6 +20,8 @@ look like the command below:
 ```shell
 cd mysql-agent
 npx openapi-generator generate \
-  -i mysql-agent.yaml -g go-server -o .
+  -i mysql-agent.yaml -g go-server -o . \
+  --git-user-id blaqkube \
+  --git-repo-id mysql-operator/agent
 ```
 

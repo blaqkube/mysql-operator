@@ -73,12 +73,12 @@ paths:
           description: Invalid ID supplied
         "404":
           content: {}
-          description: Pet not found
+          description: Backup not found
       security:
       - api_key: []
       summary: Deletes a backup
       tags:
-      - pet
+      - mysql
     get:
       description: Returns a single backup set of properties
       operationId: getBackupByName

@@ -38,6 +38,12 @@ func (c *MysqlApiController) Routes() Routes {
 			c.CreateBackup,
 		},
 		{
+			"DeleteBackup",
+			strings.ToUpper("Delete"),
+			"/backup/{backup}",
+			c.DeleteBackup,
+		},
+		{
 			"GetBackupByName",
 			strings.ToUpper("Get"),
 			"/backup/{backup}",
@@ -56,6 +62,20 @@ func (c *MysqlApiController) CreateBackup(w http.ResponseWriter, r *http.Request
 	
 	apiKey := r.Header.Get("apiKey")
 	result, err := c.service.CreateBackup(*backup, apiKey)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	
+	EncodeJSONResponse(result, nil, w)
+}
+
+// DeleteBackup - Deletes a backup
+func (c *MysqlApiController) DeleteBackup(w http.ResponseWriter, r *http.Request) { 
+	params := mux.Vars(r)
+	backup := params["backup"]
+	apiKey := r.Header.Get("apiKey")
+	result, err := c.service.DeleteBackup(backup, apiKey)
 	if err != nil {
 		w.WriteHeader(500)
 		return
