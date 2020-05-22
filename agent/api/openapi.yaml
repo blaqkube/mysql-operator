@@ -1,0 +1,143 @@
+openapi: 3.0.1
+info:
+  contact:
+    email: contact@blaqkube.io
+  description: |
+    Agent used by
+    [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to
+    manage MySQL backup/restore
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://blaqkube.io/terms/
+  title: blaqkube MySQL agent
+  version: 0.0.1
+externalDocs:
+  description: Find out more about blaqkube MySQL operator
+  url: https://blaqkube.io/docs
+servers:
+- url: /
+tags:
+- description: data about your MySQL database
+  name: mysql
+paths:
+  /backup:
+    post:
+      operationId: createBackup
+      parameters:
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Backup'
+        description: Create a manual backup
+        required: true
+      responses:
+        "405":
+          content: {}
+          description: Invalid input
+      security:
+      - api_key: []
+      summary: create an on-demand backup
+      tags:
+      - mysql
+  /backup/{backup}:
+    delete:
+      operationId: deleteBackup
+      parameters:
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: Backup to delete
+        explode: false
+        in: path
+        name: backup
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "400":
+          content: {}
+          description: Invalid ID supplied
+        "404":
+          content: {}
+          description: Pet not found
+      security:
+      - api_key: []
+      summary: Deletes a backup
+      tags:
+      - pet
+    get:
+      description: Returns a single backup set of properties
+      operationId: getBackupByName
+      parameters:
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: Name of the backup to return
+        explode: false
+        in: path
+        name: backup
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
+          description: successful operation
+        "400":
+          content: {}
+          description: Invalid Backup supplied
+        "404":
+          content: {}
+          description: Backup not found
+      security:
+      - api_key: []
+      summary: Get backup properties
+      tags:
+      - mysql
+components:
+  schemas:
+    Backup:
+      example:
+        store: s3-blaqkube
+        status: pending
+      properties:
+        store:
+          example: s3-blaqkube
+          type: string
+        status:
+          description: backup status
+          enum:
+          - pending
+          - running
+          - available
+          type: string
+      required:
+      - store
+      type: object
+  securitySchemes:
+    api_key:
+      in: header
+      name: api_key
+      type: apiKey
