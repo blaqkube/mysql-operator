@@ -6,7 +6,7 @@ COPY main.go .
 ENV CGO_ENABLED=0
 RUN go build -a -installsuffix cgo -o mysql-agent .
 
-FROM scratch AS runtime
+FROM mysql:8.0.20
 COPY --from=build /go/src/mysql-agent ./
 EXPOSE 8080/tcp
 ENTRYPOINT ["./mysql-agent"]
