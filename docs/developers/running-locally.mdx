@@ -1,0 +1,21 @@
+---
+title: Running the operator locally
+---
+
+Testing the operator is key to develop successfully. To do so:
+
+## Install the CRDs
+
+```shell
+cd deploy/crds
+kubectl apply -f mysql.blaqkube.io_backups_crd.yaml
+kubectl apply -f mysql.blaqkube.io_stores_crd.yaml
+kubectl apply -f mysql.blaqkube.io_instances_crd.yaml
+```
+
+## Run the controllers
+
+```shell
+operator-sdk run --local
+```
+
