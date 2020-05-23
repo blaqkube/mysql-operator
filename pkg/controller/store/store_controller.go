@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/pkg/apis/mysql/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -75,6 +76,7 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 	// Fetch the Store instance
 	instance := &mysqlv1alpha1.Store{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
+	reqLogger.Info(fmt.Sprintf("get store err: %v", err))
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -85,9 +87,11 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
+	reqLogger.Info(fmt.Sprintf("Store Status.LastConnection: %s", instance.Status.LastConnection))
 	if instance.Status.LastConnection != "Success" {
 		instance.Status.LastConnection = "Success"
 		err = r.client.Update(context.TODO(), instance)
+		reqLogger.Info(fmt.Sprintf("reset store err: %v", err))
 		if err != nil {
 			return reconcile.Result{}, err
 		}
