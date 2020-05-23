@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"fmt"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/pkg/apis/mysql/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -64,11 +63,6 @@ type ReconcileStore struct {
 
 // Reconcile reads that state of the cluster for a Store object and makes changes based on the state read
 // and what is in the Store.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
-// Note:
-// The Controller will requeue the Request to be processed again if the returned error is non-nil or
-// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Store")
@@ -76,7 +70,6 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 	// Fetch the Store instance
 	instance := &mysqlv1alpha1.Store{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
-	reqLogger.Info(fmt.Sprintf("get store err: %v", err))
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -87,17 +80,15 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-	reqLogger.Info(fmt.Sprintf("Store Status.LastConnection: %s", instance.Status.LastConnection))
-	if instance.Status.LastConnection != "Success" {
-		instance.Status.LastConnection = "Success"
+	if instance.Status.LastConnection == "" {
+		instance.Status.LastConnection = "Pending"
 		err = r.client.Status().Update(context.TODO(), instance)
-		reqLogger.Info(fmt.Sprintf("reset store err: %v", err))
 		if err != nil {
 			return reconcile.Result{}, err
 		}
 		// Store updated successfully - don't requeue
 		return reconcile.Result{}, nil
 	}
-	reqLogger.Info("Skip reconcile: store exists and status set to Success")
+	reqLogger.Info("Skip reconcile: store exists and LastConnection updated")
 	return reconcile.Result{}, nil
 }
