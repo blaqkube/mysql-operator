@@ -4,7 +4,7 @@ metadata:
   name: mybackupstore
 spec:
   backend: s3
-  s3_access:
+  s3access:
     bucket: mybucket
     credentials:
       aws_access_key_id: AKIAXXXXXXXXXXXXXXX

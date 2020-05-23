@@ -1,8 +1,36 @@
 ---
-title: Install the Pre-requisites
+title: Prepare your development environment
 ---
 
-- operator-sdk
-- docker
-- go
+You are very welcome to contribute to `blaqkube/mysql-operator`. If you plan to
+do so, you will need some tools. This section provides details about it.
+
+## Go
+
+The operator is written in Go, you can get it from the
+[downloads](https://golang.org/dl/) page.
+
+## operator-sdk
+
+This operator relies on
+[operator-framework/operator-sdk](https://github.com/operator-framework/operator-sdk).
+You will very likely need it. Installing `operator-sdk` is usually as simple as:
+
+- downloading the executable from the
+  [release page](https://github.com/operator-framework/operator-sdk/releases);
+- making sure you can execute the file
+- adding the file to your `PATH`
+
+To use `operator-sdk`, you might need to set `GOROOT` to workaround
+[Issue #1480](https://github.com/operator-framework/operator-sdk/issues/1480) like below:
+
+```shell
+export GOROOT=$(go env GOROOT)
+```
+
+> Note: To know more about operator-sdk and how to install it, see
+> [Operator SDK documentation](https://sdk.operatorframework.io/docs)
+
+## Docker and Kind
+
 
