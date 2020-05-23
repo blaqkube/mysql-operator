@@ -1,0 +1,13 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Store
+metadata:
+  name: mybackupstore
+spec:
+  backend: s3
+  s3_access:
+    bucket: mybucket
+    credentials:
+      aws_access_key_id: AKIAXXXXXXXXXXXXXXX
+      aws_secret_access_key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      region: us-east-1
+    path: /location

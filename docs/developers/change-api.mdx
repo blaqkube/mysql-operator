@@ -1,0 +1,18 @@
+---
+title: Modify the API
+---
+
+The mysql-operator API is defines by Custom Resource Definitions or CRDs.
+
+## Create a new CRD
+
+```shell
+operator-sdk add api --api-version=mysql.blaqkube.io/v1alpha1 --kind=Store
+```
+
+## Update a CRD
+
+```shell
+operator-sdk generate k8s
+```
+

@@ -71,6 +71,7 @@ rules:
   resources:
   - '*'
   - backups
+  - stores
   verbs:
   - create
   - delete
