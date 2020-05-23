@@ -90,7 +90,7 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 	reqLogger.Info(fmt.Sprintf("Store Status.LastConnection: %s", instance.Status.LastConnection))
 	if instance.Status.LastConnection != "Success" {
 		instance.Status.LastConnection = "Success"
-		err = r.client.Update(context.TODO(), instance)
+		err = r.client.Status().Update(context.TODO(), instance)
 		reqLogger.Info(fmt.Sprintf("reset store err: %v", err))
 		if err != nil {
 			return reconcile.Result{}, err
