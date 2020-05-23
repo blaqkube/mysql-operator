@@ -1,7 +1,7 @@
 /*
  * blaqkube MySQL agent
  *
- * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore 
+ * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore
  *
  * API version: 0.0.1
  * Contact: contact@blaqkube.io
@@ -15,12 +15,13 @@ import (
 	"net/http"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
+	service "github.com/blaqkube/mysql-operator/agent/service"
 )
 
 func main() {
 	log.Printf("Server started")
 
-	MysqlApiService := openapi.NewMysqlApiService()
+	MysqlApiService := service.NewMysqlApiService()
 	MysqlApiController := openapi.NewMysqlApiController(MysqlApiService)
 
 	router := openapi.NewRouter(MysqlApiController)
