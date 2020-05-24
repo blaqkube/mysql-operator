@@ -1,3 +1,6 @@
 /README.md
 /Dockerfile
+/main.go
 /go/api_mysql_service.go
+/go/api_mysql.go
+/go/api.go
