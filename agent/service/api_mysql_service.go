@@ -12,6 +12,8 @@ package service
 
 import (
 	"errors"
+	"net/http"
+	"time"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 )
@@ -23,7 +25,7 @@ type MysqlApiService struct {
 }
 
 // NewMysqlApiService creates a default api service
-func NewMysqlApiService() openapi.MysqlApiServicer {
+func NewMysqlApiService() MysqlApiServicer {
 	return &MysqlApiService{}
 }
 
@@ -31,7 +33,13 @@ func NewMysqlApiService() openapi.MysqlApiServicer {
 func (s *MysqlApiService) CreateBackup(backup openapi.Backup, apiKey string) (interface{}, error) {
 	// TODO - update CreateBackup with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	return nil, errors.New("service method 'CreateBackup' not implemented")
+	// mysqldump --all-databases --single-transaction -h 127.0.0.1 > mysql.backup.sql
+	b, err := InitializeBackup(backup)
+	if err != nil {
+		return nil, err
+	}
+	go ExecuteBackup(*b)
+	return b, nil
 }
 
 // DeleteBackup - Deletes a backup
@@ -42,8 +50,16 @@ func (s *MysqlApiService) DeleteBackup(backup string, apiKey string) (interface{
 }
 
 // GetBackupByName - Get backup properties
-func (s *MysqlApiService) GetBackupByName(backup string, apiKey string) (interface{}, error) {
+func (s *MysqlApiService) GetBackupByName(backup string, apiKey string) (interface{}, int, error) {
 	// TODO - update GetBackupByName with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	return nil, errors.New("service method 'GetBackupByName' not implemented")
+	t, err := time.Parse(time.RFC3339, backup)
+	if err != nil {
+		return nil, http.StatusBadRequest, err
+	}
+	b, ok := backups[t]
+	if !ok {
+		return nil, http.StatusNotFound, nil
+	}
+	return b, http.StatusOK, nil
 }

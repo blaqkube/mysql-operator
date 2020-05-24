@@ -22,7 +22,7 @@ func main() {
 	log.Printf("Server started")
 
 	MysqlApiService := service.NewMysqlApiService()
-	MysqlApiController := openapi.NewMysqlApiController(MysqlApiService)
+	MysqlApiController := service.NewMysqlApiController(MysqlApiService)
 
 	router := openapi.NewRouter(MysqlApiController)
 

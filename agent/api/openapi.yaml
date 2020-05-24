@@ -40,6 +40,12 @@ paths:
         description: Create a manual backup
         required: true
       responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
+          description: Backup Created
         "405":
           content: {}
           description: Invalid input
@@ -118,23 +124,50 @@ paths:
       - mysql
 components:
   schemas:
+    S3Credentials:
+      properties:
+        aws_access_key_id:
+          type: string
+        aws_secret_access_key:
+          type: string
+        region:
+          type: string
+      type: object
+    S3Info:
+      properties:
+        bucket:
+          type: string
+        path:
+          type: string
+        credentials:
+          $ref: '#/components/schemas/S3Credentials'
+      required:
+      - bucket
+      type: object
     Backup:
       example:
-        store: s3-blaqkube
-        status: pending
+        s3access:
+          bucket: backup.blaqkube.io
+          path: /blue
       properties:
-        store:
-          example: s3-blaqkube
+        timestamp:
+          format: date-time
           type: string
+        s3access:
+          $ref: '#/components/schemas/S3Info'
         status:
           description: backup status
           enum:
-          - pending
-          - running
-          - available
+          - Available
+          - Failed
+          - Pending
+          - Running
+          type: string
+        message:
+          description: keep message in case of an error
           type: string
       required:
-      - store
+      - s3access
       type: object
   securitySchemes:
     api_key:
