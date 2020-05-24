@@ -82,8 +82,8 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-	if instance.Status.LastConnection == "" {
-		instance.Status.LastConnection = "Pending"
+	if instance.Status.LastCondition == "" {
+		instance.Status.LastCondition = "Pending"
 		err = r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
 			return reconcile.Result{}, err
