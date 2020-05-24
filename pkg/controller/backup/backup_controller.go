@@ -3,6 +3,7 @@ package backup
 import (
 	"context"
 	"fmt"
+	"time"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/pkg/apis/mysql/v1alpha1"
 	agent "github.com/blaqkube/mysql-operator/pkg/client-agent"
@@ -170,6 +171,27 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-
+	go r.MonitorBackup(request.NamespacedName)
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileBackup) MonitorBackup(n types.NamespacedName) {
+	reqLogger := log.WithValues("Request.Namespace", n.Namespace, "Request.Name", n.Name)
+	endTime := time.Now().Add(30 * time.Second)
+	for time.Now().Before(endTime) {
+		time.Sleep(time.Second)
+	}
+	instance := &mysqlv1alpha1.Backup{}
+	err := r.client.Get(context.TODO(), n, instance)
+	if err != nil {
+		reqLogger.Info(fmt.Sprintf("Error querying backup: %v", err))
+		return
+	}
+	instance.Status.LastCondition = "Zzzzzzzzzzz"
+	err = r.client.Status().Update(context.TODO(), instance)
+	if err != nil {
+		reqLogger.Info(fmt.Sprintf("Error updating backup: %v", err))
+		return
+	}
+	reqLogger.Info("Monitor backup with success...")
 }
