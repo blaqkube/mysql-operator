@@ -8,13 +8,13 @@ import (
 type S3Credentials struct {
 	AccessKey string `json:"aws_access_key_id"`
 	SecretKey string `json:"aws_secret_access_key"`
-	Region string `json:"region"`
+	Region    string `json:"region"`
 }
 
 // S3Info defines the S3 bucket, path and connection
 type S3Info struct {
-	Bucket string `json:"bucket"`
-	Path string `json:"path,omitempty"`
+	Bucket      string        `json:"bucket"`
+	Path        string        `json:"path,omitempty"`
 	Credentials S3Credentials `json:"credentials,omitempty"`
 }
 
@@ -25,8 +25,15 @@ type StoreSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// +kubebuilder:validation:Enum=s3
-	Backend string `json:"backend"`
+	Backend  string `json:"backend"`
 	S3Access S3Info `json:"s3access,omitempty"`
+}
+
+// ConditionStatus provide details about the observed conditions
+type ConditionStatus struct {
+	LastProbeTime *metav1.Time `json:"lastProbeTime,omitempty"`
+	Status        string       `json:"status,omitempty"`
+	Message       string       `json:"message,omitempty"`
 }
 
 // StoreStatus defines the observed state of Store
@@ -34,7 +41,8 @@ type StoreStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	LastConnection string `json:"last_connection"`
+	LastConnection string            `json:"last_connection"`
+	Conditions     []ConditionStatus `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

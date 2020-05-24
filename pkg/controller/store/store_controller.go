@@ -6,6 +6,7 @@ import (
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/pkg/apis/mysql/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -91,6 +92,12 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 		return reconcile.Result{}, nil
 	}
 	if instance.Status.LastConnection == "Pending" {
+		time := metav1.Now()
+		condition := mysqlv1alpha1.ConditionStatus{
+			LastProbeTime: &time,
+			Status:        "Pending",
+			Message:       "",
+		}
 		err = TestS3Connection(
 			instance.Spec.S3Access.Credentials.AccessKey,
 			instance.Spec.S3Access.Credentials.SecretKey,
@@ -98,8 +105,10 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 			instance.Spec.S3Access.Bucket,
 			instance.Spec.S3Access.Path)
 		if err != nil {
-			reqLogger.Info(fmt.Sprintf("Error connecting to %s: %v", instance.Spec.S3Access.Bucket, err))
+			condition.Status = "Error"
+			condition.Message = fmt.Sprintf("%v", err)
 			instance.Status.LastConnection = "Error"
+			instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
 			err = r.client.Status().Update(context.TODO(), instance)
 			if err != nil {
 				return reconcile.Result{}, err
@@ -108,6 +117,9 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 			return reconcile.Result{}, nil
 		}
 		instance.Status.LastConnection = "Success"
+		condition.Status = "Success"
+		condition.Message = fmt.Sprintf("File %s/manifest.txt, successfully written in s3://%s", instance.Spec.S3Access.Path, instance.Spec.S3Access.Bucket)
+		instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
 		err = r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
 			return reconcile.Result{}, err

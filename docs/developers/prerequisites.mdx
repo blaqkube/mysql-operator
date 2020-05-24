@@ -28,6 +28,12 @@ To use `operator-sdk`, you might need to set `GOROOT` to workaround
 export GOROOT=$(go env GOROOT)
 ```
 
+If you do not set GOROOT; you might 
+
+```text
+F0524 12:39:30.302991  168940 deepcopy.go:885] Hit an unsupported type invalid type for invalid type
+```
+
 > Note: To know more about operator-sdk and how to install it, see
 > [Operator SDK documentation](https://sdk.operatorframework.io/docs)
 
