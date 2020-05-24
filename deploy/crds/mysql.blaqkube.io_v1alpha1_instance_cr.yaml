@@ -6,5 +6,3 @@ spec:
   database: blue
   username: me
   password: me
-  rootpwd: root
-  image: mysql:8
