@@ -130,7 +130,7 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 	cfg.BasePath = "http://" + pod.Status.PodIP + ":8080"
 	api := agent.NewAPIClient(cfg)
 	backup := agent.Backup{}
-	b, _, err := api.MysqlApi.CreateBackup(context.TODO(), backup)
+	b, _, err := api.MysqlApi.CreateBackup(context.TODO(), backup, nil)
 	if err != nil {
 		time := metav1.Now()
 		condition := mysqlv1alpha1.ConditionStatus{
