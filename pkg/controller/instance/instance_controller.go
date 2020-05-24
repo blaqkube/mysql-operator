@@ -134,6 +134,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 	dataLabels := map[string]string{
 		"name": "data",
 	}
+	diskSize := resource.NewQuantity(500*1024*1024, resource.BinarySI)
 	var replicas int32 = 1
 	return &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -218,9 +219,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 						},
 						Resources: corev1.ResourceRequirements{
 							Requests: corev1.ResourceList{
-								corev1.ResourceStorage: resource.Quantity{
-									Format: "500Mi",
-								},
+								corev1.ResourceStorage: *diskSize,
 							},
 						},
 					},
