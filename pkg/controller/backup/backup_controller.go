@@ -90,7 +90,9 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-
+	if instance.Status.LastCondition != "" {
+		return reconcile.Result{}, nil
+	}
 	// Check if this Pod already exists
 	pod := &corev1.Pod{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: instance.Spec.Instance + "-0", Namespace: instance.Namespace}, pod)
