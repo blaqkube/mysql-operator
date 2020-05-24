@@ -151,10 +151,22 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 						{
 							Name:  "mysql",
 							Image: "mysql:8.0.20",
+							Env: []corev1.EnvVar{
+								corev1.EnvVar{
+									Name:  "MYSQL_ALLOW_EMPTY_PASSWORD",
+									Value: "1",
+								},
+							},
+							Ports: []corev1.ContainerPort{
+								corev1.ContainerPort{
+									Name:          "mysql",
+									ContainerPort: 3306,
+								},
+							},
 						},
 						{
 							Name:  "agent",
-							Image: "quay.io/blaqkube/mysql-agent:29bf654",
+							Image: "quay.io/blaqkube/mysql-agent:5f990ca",
 						},
 					},
 				},
