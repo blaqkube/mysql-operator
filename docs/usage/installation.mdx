@@ -9,6 +9,44 @@ with the installation but will also help with upgrading the tool later on.
 
 ## Installation with Operator Lifecycle Manager
 
+OLM is the preferred way to install `blaqkube/mysql-operator`. That is because,
+not only OLM can install the operator but it also manages its lifecycle as the
+name suggests.
+
+The simplest way to install OLM on your cluster is:
+
+- [Install the Operator SDK CLI](https://sdk.operatorframework.io/docs/install-operator-sdk/)
+- Make sure your can access a Kubernetes cluster with cluster admin role
+- Run `operator-sdk olm` like below
+
+```shell
+operator-sdk olm install
+operator-sdk olm status
+```
+
+> Note: In order for `blaqkube/mysql-operator` to update correctly, you should
+> use OLM 0.15+. This is due to issue
+> [#1347](https://github.com/operator-framework/operator-lifecycle-manager/issues/1347)
+
+
 ## Manual Installation
+
+Manual installation consists in cloning the git repository first:
+
+```shell
+git clone https://github.com/blaqkube/mysql-operator.git
+cd mysql-operator
+```
+
+Once done, you should install the CRDs like below:
+
+```shell
+cd $(git rev-parse --show-toplevel)/deploy/crds
+kubectl apply -f mysql.blaqkube.io_backups_crd.yaml
+kubectl apply -f mysql.blaqkube.io_stores_crd.yaml
+kubectl apply -f mysql.blaqkube.io_instances_crd.yaml
+```
+
+
 
 
