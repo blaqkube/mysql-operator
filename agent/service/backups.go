@@ -98,7 +98,7 @@ func PushS3File(filename, accesskey, secretkey, region, bucket, path string) err
 	// of the file you're uploading.
 	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
 		Bucket:             aws.String(bucket),
-		Key:                aws.String(path),
+		Key:                aws.String(path + "/" + filename),
 		ACL:                aws.String("private"),
 		Body:               bytes.NewReader(buffer),
 		ContentLength:      aws.Int64(size),
