@@ -21,12 +21,6 @@ type InstanceSpec struct {
 
 	// New Database name
 	Database string `json:"database"`
-
-	// Root user password
-	Rootpwd string `json:"rootpwd"`
-
-	// Image name with version
-	Image string `json:"image"`
 }
 
 // InstanceStatus defines the observed state of Instance
