@@ -91,7 +91,7 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 		// Store updated successfully - don't requeue
 		return reconcile.Result{}, nil
 	}
-	if instance.Status.LastConnection == "Pending" {
+	if instance.Status.LastCondition == "Pending" {
 		time := metav1.Now()
 		condition := mysqlv1alpha1.ConditionStatus{
 			LastProbeTime: &time,
@@ -107,7 +107,7 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 		if err != nil {
 			condition.Status = "Error"
 			condition.Message = fmt.Sprintf("%v", err)
-			instance.Status.LastConnection = "Error"
+			instance.Status.LastCondition = "Error"
 			instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
 			err = r.client.Status().Update(context.TODO(), instance)
 			if err != nil {
@@ -116,9 +116,9 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 			// Store updated successfully - don't requeue
 			return reconcile.Result{}, nil
 		}
-		instance.Status.LastConnection = "Success"
+		instance.Status.LastCondition = "Success"
 		condition.Status = "Success"
-		condition.Message = fmt.Sprintf("File %s/manifest.txt, successfully written in s3://%s", instance.Spec.S3Access.Path, instance.Spec.S3Access.Bucket)
+		condition.Message = fmt.Sprintf("File %s/manifest.txt successfully written in s3://%s", instance.Spec.S3Access.Path, instance.Spec.S3Access.Bucket)
 		instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
 		err = r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
@@ -127,6 +127,6 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 		// Store updated successfully - don't requeue
 		return reconcile.Result{}, nil
 	}
-	reqLogger.Info("Skip reconcile: store exists and LastConnection updated")
+	reqLogger.Info("Skip reconcile: store exists and LastCondition updated")
 	return reconcile.Result{}, nil
 }
