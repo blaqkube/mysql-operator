@@ -7,6 +7,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -130,6 +131,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 	labels := map[string]string{
 		"app": cr.Name,
 	}
+	diskSize := resource.NewQuantity(500*1024*1024, resource.BinarySI)
 	var replicas int32 = 1
 	return &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -142,6 +144,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 			Selector: &metav1.LabelSelector{
 				MatchLabels: labels,
 			},
+			ServiceName: cr.Name,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: labels,
@@ -163,10 +166,59 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 									ContainerPort: 3306,
 								},
 							},
+							LivenessProbe: &corev1.Probe{
+								Handler: corev1.Handler{
+									Exec: &corev1.ExecAction{
+										Command: []string{"mysqladmin", "ping"},
+									},
+								},
+								InitialDelaySeconds: int32(30),
+								TimeoutSeconds:      int32(5),
+								PeriodSeconds:       int32(10),
+							},
+							ReadinessProbe: &corev1.Probe{
+								Handler: corev1.Handler{
+									Exec: &corev1.ExecAction{
+										Command: []string{"mysql", "-h", "127.0.0.1", "-e", "SELECT 1"},
+									},
+								},
+								InitialDelaySeconds: int32(30),
+								TimeoutSeconds:      int32(5),
+								PeriodSeconds:       int32(10),
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								corev1.VolumeMount{
+									Name:      cr.Name + "-data",
+									MountPath: "/var/lib/mysql",
+								},
+							},
 						},
 						{
 							Name:  "agent",
 							Image: "quay.io/blaqkube/mysql-agent:5f990ca",
+							VolumeMounts: []corev1.VolumeMount{
+								corev1.VolumeMount{
+									Name:      cr.Name + "-data",
+									MountPath: "/var/lib/mysql",
+								},
+							},
+						},
+					},
+				},
+			},
+			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
+				corev1.PersistentVolumeClaim{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: cr.Name + "-data",
+					},
+					Spec: corev1.PersistentVolumeClaimSpec{
+						AccessModes: []corev1.PersistentVolumeAccessMode{
+							corev1.ReadWriteOnce,
+						},
+						Resources: corev1.ResourceRequirements{
+							Requests: corev1.ResourceList{
+								corev1.ResourceStorage: *diskSize,
+							},
 						},
 					},
 				},
