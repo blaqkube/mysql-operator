@@ -133,12 +133,12 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 	api := agent.NewAPIClient(cfg)
 	backup := agent.Backup{
 		S3access: agent.S3Info{
-			Bucket: store.S3Access.Bucket,
-			Path:   store.S3Access.Path,
+			Bucket: store.Spec.S3Access.Bucket,
+			Path:   store.Spec.S3Access.Path,
 			Credentials: agent.S3Credentials{
-				AwsAccessKeyId:     store.S3Access.Credentials.AccessKey,
-				AwsSecretAccessKey: store.S3Access.Credentials.SecretKey,
-				Region:             store.S3Access.Credentials.Region,
+				AwsAccessKeyId:     store.Spec.S3Access.Credentials.AccessKey,
+				AwsSecretAccessKey: store.Spec.S3Access.Credentials.SecretKey,
+				Region:             store.Spec.S3Access.Credentials.Region,
 			},
 		},
 	}
