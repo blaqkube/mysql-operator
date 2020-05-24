@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/pkg/apis/mysql/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -82,6 +83,31 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 	}
 	if instance.Status.LastConnection == "" {
 		instance.Status.LastConnection = "Pending"
+		err = r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		// Store updated successfully - don't requeue
+		return reconcile.Result{}, nil
+	}
+	if instance.Status.LastConnection == "Pending" {
+		err = TestS3Connection(
+			instance.Spec.S3Access.Credentials.AccessKey,
+			instance.Spec.S3Access.Credentials.SecretKey,
+			instance.Spec.S3Access.Credentials.Region,
+			instance.Spec.S3Access.Bucket,
+			instance.Spec.S3Access.Path)
+		if err != nil {
+			reqLogger.Info(fmt.Sprintf("Error connecting to %s: %v", instance.Spec.S3Access.Bucket, err))
+			instance.Status.LastConnection = "Error"
+			err = r.client.Status().Update(context.TODO(), instance)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+			// Store updated successfully - don't requeue
+			return reconcile.Result{}, nil
+		}
+		instance.Status.LastConnection = "Success"
 		err = r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
 			return reconcile.Result{}, err
