@@ -131,9 +131,6 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 	labels := map[string]string{
 		"app": cr.Name,
 	}
-	dataLabels := map[string]string{
-		"name": "data",
-	}
 	diskSize := resource.NewQuantity(500*1024*1024, resource.BinarySI)
 	var replicas int32 = 1
 	return &appsv1.StatefulSet{
@@ -147,6 +144,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 			Selector: &metav1.LabelSelector{
 				MatchLabels: labels,
 			},
+			ServiceName: cr.Name,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: labels,
@@ -190,7 +188,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								corev1.VolumeMount{
-									Name:      "data",
+									Name:      cr.Name + "-data",
 									MountPath: "/var/lib/mysql",
 								},
 							},
@@ -200,7 +198,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 							Image: "quay.io/blaqkube/mysql-agent:5f990ca",
 							VolumeMounts: []corev1.VolumeMount{
 								corev1.VolumeMount{
-									Name:      "data",
+									Name:      cr.Name + "-data",
 									MountPath: "/var/lib/mysql",
 								},
 							},
@@ -211,7 +209,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
 				corev1.PersistentVolumeClaim{
 					ObjectMeta: metav1.ObjectMeta{
-						Labels: dataLabels,
+						Name: cr.Name + "-data",
 					},
 					Spec: corev1.PersistentVolumeClaimSpec{
 						AccessModes: []corev1.PersistentVolumeAccessMode{
