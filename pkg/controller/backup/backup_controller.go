@@ -131,7 +131,17 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 	cfg := agent.NewConfiguration()
 	cfg.BasePath = "http://" + pod.Status.PodIP + ":8080"
 	api := agent.NewAPIClient(cfg)
-	backup := agent.Backup{}
+	backup := agent.Backup{
+		S3access: agent.S3Info{
+			Bucket: store.S3Access.Bucket,
+			Path:   store.S3Access.Path,
+			Credentials: agent.S3Credentials{
+				AwsAccessKeyId:     store.S3Access.Credentials.AccessKey,
+				AwsSecretAccessKey: store.S3Access.Credentials.SecretKey,
+				Region:             store.S3Access.Credentials.Region,
+			},
+		},
+	}
 	b, _, err := api.MysqlApi.CreateBackup(context.TODO(), backup, nil)
 	if err != nil {
 		time := metav1.Now()
