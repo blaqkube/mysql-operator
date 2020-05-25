@@ -24,15 +24,32 @@ metadata:
           },
           "spec": {
             "database": "blue",
-            "image": "mysql:8",
             "password": "me",
-            "rootpwd": "root",
             "username": "me"
+          }
+        },
+        {
+          "apiVersion": "mysql.blaqkube.io/v1alpha1",
+          "kind": "Store",
+          "metadata": {
+            "name": "mybackupstore"
+          },
+          "spec": {
+            "backend": "s3",
+            "s3access": {
+              "bucket": "mybucket",
+              "credentials": {
+                "aws_access_key_id": "AKIAXXXXXXXXXXXXXXX",
+                "aws_secret_access_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                "region": "us-east-1"
+              },
+              "path": "/location"
+            }
           }
         }
       ]
     capabilities: Basic Install
-  name: mysql-operator.v0.0.3
+  name: mysql-operator.v0.0.4
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -45,6 +62,10 @@ spec:
     - description: Instance is the Schema for the instances API
       kind: Instance
       name: instances.mysql.blaqkube.io
+      version: v1alpha1
+    - description: Store is the Schema for the stores API
+      kind: Store
+      name: stores.mysql.blaqkube.io
       version: v1alpha1
   description: Manages MySQL databases and backups
   displayName: Mysql Operator
@@ -154,6 +175,7 @@ spec:
           resources:
           - '*'
           - backups
+          - stores
           verbs:
           - create
           - delete
@@ -182,5 +204,5 @@ spec:
   maturity: alpha
   provider:
     name: blaqkube
-  replaces: mysql-operator.v0.0.2
-  version: 0.0.3
+  replaces: mysql-operator.v0.0.3
+  version: 0.0.4

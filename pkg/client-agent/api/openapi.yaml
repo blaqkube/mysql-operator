@@ -150,6 +150,8 @@ components:
           bucket: backup.blaqkube.io
           path: /blue
       properties:
+        location:
+          type: string
         timestamp:
           format: date-time
           type: string

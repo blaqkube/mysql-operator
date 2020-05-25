@@ -30,9 +30,63 @@ spec:
           type: object
         spec:
           description: StoreSpec defines the desired state of Store
+          properties:
+            backend:
+              enum:
+              - s3
+              type: string
+            s3access:
+              description: S3Info defines the S3 bucket, path and connection
+              properties:
+                bucket:
+                  type: string
+                credentials:
+                  description: S3Credentials defines the credentials to connect to
+                    S3
+                  properties:
+                    aws_access_key_id:
+                      type: string
+                    aws_secret_access_key:
+                      type: string
+                    region:
+                      type: string
+                  required:
+                  - aws_access_key_id
+                  - aws_secret_access_key
+                  - region
+                  type: object
+                path:
+                  type: string
+              required:
+              - bucket
+              type: object
+          required:
+          - backend
           type: object
         status:
           description: StoreStatus defines the observed state of Store
+          properties:
+            conditions:
+              items:
+                description: ConditionStatus provide details about the observed conditions
+                properties:
+                  lastProbeTime:
+                    format: date-time
+                    type: string
+                  message:
+                    type: string
+                  status:
+                    type: string
+                type: object
+              type: array
+            lastCondition:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "operator-sdk generate k8s" to regenerate
+                code after modifying this file Add custom validation using kubebuilder
+                tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              type: string
+          required:
+          - lastCondition
           type: object
       type: object
   version: v1alpha1

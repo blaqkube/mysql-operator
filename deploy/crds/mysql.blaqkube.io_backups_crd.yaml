@@ -31,18 +31,49 @@ spec:
         spec:
           description: BackupSpec defines the desired state of Backup
           properties:
-            executor:
+            instance:
+              type: string
+            store:
               description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                 Important: Run "operator-sdk generate k8s" to regenerate code after
                 modifying this file Add custom validation using kubebuilder tags:
                 https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
-              properties:
-                type:
-                  type: string
-              type: object
+              type: string
+          required:
+          - instance
+          - store
           type: object
         status:
           description: BackupStatus defines the observed state of Backup
+          properties:
+            conditions:
+              items:
+                description: ConditionStatus provide details about the observed conditions
+                properties:
+                  lastProbeTime:
+                    format: date-time
+                    type: string
+                  message:
+                    type: string
+                  status:
+                    type: string
+                type: object
+              type: array
+            details:
+              description: BackupDetails defines the Backup Location and StartupTime
+              properties:
+                backupTime:
+                  format: date-time
+                  type: string
+                location:
+                  type: string
+              type: object
+            lastCondition:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "operator-sdk generate k8s" to regenerate
+                code after modifying this file Add custom validation using kubebuilder
+                tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              type: string
           type: object
       type: object
   version: v1alpha1

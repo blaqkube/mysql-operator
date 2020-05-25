@@ -3,6 +3,7 @@ package backup
 import (
 	"context"
 	"fmt"
+	"time"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/pkg/apis/mysql/v1alpha1"
 	agent "github.com/blaqkube/mysql-operator/pkg/client-agent"
@@ -130,6 +131,7 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 	cfg := agent.NewConfiguration()
 	cfg.BasePath = "http://" + pod.Status.PodIP + ":8080"
+	// cfg.BasePath = "http://localhost:8080"
 	api := agent.NewAPIClient(cfg)
 	backup := agent.Backup{
 		S3access: agent.S3Info{
@@ -158,18 +160,79 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 		}
 		return reconcile.Result{}, nil
 	}
-	time := metav1.Now()
+	t := metav1.Now()
+	details := mysqlv1alpha1.BackupDetails{
+		Location:   b.Location,
+		BackupTime: &metav1.Time{Time: b.Timestamp},
+	}
 	condition := mysqlv1alpha1.ConditionStatus{
-		LastProbeTime: &time,
+		LastProbeTime: &t,
 		Status:        b.Status,
 		Message:       b.Message,
 	}
 	instance.Status.LastCondition = b.Status
 	instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
+	instance.Status.Details = &details
 	err = r.client.Status().Update(context.TODO(), instance)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-
+	go r.MonitorBackup(request.NamespacedName, api.MysqlApi, b.Timestamp.Format(time.RFC3339))
 	return reconcile.Result{}, nil
+}
+
+func (r *ReconcileBackup) MonitorBackup(n types.NamespacedName, a *agent.MysqlApiService, backup string) {
+	reqLogger := log.WithValues("Request.Namespace", n.Namespace, "Request.Name", n.Name)
+	endTime := time.Now().Add(60 * time.Second)
+	succeeded := false
+	instance := &mysqlv1alpha1.Backup{}
+	err := r.client.Get(context.TODO(), n, instance)
+	if err != nil {
+		reqLogger.Info(fmt.Sprintf("Error querying backup: %v", err))
+		return
+	}
+	reqLogger.Info(fmt.Sprintf("Starting to check for backup, current status %s", instance.Status.LastCondition))
+	for time.Now().Before(endTime) && !succeeded {
+		reqLogger.Info(fmt.Sprintf("Loop..."))
+		b, _, err := a.GetBackupByName(context.TODO(), backup, nil)
+		if err != nil {
+			time.Sleep(2 * time.Second)
+			continue
+		}
+		lastCondition := instance.Status.LastCondition
+		if b.Status != lastCondition {
+			time := metav1.Now()
+			instance.Status.LastCondition = b.Status
+			condition := mysqlv1alpha1.ConditionStatus{
+				LastProbeTime: &time,
+				Status:        b.Status,
+				Message:       b.Message,
+			}
+			instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
+			err = r.client.Status().Update(context.TODO(), instance)
+			if err != nil {
+				instance.Status.LastCondition = lastCondition
+			}
+		}
+		if instance.Status.LastCondition == "Available" || instance.Status.LastCondition == "Failed" {
+			succeeded = true
+			break
+		}
+		time.Sleep(2 * time.Second)
+	}
+	if !succeeded {
+		time := metav1.Now()
+		instance.Status.LastCondition = "Failed"
+		condition := mysqlv1alpha1.ConditionStatus{
+			LastProbeTime: &time,
+			Status:        "Failed",
+			Message:       "Backup did not finish in the expected time",
+		}
+		instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
+		err = r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			reqLogger.Info(fmt.Sprintf("Could not update status %v", err))
+		}
+	}
+	reqLogger.Info("Monitor backup is now over...")
 }
