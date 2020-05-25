@@ -171,27 +171,60 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	go r.MonitorBackup(request.NamespacedName)
+	go r.MonitorBackup(request.NamespacedName, api.MysqlApi, time.Time(b.Timestamp).Format(time.RFC3339))
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileBackup) MonitorBackup(n types.NamespacedName) {
+func (r *ReconcileBackup) MonitorBackup(n types.NamespacedName, a *agent.MysqlApiService, backup string) {
 	reqLogger := log.WithValues("Request.Namespace", n.Namespace, "Request.Name", n.Name)
 	endTime := time.Now().Add(30 * time.Second)
-	for time.Now().Before(endTime) {
-		time.Sleep(time.Second)
-	}
+	succeeded := false
 	instance := &mysqlv1alpha1.Backup{}
 	err := r.client.Get(context.TODO(), n, instance)
 	if err != nil {
 		reqLogger.Info(fmt.Sprintf("Error querying backup: %v", err))
 		return
 	}
-	instance.Status.LastCondition = "Zzzzzzzzzzz"
-	err = r.client.Status().Update(context.TODO(), instance)
-	if err != nil {
-		reqLogger.Info(fmt.Sprintf("Error updating backup: %v", err))
-		return
+	for time.Now().Before(endTime) && !succeeded {
+		b, _, err := a.GetBackupByName(context.TODO(), backup, nil)
+		if err != nil {
+			time.Sleep(2 * time.Second)
+			continue
+		}
+		lastCondition := instance.Status.LastCondition
+		if b.Status != lastCondition {
+			time := metav1.Now()
+			instance.Status.LastCondition = b.Status
+			condition := mysqlv1alpha1.ConditionStatus{
+				LastProbeTime: &time,
+				Status:        b.Status,
+				Message:       b.Message,
+			}
+			instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
+			err = r.client.Status().Update(context.TODO(), instance)
+			if err != nil {
+				instance.Status.LastCondition = lastCondition
+			}
+		}
+		if instance.Status.LastCondition == "Available" || instance.Status.LastCondition == "Failed" {
+			succeeded = true
+			break
+		}
+		time.Sleep(2 * time.Second)
 	}
-	reqLogger.Info("Monitor backup with success...")
+	if !succeeded {
+		time := metav1.Now()
+		instance.Status.LastCondition = "Failed"
+		condition := mysqlv1alpha1.ConditionStatus{
+			LastProbeTime: &time,
+			Status:        "Failed",
+			Message:       "Backup did not finish in the expected time",
+		}
+		instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
+		err = r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			reqLogger.Info(fmt.Sprintf("Could not update status %v", err))
+		}
+	}
+	reqLogger.Info("Monitor backup is now over...")
 }

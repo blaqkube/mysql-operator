@@ -1,7 +1,7 @@
 /*
  * blaqkube MySQL agent
  *
- * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore 
+ * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore
  *
  * API version: 0.0.1
  * Contact: contact@blaqkube.io
@@ -9,13 +9,15 @@
  */
 
 package openapi
+
 import (
 	"time"
 )
+
 // Backup struct for Backup
 type Backup struct {
 	Timestamp time.Time `json:"timestamp,omitempty"`
-	S3access S3Info `json:"s3access"`
+	S3access  S3Info    `json:"s3access"`
 	// backup status
 	Status string `json:"status,omitempty"`
 	// keep message in case of an error

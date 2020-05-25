@@ -1,7 +1,7 @@
 /*
  * blaqkube MySQL agent
  *
- * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore 
+ * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore
  *
  * API version: 0.0.1
  * Contact: contact@blaqkube.io
@@ -16,6 +16,7 @@ import (
 	_nethttp "net/http"
 	_neturl "net/url"
 	"strings"
+
 	"github.com/antihax/optional"
 )
 
@@ -29,7 +30,7 @@ type MysqlApiService service
 
 // CreateBackupOpts Optional parameters for the method 'CreateBackup'
 type CreateBackupOpts struct {
-    ApiKey optional.String
+	ApiKey optional.String
 }
 
 /*
@@ -37,7 +38,7 @@ CreateBackup create an on-demand backup
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param backup Create a manual backup
  * @param optional nil or *CreateBackupOpts - Optional Parameters:
- * @param "ApiKey" (optional.String) - 
+ * @param "ApiKey" (optional.String) -
 @return Backup
 */
 func (a *MysqlApiService) CreateBackup(ctx _context.Context, backup Backup, localVarOptionals *CreateBackupOpts) (Backup, *_nethttp.Response, error) {
@@ -128,7 +129,7 @@ func (a *MysqlApiService) CreateBackup(ctx _context.Context, backup Backup, loca
 
 // DeleteBackupOpts Optional parameters for the method 'DeleteBackup'
 type DeleteBackupOpts struct {
-    ApiKey optional.String
+	ApiKey optional.String
 }
 
 /*
@@ -136,7 +137,7 @@ DeleteBackup Deletes a backup
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param backup Backup to delete
  * @param optional nil or *DeleteBackupOpts - Optional Parameters:
- * @param "ApiKey" (optional.String) - 
+ * @param "ApiKey" (optional.String) -
 */
 func (a *MysqlApiService) DeleteBackup(ctx _context.Context, backup string, localVarOptionals *DeleteBackupOpts) (*_nethttp.Response, error) {
 	var (
@@ -149,7 +150,7 @@ func (a *MysqlApiService) DeleteBackup(ctx _context.Context, backup string, loca
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/backup/{backup}"
-	localVarPath = strings.Replace(localVarPath, "{"+"backup"+"}", _neturl.QueryEscape(parameterToString(backup, "")) , -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"backup"+"}", _neturl.QueryEscape(parameterToString(backup, "")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -216,7 +217,7 @@ func (a *MysqlApiService) DeleteBackup(ctx _context.Context, backup string, loca
 
 // GetBackupByNameOpts Optional parameters for the method 'GetBackupByName'
 type GetBackupByNameOpts struct {
-    ApiKey optional.String
+	ApiKey optional.String
 }
 
 /*
@@ -225,7 +226,7 @@ Returns a single backup set of properties
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param backup Name of the backup to return
  * @param optional nil or *GetBackupByNameOpts - Optional Parameters:
- * @param "ApiKey" (optional.String) - 
+ * @param "ApiKey" (optional.String) -
 @return Backup
 */
 func (a *MysqlApiService) GetBackupByName(ctx _context.Context, backup string, localVarOptionals *GetBackupByNameOpts) (Backup, *_nethttp.Response, error) {
@@ -240,7 +241,7 @@ func (a *MysqlApiService) GetBackupByName(ctx _context.Context, backup string, l
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/backup/{backup}"
-	localVarPath = strings.Replace(localVarPath, "{"+"backup"+"}", _neturl.QueryEscape(parameterToString(backup, "")) , -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"backup"+"}", _neturl.QueryEscape(parameterToString(backup, "")), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
