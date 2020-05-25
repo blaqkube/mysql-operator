@@ -34,23 +34,15 @@ spec:
             database:
               description: New Database name
               type: string
-            image:
-              description: Image name with version
-              type: string
             password:
               description: Database additional user password (base64 encoded)
-              type: string
-            rootpwd:
-              description: Root user password
               type: string
             username:
               description: Database additional user details (base64 encoded)
               type: string
           required:
           - database
-          - image
           - password
-          - rootpwd
           - username
           type: object
         status:
