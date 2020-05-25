@@ -7,6 +7,13 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+// RestoreSpec defines the backup location when create a instance with a restore
+type RestoreSpec struct {
+	Store string `json:"store,omitempty"`
+
+	FilePath string `json:"filePath,omitempty"`
+}
+
 // InstanceSpec defines the desired state of Instance
 type InstanceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -21,6 +28,9 @@ type InstanceSpec struct {
 
 	// New Database name
 	Database string `json:"database"`
+
+	// Restore when starting from an existing configuration
+	Restore RestoreSpec `json:"restore,omitempty"`
 }
 
 // InstanceStatus defines the observed state of Instance

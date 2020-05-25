@@ -37,6 +37,14 @@ spec:
             password:
               description: Database additional user password (base64 encoded)
               type: string
+            restore:
+              description: Restore when starting from an existing configuration
+              properties:
+                filePath:
+                  type: string
+                store:
+                  type: string
+              type: object
             username:
               description: Database additional user details (base64 encoded)
               type: string

@@ -6,7 +6,7 @@ spec:
   backend: s3
   s3access:
     bucket: mybucket
-    credentials:
+    awsConfig:
       aws_access_key_id: AKIAXXXXXXXXXXXXXXX
       aws_secret_access_key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       region: us-east-1

@@ -10,7 +10,7 @@
 
 package openapi
 
-type S3Credentials struct {
+type AwsConfig struct {
 
 	AwsAccessKeyId string `json:"aws_access_key_id,omitempty"`
 

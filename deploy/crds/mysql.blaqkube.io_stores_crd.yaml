@@ -38,9 +38,7 @@ spec:
             s3access:
               description: S3Info defines the S3 bucket, path and connection
               properties:
-                bucket:
-                  type: string
-                credentials:
+                awsConfig:
                   description: S3Credentials defines the credentials to connect to
                     S3
                   properties:
@@ -55,6 +53,8 @@ spec:
                   - aws_secret_access_key
                   - region
                   type: object
+                bucket:
+                  type: string
                 path:
                   type: string
               required:

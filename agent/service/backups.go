@@ -64,7 +64,7 @@ func ExecuteBackup(b openapi.Backup) {
 	mutex.Lock()
 	backups[t] = b
 	mutex.Unlock()
-	err := PushS3File(filename, b.S3access.Credentials.AwsAccessKeyId, b.S3access.Credentials.AwsSecretAccessKey, b.S3access.Credentials.Region, b.S3access.Bucket, b.S3access.Path)
+	err := PushS3File(filename, b.S3access.awsConfig.AwsAccessKeyId, b.S3access.awsConfig.AwsSecretAccessKey, b.S3access.awsConfig.Region, b.S3access.Bucket, b.S3access.Path)
 	b.Status = "Available"
 	if err != nil {
 		b.Status = "Failed"

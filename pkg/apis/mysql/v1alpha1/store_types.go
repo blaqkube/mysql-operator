@@ -5,7 +5,7 @@ import (
 )
 
 // S3Credentials defines the credentials to connect to S3
-type S3Credentials struct {
+type AWSConfig struct {
 	AccessKey string `json:"aws_access_key_id"`
 	SecretKey string `json:"aws_secret_access_key"`
 	Region    string `json:"region"`
@@ -13,9 +13,9 @@ type S3Credentials struct {
 
 // S3Info defines the S3 bucket, path and connection
 type S3Info struct {
-	Bucket      string        `json:"bucket"`
-	Path        string        `json:"path,omitempty"`
-	Credentials S3Credentials `json:"credentials,omitempty"`
+	Bucket    string    `json:"bucket"`
+	Path      string    `json:"path,omitempty"`
+	AWSConfig AWSConfig `json:"awsConfig,omitempty"`
 }
 
 // StoreSpec defines the desired state of Store
