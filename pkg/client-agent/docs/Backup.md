@@ -4,6 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**Location** | **string** |  | [optional] 
 **Timestamp** | [**time.Time**](time.Time.md) |  | [optional] 
 **S3access** | [**S3Info**](S3Info.md) |  | 
 **Status** | **string** | backup status | [optional] 

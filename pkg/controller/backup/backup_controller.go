@@ -131,7 +131,7 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 	cfg := agent.NewConfiguration()
 	cfg.BasePath = "http://" + pod.Status.PodIP + ":8080"
-	# cfg.BasePath = "http://localhost:8080"
+	// cfg.BasePath = "http://localhost:8080"
 	api := agent.NewAPIClient(cfg)
 	backup := agent.Backup{
 		S3access: agent.S3Info{
@@ -161,6 +161,10 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, nil
 	}
 	t := metav1.Now()
+	details := mysqlv1alpha1.BackupDetails{
+		Location:   b.Location,
+		BackupTime: &metav1.Time{Time: b.Timestamp},
+	}
 	condition := mysqlv1alpha1.ConditionStatus{
 		LastProbeTime: &t,
 		Status:        b.Status,
@@ -168,6 +172,7 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 	instance.Status.LastCondition = b.Status
 	instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
+	instance.Status.Details = &details
 	err = r.client.Status().Update(context.TODO(), instance)
 	if err != nil {
 		return reconcile.Result{}, err

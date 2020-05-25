@@ -44,11 +44,12 @@ func InitializeBackup(b openapi.Backup) (*openapi.Backup, error) {
 
 func ExecuteBackup(b openapi.Backup) {
 	t := b.Timestamp
+	filename := `backup-` + t.Format("20060102150405") + `.sql`
 	b.Status = "Running"
+	b.Location = "s3://" + b.S3access.Bucket + b.S3access.Path + "/" + filename
 	mutex.Lock()
 	backups[t] = b
 	mutex.Unlock()
-	filename := `backup-` + t.Format("20060102150405") + `.sql`
 	cmd := exec.Command("mysqldump", "--all-databases", "--lock-all-tables", "--host=127.0.0.1", `--result-file=/tmp/`+filename)
 	if err := cmd.Run(); err != nil {
 		b.Status = "Failed"
