@@ -131,6 +131,7 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 	cfg := agent.NewConfiguration()
 	cfg.BasePath = "http://" + pod.Status.PodIP + ":8080"
+	# cfg.BasePath = "http://localhost:8080"
 	api := agent.NewAPIClient(cfg)
 	backup := agent.Backup{
 		S3access: agent.S3Info{
@@ -177,7 +178,7 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 
 func (r *ReconcileBackup) MonitorBackup(n types.NamespacedName, a *agent.MysqlApiService, backup string) {
 	reqLogger := log.WithValues("Request.Namespace", n.Namespace, "Request.Name", n.Name)
-	endTime := time.Now().Add(30 * time.Second)
+	endTime := time.Now().Add(60 * time.Second)
 	succeeded := false
 	instance := &mysqlv1alpha1.Backup{}
 	err := r.client.Get(context.TODO(), n, instance)
@@ -185,7 +186,9 @@ func (r *ReconcileBackup) MonitorBackup(n types.NamespacedName, a *agent.MysqlAp
 		reqLogger.Info(fmt.Sprintf("Error querying backup: %v", err))
 		return
 	}
+	reqLogger.Info(fmt.Sprintf("Starting to check for backup, current status %s", instance.Status.LastCondition))
 	for time.Now().Before(endTime) && !succeeded {
+		reqLogger.Info(fmt.Sprintf("Loop..."))
 		b, _, err := a.GetBackupByName(context.TODO(), backup, nil)
 		if err != nil {
 			time.Sleep(2 * time.Second)
