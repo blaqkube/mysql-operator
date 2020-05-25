@@ -124,7 +124,7 @@ paths:
       - mysql
 components:
   schemas:
-    S3Credentials:
+    AWSConfig:
       properties:
         aws_access_key_id:
           type: string
@@ -139,8 +139,8 @@ components:
           type: string
         path:
           type: string
-        credentials:
-          $ref: '#/components/schemas/S3Credentials'
+        awsConfig:
+          $ref: '#/components/schemas/AWSConfig'
       required:
       - bucket
       type: object

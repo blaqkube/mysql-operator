@@ -99,9 +99,9 @@ func (r *ReconcileStore) Reconcile(request reconcile.Request) (reconcile.Result,
 			Message:       "",
 		}
 		err = TestS3Connection(
-			instance.Spec.S3Access.Credentials.AccessKey,
-			instance.Spec.S3Access.Credentials.SecretKey,
-			instance.Spec.S3Access.Credentials.Region,
+			instance.Spec.S3Access.AWSConfig.AccessKey,
+			instance.Spec.S3Access.AWSConfig.SecretKey,
+			instance.Spec.S3Access.AWSConfig.Region,
 			instance.Spec.S3Access.Bucket,
 			instance.Spec.S3Access.Path)
 		if err != nil {
