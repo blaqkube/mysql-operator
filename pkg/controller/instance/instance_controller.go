@@ -195,7 +195,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 						},
 						{
 							Name:  "agent",
-							Image: "quay.io/blaqkube/mysql-agent:3d8b324",
+							Image: "quay.io/blaqkube/mysql-agent:efe9c70",
 							VolumeMounts: []corev1.VolumeMount{
 								corev1.VolumeMount{
 									Name:      cr.Name + "-data",
