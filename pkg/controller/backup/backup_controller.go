@@ -159,9 +159,9 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 		}
 		return reconcile.Result{}, nil
 	}
-	time := metav1.Now()
+	t := metav1.Now()
 	condition := mysqlv1alpha1.ConditionStatus{
-		LastProbeTime: &time,
+		LastProbeTime: &t,
 		Status:        b.Status,
 		Message:       b.Message,
 	}
@@ -171,7 +171,7 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	go r.MonitorBackup(request.NamespacedName, api.MysqlApi, time.Time(b.Timestamp).Format(time.RFC3339))
+	go r.MonitorBackup(request.NamespacedName, api.MysqlApi, b.Timestamp.Format(time.RFC3339))
 	return reconcile.Result{}, nil
 }
 
