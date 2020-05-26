@@ -1,0 +1,47 @@
+---
+title: Releasing the operator
+---
+
+There are 4 components to release as part of the Operator:
+
+- The mysql-agent is located in the agent directory. It is started as a sidecar
+  of the database StatefulSet and provide advanced features like backup and
+  restore. It is released as a container image
+- `Controllers` are logic that interact with Kubernetes from changes in the
+  configuration. It is released as a container image
+- The `Operator` reference the controller and includes the manifests including
+  CRDs, permissions and the schedule of `Controllers`. It is also packaged and
+  released as a container image
+- The `Registry` contains references to all the operator version. It is 
+  also built as a container image and deployed on the blaqkube infrastructure.
+
+## Build and release the agent
+
+see `make build` in the agent directory
+
+## Build and release Controllers
+
+see `make build` in the operator directory
+
+## Build and release the Operator
+
+see `make bundle` in the operator directory
+
+## Build and release the Registry
+
+see `make build` in the `registry` directory
+
+## Check the Operator get updated
+
+You can check your subscription to check that the Operator has been updated.
+The subscription should show the version is the last one:
+
+```shell
+kubectl get sub -n mysql -o yaml
+```
+
+> Note: there is a bug [1347](https://github.com/operator-framework/operator-lifecycle-manager/issues/1347)
+> with OLM previous than 0.15.0 that prevents `clusterServiceVersionNames` to
+> be set correctly and prevent the upgrade of the operator. Make sure you use
+> OLM 0.15.0+
+
