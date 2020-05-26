@@ -132,7 +132,7 @@ kubectl apply -f mysql.blaqkube.io_instances_crd.yaml
 You should then be able to create a role with the right permissions and deploy
 the operator:
 
-```
+```shell
 cd $(git rev-parse --show-toplevel)/deploy/crds
 kubectl apply -f role.yaml
 kubectl apply -f role_binding.yaml
