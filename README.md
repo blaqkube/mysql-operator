@@ -1,7 +1,7 @@
 `blaqkube/mysql-operator` is a Kubernetes operator that manages MySQL instances
 and their backups. It supports
 [MySQL Community Edition](https://www.mysql.com/products/community/) and is
-built with [Operator SDK](https://sdk.operatorframework.io/)
+built with the [Operator SDK](https://sdk.operatorframework.io/)
 
 ## Using the MySQL Operator
 
