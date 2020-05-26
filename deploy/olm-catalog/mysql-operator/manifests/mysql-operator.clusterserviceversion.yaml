@@ -25,6 +25,10 @@ metadata:
           "spec": {
             "database": "blue",
             "password": "me",
+            "restore": {
+              "filePath": "/location/backup-20200526110950.sql",
+              "store": "docs"
+            },
             "username": "me"
           }
         },
@@ -37,19 +41,19 @@ metadata:
           "spec": {
             "backend": "s3",
             "s3access": {
-              "bucket": "mybucket",
-              "credentials": {
+              "awsConfig": {
                 "aws_access_key_id": "AKIAXXXXXXXXXXXXXXX",
                 "aws_secret_access_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
                 "region": "us-east-1"
               },
+              "bucket": "mybucket",
               "path": "/location"
             }
           }
         }
       ]
     capabilities: Basic Install
-  name: mysql-operator.v0.0.4
+  name: mysql-operator.v0.0.5
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -204,5 +208,5 @@ spec:
   maturity: alpha
   provider:
     name: blaqkube
-  replaces: mysql-operator.v0.0.3
-  version: 0.0.4
+  replaces: mysql-operator.v0.0.4
+  version: 0.0.5

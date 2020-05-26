@@ -34,28 +34,43 @@ spec:
             database:
               description: New Database name
               type: string
-            image:
-              description: Image name with version
-              type: string
             password:
               description: Database additional user password (base64 encoded)
               type: string
-            rootpwd:
-              description: Root user password
-              type: string
+            restore:
+              description: Restore when starting from an existing configuration
+              properties:
+                filePath:
+                  type: string
+                store:
+                  type: string
+              type: object
             username:
               description: Database additional user details (base64 encoded)
               type: string
           required:
           - database
-          - image
           - password
-          - rootpwd
           - username
           type: object
         status:
           description: InstanceStatus defines the observed state of Instance
           properties:
+            conditions:
+              items:
+                description: ConditionStatus provide details about the observed conditions
+                properties:
+                  lastProbeTime:
+                    format: date-time
+                    type: string
+                  message:
+                    type: string
+                  status:
+                    type: string
+                type: object
+              type: array
+            lastCondition:
+              type: string
             node:
               description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                 of cluster Important: Run "operator-sdk generate k8s" to regenerate
