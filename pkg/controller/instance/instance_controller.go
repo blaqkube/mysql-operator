@@ -83,7 +83,7 @@ type ReconcileInstance struct {
 func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Instance")
-
+	
 	// Fetch the Instance instance
 	instance := &mysqlv1alpha1.Instance{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
@@ -120,7 +120,6 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 			// Store updated successfully - don't requeue
 			return reconcile.Result{}, nil
 		}
-		store := &mysqlv1alpha1.Store{}
 		err := r.client.Get(
 			context.TODO(),
 			client.ObjectKey{Namespace: request.Namespace, Name: storeName},
@@ -179,6 +178,9 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 
 // newStatefulSetForCR returns a busybox pod with the same name/namespace as the cr
 func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, filePath string) *appsv1.StatefulSet {
+	reqLogger := log.WithValues("Request.Namespace", "default")
+	reqLogger.Info(fmt.Sprintf("Reconciling Instance for Bucket %s", store.Spec.S3Access.Bucket))
+	tag := "7d00971"
 	labels := map[string]string{
 		"app": cr.Name,
 	}
@@ -190,7 +192,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 		initContainers = []corev1.Container{
 			{
 				Name:  "restore",
-				Image: "quay.io/blaqkube/mysql-agent:efe9c70",
+				Image: "quay.io/blaqkube/mysql-agent:" + tag,
 				Env: []corev1.EnvVar{
 					corev1.EnvVar{
 						Name:  "AWS_REGION",
@@ -300,7 +302,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 						},
 						{
 							Name:  "agent",
-							Image: "quay.io/blaqkube/mysql-agent:efe9c70",
+							Image: "quay.io/blaqkube/mysql-agent:" + tag,
 							VolumeMounts: []corev1.VolumeMount{
 								corev1.VolumeMount{
 									Name:      cr.Name + "-data",
