@@ -3,7 +3,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL=registry
 
 SHA := $(shell git log -1 --format='%h' .)
-VERSION := $(shell head -n 1 ../VERSION)
+VERSION := $(shell head -n 1 ../operator/VERSION)
 
 .PHONY: registry
 registry:
