@@ -83,7 +83,7 @@ type ReconcileInstance struct {
 func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Instance")
-	
+
 	// Fetch the Instance instance
 	instance := &mysqlv1alpha1.Instance{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
@@ -216,17 +216,13 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 					},
 					corev1.EnvVar{
 						Name:  "FILENAME",
-						Value: "/restore/demo.sql",
+						Value: "/docker-entrypoint-initdb.d/init-script.sql",
 					},
 				},
 				VolumeMounts: []corev1.VolumeMount{
 					corev1.VolumeMount{
-						Name:      cr.Name + "-data",
-						MountPath: "/var/lib/mysql",
-					},
-					corev1.VolumeMount{
 						Name:      cr.Name + "-init",
-						MountPath: "/restore",
+						MountPath: "/docker-entrypoint-initdb.d",
 					},
 				},
 				Command: []string{
@@ -296,7 +292,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 								},
 								corev1.VolumeMount{
 									Name:      cr.Name + "-init",
-									MountPath: "/restore",
+									MountPath: "/docker-entrypoint-initdb.d",
 								},
 							},
 						},
