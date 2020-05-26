@@ -6,3 +6,6 @@ spec:
   database: blue
   username: me
   password: me
+  restore:
+    store: docs
+    filePath: "/location/backup-20200526110950.sql"
