@@ -105,7 +105,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: mysql-operator
-                image: quay.io/blaqkube/mysql-controller:61c2421
+                image: quay.io/blaqkube/mysql-controller:2eb2fcc
                 imagePullPolicy: Always
                 name: mysql-operator
                 resources: {}
