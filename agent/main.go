@@ -11,6 +11,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 
@@ -19,6 +20,13 @@ import (
 )
 
 func main() {
+	boolPtr := flag.Bool("restore", false, "restore the database from store")
+	flag.Parse()
+	if *boolPtr {
+		log.Printf("Restore database...")
+		return
+	}
+
 	log.Printf("Server started")
 
 	MysqlApiService := service.NewMysqlApiService()
