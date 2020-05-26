@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 )
 
@@ -64,7 +65,7 @@ func ExecuteBackup(b openapi.Backup) {
 	mutex.Lock()
 	backups[t] = b
 	mutex.Unlock()
-	err := PushS3File(filename, b.S3access.awsConfig.AwsAccessKeyId, b.S3access.awsConfig.AwsSecretAccessKey, b.S3access.awsConfig.Region, b.S3access.Bucket, b.S3access.Path)
+	err := PushS3File(filename, b.S3access.AwsConfig.AwsAccessKeyId, b.S3access.AwsConfig.AwsSecretAccessKey, b.S3access.AwsConfig.Region, b.S3access.Bucket, b.S3access.Path)
 	b.Status = "Available"
 	if err != nil {
 		b.Status = "Failed"
@@ -107,5 +108,24 @@ func PushS3File(filename, accesskey, secretkey, region, bucket, path string) err
 		ContentType:        aws.String(http.DetectContentType(buffer)),
 		ContentDisposition: aws.String("attachment"),
 	})
+	return err
+}
+
+func PullS3File(filename, bucket, location string) error {
+	sess, err := session.NewSession(&aws.Config{})
+	if err != nil {
+		return err
+	}
+	downloader := s3manager.NewDownloader(sess)
+
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	_, err = downloader.Download(file,
+		&s3.GetObjectInput{
+			Bucket: aws.String(bucket),
+			Key:    aws.String(location),
+		})
 	return err
 }

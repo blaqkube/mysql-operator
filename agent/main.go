@@ -11,14 +11,36 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
+	"os"
+	"fmt"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	service "github.com/blaqkube/mysql-operator/agent/service"
 )
 
 func main() {
+	boolPtr := flag.Bool("restore", false, "restore the database from store")
+	flag.Parse()
+	if *boolPtr {
+		log.Printf("Restore database...")
+		filename := os.Getenv("FILENAME")
+		bucket := os.Getenv("BUCKET")
+		filePath := os.Getenv("FILEPATH")
+		if filePath == "" || bucket == "" || filename == "" {
+			fmt.Println("Missing parameter, check FILENAME, BUCKET and FILEPATH are set")
+			os.Exit(1)
+		}
+		err := service.PullS3File(filename, bucket, filePath)
+		if err != nil {
+			fmt.Printf("Error while reading s3://%s%s: %v\n", bucket, filePath, err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	log.Printf("Server started")
 
 	MysqlApiService := service.NewMysqlApiService()

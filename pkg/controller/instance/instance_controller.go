@@ -2,6 +2,7 @@ package instance
 
 import (
 	"context"
+	"fmt"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/pkg/apis/mysql/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -82,7 +83,7 @@ type ReconcileInstance struct {
 func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling Instance")
-
+	
 	// Fetch the Instance instance
 	instance := &mysqlv1alpha1.Instance{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
@@ -97,8 +98,57 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 		return reconcile.Result{}, err
 	}
 
-	// Define a new Pod object
-	statefulSet := newStatefulSetForCR(instance)
+	storeName := instance.Spec.Restore.Store
+	filePath := instance.Spec.Restore.FilePath
+	store := &mysqlv1alpha1.Store{}
+	if storeName != "" {
+		if filePath == "" {
+			if instance.Status.LastCondition == "Error" {
+				return reconcile.Result{}, nil
+			}
+			t := metav1.Now()
+			condition := mysqlv1alpha1.ConditionStatus{
+				LastProbeTime: &t,
+				Status:        "Error",
+				Message:       "Restore file filePath should not be empty",
+			}
+			instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
+			err = r.client.Status().Update(context.TODO(), instance)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+			// Store updated successfully - don't requeue
+			return reconcile.Result{}, nil
+		}
+		err := r.client.Get(
+			context.TODO(),
+			client.ObjectKey{Namespace: request.Namespace, Name: storeName},
+			store,
+		)
+		if err != nil {
+			if instance.Status.LastCondition == "Error" {
+				return reconcile.Result{}, nil
+			}
+			instance.Status.LastCondition = "Error"
+			t := metav1.Now()
+			condition := mysqlv1alpha1.ConditionStatus{
+				LastProbeTime: &t,
+				Status:        "Error",
+				Message:       fmt.Sprintf("Could not find store %s", storeName),
+			}
+			instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
+			err = r.client.Status().Update(context.TODO(), instance)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+			// Store updated successfully - don't requeue
+			return reconcile.Result{}, nil
+		}
+	}
+	if storeName == "" {
+		store = nil
+	}
+	statefulSet := newStatefulSetForCR(instance, store, filePath)
 
 	// Set Instance instance as the owner and controller
 	if err := controllerutil.SetControllerReference(instance, statefulSet, r.scheme); err != nil {
@@ -127,12 +177,65 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 }
 
 // newStatefulSetForCR returns a busybox pod with the same name/namespace as the cr
-func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
+func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, filePath string) *appsv1.StatefulSet {
+	reqLogger := log.WithValues("Request.Namespace", "default")
+	reqLogger.Info(fmt.Sprintf("Reconciling Instance for Bucket %s", store.Spec.S3Access.Bucket))
+	tag := "204c6d3"
 	labels := map[string]string{
 		"app": cr.Name,
 	}
 	diskSize := resource.NewQuantity(500*1024*1024, resource.BinarySI)
+	restoreDiskSize := resource.NewQuantity(500*1024*1024, resource.BinarySI)
 	var replicas int32 = 1
+	initContainers := []corev1.Container{}
+	if store != nil {
+		initContainers = []corev1.Container{
+			{
+				Name:  "restore",
+				Image: "quay.io/blaqkube/mysql-agent:" + tag,
+				Env: []corev1.EnvVar{
+					corev1.EnvVar{
+						Name:  "AWS_REGION",
+						Value: store.Spec.S3Access.AWSConfig.Region,
+					},
+					corev1.EnvVar{
+						Name:  "AWS_ACCESS_KEY_ID",
+						Value: store.Spec.S3Access.AWSConfig.AccessKey,
+					},
+					corev1.EnvVar{
+						Name:  "AWS_SECRET_ACCESS_KEY",
+						Value: store.Spec.S3Access.AWSConfig.SecretKey,
+					},
+					corev1.EnvVar{
+						Name:  "BUCKET",
+						Value: store.Spec.S3Access.Bucket,
+					},
+					corev1.EnvVar{
+						Name:  "FILEPATH",
+						Value: filePath,
+					},
+					corev1.EnvVar{
+						Name:  "FILENAME",
+						Value: "/restore/demo.sql",
+					},
+				},
+				VolumeMounts: []corev1.VolumeMount{
+					corev1.VolumeMount{
+						Name:      cr.Name + "-data",
+						MountPath: "/var/lib/mysql",
+					},
+					corev1.VolumeMount{
+						Name:      cr.Name + "-init",
+						MountPath: "/restore",
+					},
+				},
+				Command: []string{
+					"./mysql-agent",
+					"-restore",
+				},
+			},
+		}
+	}
 	return &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "",
@@ -191,11 +294,15 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 									Name:      cr.Name + "-data",
 									MountPath: "/var/lib/mysql",
 								},
+								corev1.VolumeMount{
+									Name:      cr.Name + "-init",
+									MountPath: "/restore",
+								},
 							},
 						},
 						{
 							Name:  "agent",
-							Image: "quay.io/blaqkube/mysql-agent:efe9c70",
+							Image: "quay.io/blaqkube/mysql-agent:" + tag,
 							VolumeMounts: []corev1.VolumeMount{
 								corev1.VolumeMount{
 									Name:      cr.Name + "-data",
@@ -204,6 +311,7 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 							},
 						},
 					},
+					InitContainers: initContainers,
 				},
 			},
 			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
@@ -218,6 +326,21 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance) *appsv1.StatefulSet {
 						Resources: corev1.ResourceRequirements{
 							Requests: corev1.ResourceList{
 								corev1.ResourceStorage: *diskSize,
+							},
+						},
+					},
+				},
+				corev1.PersistentVolumeClaim{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: cr.Name + "-init",
+					},
+					Spec: corev1.PersistentVolumeClaimSpec{
+						AccessModes: []corev1.PersistentVolumeAccessMode{
+							corev1.ReadWriteOnce,
+						},
+						Resources: corev1.ResourceRequirements{
+							Requests: corev1.ResourceList{
+								corev1.ResourceStorage: *restoreDiskSize,
 							},
 						},
 					},
