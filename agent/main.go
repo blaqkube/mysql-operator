@@ -24,6 +24,17 @@ func main() {
 	flag.Parse()
 	if *boolPtr {
 		log.Printf("Restore database...")
+		filename := os.Getenv("FILENAME")
+		bucket := os.Getenv("BUCKET")
+		filePath := os.Getenv("FILEPATH")
+		if filePath == "" || bucket == "" || filename == "" {
+			fmt.Println("Missing parameter, check FILENAME, BUCKET and FILEPATH are set"
+			os.Exit(1)
+		}
+		err := service.PullS3File(filename, bucket, filePath)
+		if err != nil {
+			os.Exit(1)
+		}
 		return
 	}
 
