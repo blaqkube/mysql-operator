@@ -180,7 +180,7 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, filePath string) *appsv1.StatefulSet {
 	reqLogger := log.WithValues("Request.Namespace", "default")
 	reqLogger.Info(fmt.Sprintf("Reconciling Instance for Bucket %s", store.Spec.S3Access.Bucket))
-	tag := "7d00971"
+	tag := "ae7161b"
 	labels := map[string]string{
 		"app": cr.Name,
 	}

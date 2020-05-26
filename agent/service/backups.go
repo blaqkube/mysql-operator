@@ -118,7 +118,10 @@ func PullS3File(filename, bucket, location string) error {
 	}
 	downloader := s3manager.NewDownloader(sess)
 
-	file, err := os.Create("/tmp/" + filename)
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
 	_, err = downloader.Download(file,
 		&s3.GetObjectInput{
 			Bucket: aws.String(bucket),
