@@ -9,8 +9,8 @@
  */
 
 package openapi
-// S3Credentials struct for S3Credentials
-type S3Credentials struct {
+// AwsConfig struct for AwsConfig
+type AwsConfig struct {
 	AwsAccessKeyId string `json:"aws_access_key_id,omitempty"`
 	AwsSecretAccessKey string `json:"aws_secret_access_key,omitempty"`
 	Region string `json:"region,omitempty"`
