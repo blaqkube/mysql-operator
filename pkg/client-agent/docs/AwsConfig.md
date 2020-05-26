@@ -1,4 +1,4 @@
-# S3Credentials
+# AwsConfig
 
 ## Properties
 

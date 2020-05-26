@@ -13,5 +13,5 @@ package openapi
 type S3Info struct {
 	Bucket string `json:"bucket"`
 	Path string `json:"path,omitempty"`
-	Credentials S3Credentials `json:"credentials,omitempty"`
+	AwsConfig AwsConfig `json:"awsConfig,omitempty"`
 }
