@@ -137,7 +137,7 @@ func (r *ReconcileBackup) Reconcile(request reconcile.Request) (reconcile.Result
 		S3access: agent.S3Info{
 			Bucket: store.Spec.S3Access.Bucket,
 			Path:   store.Spec.S3Access.Path,
-			Credentials: agent.S3Credentials{
+			AwsConfig: agent.AwsConfig{
 				AwsAccessKeyId:     store.Spec.S3Access.AWSConfig.AccessKey,
 				AwsSecretAccessKey: store.Spec.S3Access.AWSConfig.SecretKey,
 				Region:             store.Spec.S3Access.AWSConfig.Region,
