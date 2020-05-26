@@ -8,13 +8,13 @@ Manager (OLM). The later option is the preferred way to proceed as it will not
 only proceed with the installation but will also help with upgrading the tool
 later on.
 
-## Installation with OLM
+# Installation with OLM
 
 To install `blaqkube/mysql-operator` with OLM, you should have it installed on
 your cluster. Once done, you should be able to connect to the blaqkube registry
 and subscribe to the Operator.
 
-### Installing OLM
+## Installing OLM
 
 The simplest way to install OLM on your cluster is:
 
@@ -31,7 +31,7 @@ operator-sdk olm status
 > use OLM 0.15+. This is due to issue
 > [#1347](https://github.com/operator-framework/operator-lifecycle-manager/issues/1347)
 
-### Connecting to the registry
+## Connecting to the registry
 
 In the following section, we will assume we work in the default namespace. If you want
 to use an other namespace, change the configuration accordingly.
@@ -101,13 +101,13 @@ EOF
 Once done with the installation, you can create the resources as described in
 [next section](/use/resources) of the documentation
 
-## Manual Installation
+# Manual Installation
 
 Manual installation consists in cloning the git repository first; install the
 Custom Resource Definitions, grant the required permission and starting the
 controller.
 
-### Cloning the project
+## Cloning the project
 
 Use `git` to clone the project like below:
 
@@ -116,7 +116,7 @@ git clone https://github.com/blaqkube/mysql-operator.git
 cd mysql-operator
 ```
 
-### Installing CRDs
+## Installing CRDs
 
 Once done, you should install the CRDs like below:
 
@@ -127,7 +127,7 @@ kubectl apply -f mysql.blaqkube.io_stores_crd.yaml
 kubectl apply -f mysql.blaqkube.io_instances_crd.yaml
 ```
 
-### Permissions and Controller
+## Permissions and Controller
 
 You should then be able to create a role with the right permissions and deploy
 the operator:
