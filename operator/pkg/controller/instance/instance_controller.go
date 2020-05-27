@@ -179,7 +179,6 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 // newStatefulSetForCR returns a busybox pod with the same name/namespace as the cr
 func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, filePath string) *appsv1.StatefulSet {
 	reqLogger := log.WithValues("Request.Namespace", "default")
-	reqLogger.Info(fmt.Sprintf("Reconciling Instance for Bucket %s", store.Spec.S3Access.Bucket))
 	tag := "3e2a68c"
 	labels := map[string]string{
 		"app": cr.Name,
@@ -232,7 +231,8 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 			},
 		}
 	}
-	return &appsv1.StatefulSet{
+	reqLogger.Info("Step 2")
+	sts := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "",
 			Namespace: cr.Namespace,
@@ -307,7 +307,6 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 							},
 						},
 					},
-					InitContainers: initContainers,
 				},
 			},
 			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
@@ -344,4 +343,8 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 			},
 		},
 	}
+	if store != nil {
+		sts.Spec.Template.Spec.InitContainers = initContainers
+	}
+	return sts
 }

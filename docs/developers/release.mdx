@@ -21,7 +21,10 @@ There are 4 components to release as part of the Operator:
 
 ## Build and release the agent
 
-see `make build` in the agent directory
+To build the agent, you should execute `make build` in the `agent` directory.
+Once the agent built, you must change the reference in the
+`operator/pkg/controller/instance/instance_controller.go` file. Search for
+the `tag := "` in the file. 
 
 ## Build and release Controllers
 
