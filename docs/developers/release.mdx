@@ -22,26 +22,34 @@ There are 4 components to release as part of the Operator:
 ## Build and release the agent
 
 To build the agent, you should execute `make build` in the `agent` directory.
-Once the agent built, you must change the reference in the
+Once the agent is built, you must change the reference in the
 `operator/pkg/controller/instance/instance_controller.go` file. Search for
-the `tag := "` in the file. 
+the `tag := "` in the file and replace the tag with the new one.
 
 ## Build and release Controllers
 
-see `make build` in the operator directory
+see `make controller` in the `mysql-operator` directory. This command builds 
+the image with the controller and pushes to quay.io. Once done, it also change
+the `operator.yaml` file with the new controller version.
 
 ## Build and release the Operator
 
-see `make bundle` in the operator directory
+see `make bundle` in the `mysql-operator` directory. This command updates
+the CRDS and build an image of the operator that references the controller. It
+also push the image to `quay.io`
 
 ## Build and release the Registry
 
-see `make build` in the `registry` directory
+see `make registry` in the `registry` directory. This commands update the
+index.db file with the new operator. It creates a docker image to serve the
+different versions. The publication of the registry is done outside of this
+repository.
 
 ## Check the Operator get updated
 
-You can check your subscription to check that the Operator has been updated.
-The subscription should show the version is the last one:
+Once the new registry published, you can check your subscription and control
+the Operator has been updated. The subscription should show the version is
+the last one:
 
 ```shell
 kubectl get sub -n mysql -o yaml
