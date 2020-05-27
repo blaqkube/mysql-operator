@@ -72,6 +72,8 @@ rules:
   - '*'
   - backups
   - stores
+  - users
+  - databases
   verbs:
   - create
   - delete
