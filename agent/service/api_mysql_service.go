@@ -42,11 +42,39 @@ func (s *MysqlApiService) CreateBackup(backup openapi.Backup, apiKey string) (in
 	return b, nil
 }
 
+// CreateDatabase - create an on-demand database
+func (s *MysqlApiService) CreateDatabase(body map[string]interface{}, apiKey string) (interface{}, error) {
+	// TODO - update CreateDatabase with the required logic for this service method.
+	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	return nil, errors.New("service method 'CreateDatabase' not implemented")
+}
+
+// CreateUser - create an on-demand user
+func (s *MysqlApiService) CreateUser(user openapi.User, apiKey string) (interface{}, error) {
+	// TODO - update CreateUser with the required logic for this service method.
+	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	return nil, errors.New("service method 'CreateUser' not implemented")
+}
+
 // DeleteBackup - Deletes a backup
 func (s *MysqlApiService) DeleteBackup(backup string, apiKey string) (interface{}, error) {
 	// TODO - update DeleteBackup with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 	return nil, errors.New("service method 'DeleteBackup' not implemented")
+}
+
+// DeleteDatabase - Deletes a database
+func (s *MysqlApiService) DeleteDatabase(database string, apiKey string) (interface{}, error) {
+	// TODO - update DeleteDatabase with the required logic for this service method.
+	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	return nil, errors.New("service method 'DeleteDatabase' not implemented")
+}
+
+// DeleteUser - Deletes a user
+func (s *MysqlApiService) DeleteUser(user string, apiKey string) (interface{}, error) {
+	// TODO - update DeleteUser with the required logic for this service method.
+	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	return nil, errors.New("service method 'DeleteUser' not implemented")
 }
 
 // GetBackupByName - Get backup properties
@@ -62,4 +90,18 @@ func (s *MysqlApiService) GetBackupByName(backup string, apiKey string) (interfa
 		return nil, http.StatusNotFound, nil
 	}
 	return b, http.StatusOK, nil
+}
+
+// GetDatabaseByName - Get Database properties
+func (s *MysqlApiService) GetDatabaseByName(database string, apiKey string) (interface{}, error) {
+	// TODO - update GetDatabaseByName with the required logic for this service method.
+	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	return nil, errors.New("service method 'GetDatabaseByName' not implemented")
+}
+
+// GetUserByName - Get user properties
+func (s *MysqlApiService) GetUserByName(user string, apiKey string) (interface{}, error) {
+	// TODO - update GetUserByName with the required logic for this service method.
+	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	return nil, errors.New("service method 'GetUserByName' not implemented")
 }
