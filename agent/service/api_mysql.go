@@ -98,7 +98,7 @@ func (c *MysqlApiController) CreateBackup(w http.ResponseWriter, r *http.Request
 	}
 
 	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.CreateBackup(*backup, r.StatusCode, apiKey)
+	result, err := c.service.CreateBackup(*backup, apiKey)
 	if err != nil {
 		w.WriteHeader(500)
 		return

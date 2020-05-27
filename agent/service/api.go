@@ -36,13 +36,13 @@ type MysqlApiRouter interface {
 // while the service implementation can ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type MysqlApiServicer interface {
-	CreateBackup(openapi.Backup, int, string) (interface{}, error)
+	CreateBackup(openapi.Backup, string) (interface{}, error)
 	CreateDatabase(map[string]interface{}, string) (interface{}, error)
 	CreateUser(openapi.User, string) (interface{}, error)
 	DeleteBackup(string, string) (interface{}, error)
 	DeleteDatabase(string, string) (interface{}, error)
 	DeleteUser(string, string) (interface{}, error)
-	GetBackupByName(string, string) (interface{}, error)
+	GetBackupByName(string, string) (interface{}, int, error)
 	GetDatabaseByName(string, string) (interface{}, error)
 	GetUserByName(string, string) (interface{}, error)
 }
