@@ -2,8 +2,10 @@ package database
 
 import (
 	"context"
+	"fmt"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/pkg/apis/mysql/v1alpha1"
+	agent "github.com/blaqkube/mysql-operator/pkg/client-agent"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,7 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -99,55 +100,70 @@ func (r *ReconcileDatabase) Reconcile(request reconcile.Request) (reconcile.Resu
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-
-	// Define a new Pod object
-	pod := newPodForCR(instance)
-
-	// Set Database instance as the owner and controller
-	if err := controllerutil.SetControllerReference(instance, pod, r.scheme); err != nil {
-		return reconcile.Result{}, err
+	if instance.Status.LastCondition != "" {
+		return reconcile.Result{}, nil
 	}
 
 	// Check if this Pod already exists
-	found := &corev1.Pod{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
-		err = r.client.Create(context.TODO(), pod)
+	pod := &corev1.Pod{}
+	err = r.client.Get(
+		context.TODO(),
+		types.NamespacedName{
+			Name:      instance.Spec.Instance + "-0",
+			Namespace: instance.Namespace,
+		},
+		pod,
+	)
+	if err != nil {
+		time := metav1.Now()
+		condition := mysqlv1alpha1.ConditionStatus{
+			LastProbeTime: &time,
+			Status:        "Failed",
+			Message:       fmt.Sprintf("Cannot find pod %s-0; error: %v", instance.Spec.Instance, err),
+		}
+		instance.Status.LastCondition = "Failed"
+		instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
+		err = r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-
-		// Pod created successfully - don't requeue
 		return reconcile.Result{}, nil
-	} else if err != nil {
+	}
+	cfg := agent.NewConfiguration()
+	cfg.BasePath = "http://" + pod.Status.PodIP + ":8080"
+	// cfg.BasePath = "http://localhost:8080"
+	api := agent.NewAPIClient(cfg)
+	database := map[string]interface{}{
+		"name": instance.Spec.Name,
+	}
+	_, _, err = api.MysqlApi.CreateDatabase(context.TODO(), database, nil)
+	if err != nil {
+		time := metav1.Now()
+		condition := mysqlv1alpha1.ConditionStatus{
+			LastProbeTime: &time,
+			Status:        "Failed",
+			Message:       fmt.Sprintf("Error accessing api: %v", err),
+		}
+		instance.Status.LastCondition = "Failed"
+		instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
+		err = r.client.Status().Update(context.TODO(), instance)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{}, nil
+	}
+	t := metav1.Now()
+	condition := mysqlv1alpha1.ConditionStatus{
+		LastProbeTime: &t,
+		Status:        "Succeeded",
+		Message:       "Database " + instance.Spec.Name + " created",
+	}
+	instance.Status.LastCondition = "Succeeded"
+	instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
+	err = r.client.Status().Update(context.TODO(), instance)
+	if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	// Pod already exists - don't requeue
-	reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
 	return reconcile.Result{}, nil
-}
-
-// newPodForCR returns a busybox pod with the same name/namespace as the cr
-func newPodForCR(cr *mysqlv1alpha1.Database) *corev1.Pod {
-	labels := map[string]string{
-		"app": cr.Name,
-	}
-	return &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-pod",
-			Namespace: cr.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
-				},
-			},
-		},
-	}
 }
