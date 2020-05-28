@@ -154,6 +154,42 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 	if err := controllerutil.SetControllerReference(instance, statefulSet, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
+	secret := &corev1.Secret{}
+	err = r.client.Get(
+		context.TODO(),
+		types.NamespacedName{Name: statefulSet.Name + "-exporter", Namespace: statefulSet.Namespace},
+		secret,
+	)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info(
+			"Creating a new Secret",
+			"Secret.Namespace",
+			statefulSet.Namespace,
+			"secret.Name",
+			statefulSet.Name+"-exporter",
+		)
+		labels := map[string]string{
+			"app": statefulSet.Name,
+		}
+		secret = &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      statefulSet.Name + "-exporter",
+				Namespace: statefulSet.Namespace,
+				Labels:    labels,
+			},
+			Data: map[string][]byte{
+				".my.cnf": []byte("W2NsaWVudF0KdXNlcj1leHBvcnRlcgpob3N0PWxvY2FsaG9zdApwYXNzd29yZD1leHBvcnRlcgo="),
+			},
+		}
+
+		err = r.client.Create(context.TODO(), secret)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+
+		// StatefulSet created successfully - don't requeue
+		return reconcile.Result{}, nil
+	}
 
 	// Check if this StatefulSet already exists
 	found := &appsv1.StatefulSet{}
@@ -232,6 +268,17 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 		}
 	}
 	reqLogger.Info("Step 2")
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.Name + "-exporter",
+			Namespace: cr.Namespace,
+			Labels:    labels,
+		},
+		Data: map[string][]byte{
+			".my.cnf": []byte("W2NsaWVudF0KdXNlcj1leHBvcnRlcgpob3N0PWxvY2FsaG9zdApwYXNzd29yZD1leHBvcnRlcgo="),
+		},
+	}
+
 	sts := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "",
