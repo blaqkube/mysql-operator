@@ -93,6 +93,12 @@ func (c *MysqlApiController) Routes() openapi.Routes {
 			"/user/{user}",
 			c.GetUserByName,
 		},
+		{
+			"GetUsers",
+			strings.ToUpper("Get"),
+			"/user",
+			c.GetUsers,
+		},
 	}
 }
 
@@ -242,5 +248,17 @@ func (c *MysqlApiController) GetUserByName(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	openapi.EncodeJSONResponse(result, nil, w)
+}
+
+// GetUsers - list all users
+func (c *MysqlApiController) GetUsers(w http.ResponseWriter, r *http.Request) {
+	apiKey := r.Header.Get("apiKey")
+	result, err := c.service.GetUsers(apiKey)
+	if err != nil {
+		fmt.Printf("Error: %v", err)
+		w.WriteHeader(500)
+		return
+	}
 	openapi.EncodeJSONResponse(result, nil, w)
 }
