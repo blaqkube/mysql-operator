@@ -346,5 +346,14 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 	if store != nil {
 		sts.Spec.Template.Spec.InitContainers = initContainers
 	}
+	if cr.Spec.Database != "" {
+		sts.Spec.Template.Spec.Containers[0].Env = append(
+			sts.Spec.Template.Spec.Containers[0].Env,
+			corev1.EnvVar{
+				Name:  "MYSQL_DATABASE",
+				Value: cr.Spec.Database,
+			},
+		)
+	}
 	return sts
 }
