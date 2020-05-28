@@ -48,7 +48,16 @@ func (s *MysqlApiService) CreateBackup(backup openapi.Backup, apiKey string) (in
 func (s *MysqlApiService) CreateDatabase(body map[string]interface{}, apiKey string) (interface{}, error) {
 	// TODO - update CreateDatabase with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	return nil, errors.New("service method 'CreateDatabase' not implemented")
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+	_, err = db.Exec("create database " + body["Name"])
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
 }
 
 // CreateUser - create an on-demand user
@@ -98,7 +107,17 @@ func (s *MysqlApiService) GetBackupByName(backup string, apiKey string) (interfa
 func (s *MysqlApiService) GetDatabaseByName(database string, apiKey string) (interface{}, error) {
 	// TODO - update GetDatabaseByName with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	return nil, errors.New("service method 'GetDatabaseByName' not implemented")
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+	var name string
+	err = db.QueryRow("SELECT schema_name FROM information_schema.schemata where schema_name=?", database).Scan(&name)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]string{"Name": name}, nil
 }
 
 // GetDatabases - list all databases
@@ -116,8 +135,7 @@ func (s *MysqlApiService) GetDatabases(apiKey string) (interface{}, error) {
 	for results.Next() {
 		var name string
 		err = results.Scan(&name)
-		database := map[string]string{}
-		database["Name"] = name
+		database := map[string]string{"Name": name}
 		databases = append(databases, database)
 	}
 	return databases, nil
