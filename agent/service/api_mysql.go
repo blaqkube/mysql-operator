@@ -12,6 +12,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -223,6 +224,7 @@ func (c *MysqlApiController) GetDatabases(w http.ResponseWriter, r *http.Request
 	apiKey := r.Header.Get("apiKey")
 	result, err := c.service.GetDatabases(apiKey)
 	if err != nil {
+		fmt.Printf("Error: %v", err)
 		w.WriteHeader(500)
 		return
 	}

@@ -103,7 +103,7 @@ func (s *MysqlApiService) GetDatabaseByName(database string, apiKey string) (int
 
 // GetDatabases - list all databases
 func (s *MysqlApiService) GetDatabases(apiKey string) (interface{}, error) {
-	db, err := sql.Open("mysql", "root@(tcp:127.0.0.1)/")
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
 	defer db.Close()
 	if err != nil {
 		return nil, err
