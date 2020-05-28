@@ -178,7 +178,7 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 				Labels:    labels,
 			},
 			Data: map[string][]byte{
-				".my.cnf": []byte("W2NsaWVudF0KdXNlcj1leHBvcnRlcgpob3N0PWxvY2FsaG9zdApwYXNzd29yZD1leHBvcnRlcgo="),
+				".my.cnf": []byte("[client]\nuser=exporter\npassword=exporter\nhost=localhost\n"),
 			},
 		}
 
@@ -186,9 +186,6 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-
-		// StatefulSet created successfully - don't requeue
-		return reconcile.Result{}, nil
 	}
 
 	// Check if this StatefulSet already exists
@@ -214,7 +211,6 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 
 // newStatefulSetForCR returns a busybox pod with the same name/namespace as the cr
 func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, filePath string) *appsv1.StatefulSet {
-	reqLogger := log.WithValues("Request.Namespace", "default")
 	tag := "3e2a68c"
 	labels := map[string]string{
 		"app": cr.Name,
@@ -267,18 +263,6 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 			},
 		}
 	}
-	reqLogger.Info("Step 2")
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-exporter",
-			Namespace: cr.Namespace,
-			Labels:    labels,
-		},
-		Data: map[string][]byte{
-			".my.cnf": []byte("W2NsaWVudF0KdXNlcj1leHBvcnRlcgpob3N0PWxvY2FsaG9zdApwYXNzd29yZD1leHBvcnRlcgo="),
-		},
-	}
-
 	sts := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "",
@@ -350,6 +334,38 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 								corev1.VolumeMount{
 									Name:      cr.Name + "-data",
 									MountPath: "/var/lib/mysql",
+								},
+							},
+						},
+						{
+							Name:  "exporter",
+							Image: "prom/mysqld-exporter:v0.12.1",
+							Ports: []corev1.ContainerPort{
+								corev1.ContainerPort{
+									Name:          "prom-mysql",
+									ContainerPort: 9104,
+								},
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								corev1.VolumeMount{
+									Name:      cr.Name + "-exporter",
+									MountPath: "/home",
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						corev1.Volume{
+							Name: cr.Name+"-exporter",
+							VolumeSource: corev1.VolumeSource{
+								Secret: &corev1.SecretVolumeSource{
+									SecretName: cr.Name+"-exporter",
+									Items: []corev1.KeyToPath{
+										corev1.KeyToPath{
+											Key: ".my.cnf",
+											Path: ".my.cnf",
+										},
+									},
 								},
 							},
 						},
