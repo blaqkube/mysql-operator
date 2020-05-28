@@ -245,6 +245,30 @@ paths:
       tags:
       - mysql
   /user:
+    get:
+      operationId: getUsers
+      parameters:
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/User'
+                type: array
+          description: Array of Users
+      security:
+      - api_key: []
+      summary: list all users
+      tags:
+      - mysql
     post:
       operationId: createUser
       parameters:

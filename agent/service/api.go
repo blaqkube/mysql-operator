@@ -30,6 +30,7 @@ type MysqlApiRouter interface {
 	GetDatabaseByName(http.ResponseWriter, *http.Request)
 	GetDatabases(http.ResponseWriter, *http.Request)
 	GetUserByName(http.ResponseWriter, *http.Request)
+	GetUsers(http.ResponseWriter, *http.Request)
 }
 
 // MysqlApiServicer defines the api actions for the MysqlApi service
@@ -47,4 +48,5 @@ type MysqlApiServicer interface {
 	GetDatabaseByName(string, string) (interface{}, error)
 	GetDatabases(string) (interface{}, error)
 	GetUserByName(string, string) (interface{}, error)
+	GetUsers(string) (interface{}, error)
 }

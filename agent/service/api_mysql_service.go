@@ -13,6 +13,7 @@ package service
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -48,14 +49,47 @@ func (s *MysqlApiService) CreateBackup(backup openapi.Backup, apiKey string) (in
 func (s *MysqlApiService) CreateDatabase(body map[string]interface{}, apiKey string) (interface{}, error) {
 	// TODO - update CreateDatabase with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	return nil, errors.New("service method 'CreateDatabase' not implemented")
+	fmt.Printf("Connect to database\n")
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
+	defer db.Close()
+	if err != nil {
+		fmt.Printf("Error %v\n", err)
+		return nil, err
+	}
+	if w, ok := body["name"].(string); ok {
+		_, err = db.Exec("create database " + w)
+		if err != nil {
+			fmt.Printf("Error %v\n", err)
+			return nil, err
+		}
+		return body, nil
+	}
+	return nil, errors.New("Unknown Name")
 }
 
 // CreateUser - create an on-demand user
 func (s *MysqlApiService) CreateUser(user openapi.User, apiKey string) (interface{}, error) {
 	// TODO - update CreateUser with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	return nil, errors.New("service method 'CreateUser' not implemented")
+	fmt.Printf("Connect to database\n")
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
+	defer db.Close()
+	if err != nil {
+		fmt.Printf("Error %v\n", err)
+		return nil, err
+	}
+	sql := fmt.Sprintf(
+		"create user '%s'@'%%' identified by '%s'",
+		user.Username,
+		user.Password,
+	)
+	fmt.Printf(sql)
+	_, err = db.Exec(sql)
+	if err != nil {
+		fmt.Printf("Error %v\n", err)
+		return nil, err
+	}
+	return user, nil
 }
 
 // DeleteBackup - Deletes a backup
@@ -98,7 +132,17 @@ func (s *MysqlApiService) GetBackupByName(backup string, apiKey string) (interfa
 func (s *MysqlApiService) GetDatabaseByName(database string, apiKey string) (interface{}, error) {
 	// TODO - update GetDatabaseByName with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	return nil, errors.New("service method 'GetDatabaseByName' not implemented")
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+	var name string
+	err = db.QueryRow("SELECT schema_name FROM information_schema.schemata where schema_name=?", database).Scan(&name)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]string{"name": name}, nil
 }
 
 // GetDatabases - list all databases
@@ -116,8 +160,7 @@ func (s *MysqlApiService) GetDatabases(apiKey string) (interface{}, error) {
 	for results.Next() {
 		var name string
 		err = results.Scan(&name)
-		database := map[string]string{}
-		database["Name"] = name
+		database := map[string]string{"name": name}
 		databases = append(databases, database)
 	}
 	return databases, nil
@@ -127,5 +170,41 @@ func (s *MysqlApiService) GetDatabases(apiKey string) (interface{}, error) {
 func (s *MysqlApiService) GetUserByName(user string, apiKey string) (interface{}, error) {
 	// TODO - update GetUserByName with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	return nil, errors.New("service method 'GetUserByName' not implemented")
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
+	defer db.Close()
+	if err != nil {
+		fmt.Printf("Error %v\n", err)
+		return nil, err
+	}
+	var name string
+	err = db.QueryRow("SELECT User FROM mysql.user where User=?", user).Scan(&name)
+	if err != nil {
+		fmt.Printf("Error %v\n", err)
+		return nil, err
+	}
+	if user != name {
+		return nil, errors.New("User not found")
+	}
+	return openapi.User{Username: name}, nil
+}
+
+// GetUsers - list all users
+func (s *MysqlApiService) GetUsers(apiKey string) (interface{}, error) {
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+	results, err := db.Query("SELECT User FROM mysql.user WHERE Host='%'")
+	if err != nil {
+		return nil, err
+	}
+	users := []openapi.User{}
+	for results.Next() {
+		var name string
+		err = results.Scan(&name)
+		user := openapi.User{Username: name}
+		users = append(users, user)
+	}
+	return users, nil
 }
