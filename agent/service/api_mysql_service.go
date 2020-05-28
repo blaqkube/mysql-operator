@@ -11,11 +11,13 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"time"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // MysqlApiService is a service that implents the logic for the MysqlApiServicer
@@ -97,6 +99,28 @@ func (s *MysqlApiService) GetDatabaseByName(database string, apiKey string) (int
 	// TODO - update GetDatabaseByName with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 	return nil, errors.New("service method 'GetDatabaseByName' not implemented")
+}
+
+// GetDatabases - list all databases
+func (s *MysqlApiService) GetDatabases(apiKey string) (interface{}, error) {
+	db, err := sql.Open("mysql", "root@(tcp:127.0.0.1)/")
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+	results, err := db.Query("SELECT schema_name FROM information_schema.schemata")
+	if err != nil {
+		return nil, err
+	}
+	databases := []map[string]string{}
+	for results.Next() {
+		var name string
+		err = results.Scan(&name)
+		database := map[string]string{}
+		database["Name"] = name
+		databases = append(databases, database)
+	}
+	return databases, nil
 }
 
 // GetUserByName - Get user properties

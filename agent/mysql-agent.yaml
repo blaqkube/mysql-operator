@@ -16,27 +16,27 @@ externalDocs:
   description: Find out more about blaqkube MySQL operator
   url: https://blaqkube.io/docs
 servers:
-  - url: /
+- url: /
 tags:
-  - description: data about your MySQL database
-    name: mysql
+- description: data about your MySQL database
+  name: mysql
 paths:
   /backup:
     post:
       operationId: createBackup
       parameters:
-        - explode: false
-          in: header
-          name: api_key
-          required: false
-          schema:
-            type: string
-          style: simple
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Backup"
+              $ref: '#/components/schemas/Backup'
         description: Create a manual backup
         required: true
       responses:
@@ -44,35 +44,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Backup"
+                $ref: '#/components/schemas/Backup'
           description: Backup Created
         "405":
           content: {}
           description: Invalid input
       security:
-        - api_key: []
+      - api_key: []
       summary: create an on-demand backup
       tags:
-        - mysql
+      - mysql
   /backup/{backup}:
     delete:
       operationId: deleteBackup
       parameters:
-        - explode: false
-          in: header
-          name: api_key
-          required: false
-          schema:
-            type: string
-          style: simple
-        - description: Backup to delete
-          explode: false
-          in: path
-          name: backup
-          required: true
-          schema:
-            type: string
-          style: simple
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: Backup to delete
+        explode: false
+        in: path
+        name: backup
+        required: true
+        schema:
+          type: string
+        style: simple
       responses:
         "400":
           content: {}
@@ -81,35 +81,35 @@ paths:
           content: {}
           description: Backup not found
       security:
-        - api_key: []
+      - api_key: []
       summary: Deletes a backup
       tags:
-        - mysql
+      - mysql
     get:
       description: Returns a single backup set of properties
       operationId: getBackupByName
       parameters:
-        - explode: false
-          in: header
-          name: api_key
-          required: false
-          schema:
-            type: string
-          style: simple
-        - description: Name of the backup to return
-          explode: false
-          in: path
-          name: backup
-          required: true
-          schema:
-            type: string
-          style: simple
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: Name of the backup to return
+        explode: false
+        in: path
+        name: backup
+        required: true
+        schema:
+          type: string
+        style: simple
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Backup"
+                $ref: '#/components/schemas/Backup'
           description: successful operation
         "400":
           content: {}
@@ -118,26 +118,50 @@ paths:
           content: {}
           description: Backup not found
       security:
-        - api_key: []
+      - api_key: []
       summary: Get backup properties
       tags:
-        - mysql
+      - mysql
   /database:
+    get:
+      operationId: getDatabases
+      parameters:
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Database'
+                type: array
+          description: Array of databases
+      security:
+      - api_key: []
+      summary: list all databases
+      tags:
+      - mysql
     post:
       operationId: createDatabase
       parameters:
-        - explode: false
-          in: header
-          name: api_key
-          required: false
-          schema:
-            type: string
-          style: simple
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Database"
+              $ref: '#/components/schemas/Database'
         description: Create a Database
         required: true
       responses:
@@ -145,32 +169,32 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Database"
+                $ref: '#/components/schemas/Database'
           description: Backup Created
       security:
-        - api_key: []
+      - api_key: []
       summary: create an on-demand database
       tags:
-        - mysql
+      - mysql
   /database/{database}:
     delete:
       operationId: deleteDatabase
       parameters:
-        - explode: false
-          in: header
-          name: api_key
-          required: false
-          schema:
-            type: string
-          style: simple
-        - description: Database to delete
-          explode: false
-          in: path
-          name: database
-          required: true
-          schema:
-            type: string
-          style: simple
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: Database to delete
+        explode: false
+        in: path
+        name: database
+        required: true
+        schema:
+          type: string
+        style: simple
       responses:
         "400":
           content: {}
@@ -179,35 +203,35 @@ paths:
           content: {}
           description: Database not found
       security:
-        - api_key: []
+      - api_key: []
       summary: Deletes a database
       tags:
-        - mysql
+      - mysql
     get:
       description: Returns the database properties
       operationId: getDatabaseByName
       parameters:
-        - explode: false
-          in: header
-          name: api_key
-          required: false
-          schema:
-            type: string
-          style: simple
-        - description: Name of the database to return
-          explode: false
-          in: path
-          name: database
-          required: true
-          schema:
-            type: string
-          style: simple
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: Name of the database to return
+        explode: false
+        in: path
+        name: database
+        required: true
+        schema:
+          type: string
+        style: simple
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Database"
+                $ref: '#/components/schemas/Database'
           description: successful operation
         "400":
           content: {}
@@ -216,26 +240,26 @@ paths:
           content: {}
           description: Database not found
       security:
-        - api_key: []
+      - api_key: []
       summary: Get Database properties
       tags:
-        - mysql
+      - mysql
   /user:
     post:
       operationId: createUser
       parameters:
-        - explode: false
-          in: header
-          name: api_key
-          required: false
-          schema:
-            type: string
-          style: simple
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: '#/components/schemas/User'
         description: Create a user
         required: true
       responses:
@@ -243,32 +267,32 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: '#/components/schemas/User'
           description: User Created
       security:
-        - api_key: []
+      - api_key: []
       summary: create an on-demand user
       tags:
-        - mysql
+      - mysql
   /user/{user}:
     delete:
       operationId: deleteUser
       parameters:
-        - explode: false
-          in: header
-          name: api_key
-          required: false
-          schema:
-            type: string
-          style: simple
-        - description: User to delete
-          explode: false
-          in: path
-          name: user
-          required: true
-          schema:
-            type: string
-          style: simple
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: User to delete
+        explode: false
+        in: path
+        name: user
+        required: true
+        schema:
+          type: string
+        style: simple
       responses:
         "400":
           content: {}
@@ -277,35 +301,35 @@ paths:
           content: {}
           description: User not found
       security:
-        - api_key: []
+      - api_key: []
       summary: Deletes a user
       tags:
-        - mysql
+      - mysql
     get:
       description: Returns the user properties
       operationId: getUserByName
       parameters:
-        - explode: false
-          in: header
-          name: api_key
-          required: false
-          schema:
-            type: string
-          style: simple
-        - description: Name of the user to return
-          explode: false
-          in: path
-          name: user
-          required: true
-          schema:
-            type: string
-          style: simple
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: Name of the user to return
+        explode: false
+        in: path
+        name: user
+        required: true
+        schema:
+          type: string
+        style: simple
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: '#/components/schemas/User'
           description: successful operation
         "400":
           content: {}
@@ -314,10 +338,10 @@ paths:
           content: {}
           description: User not found
       security:
-        - api_key: []
+      - api_key: []
       summary: Get user properties
       tags:
-        - mysql
+      - mysql
 components:
   schemas:
     AWSConfig:
@@ -333,7 +357,7 @@ components:
       example:
         name: mydb
       required:
-        - name
+      - name
       type: object
     Grant:
       example:
@@ -345,7 +369,7 @@ components:
         accessMode:
           type: string
       required:
-        - database
+      - database
       type: object
     Backup:
       example:
@@ -359,20 +383,20 @@ components:
           format: date-time
           type: string
         s3access:
-          $ref: "#/components/schemas/S3Info"
+          $ref: '#/components/schemas/S3Info'
         status:
           description: backup status
           enum:
-            - Available
-            - Failed
-            - Pending
-            - Running
+          - Available
+          - Failed
+          - Pending
+          - Running
           type: string
         message:
           description: keep message in case of an error
           type: string
       required:
-        - s3access
+      - s3access
       type: object
     S3Info:
       properties:
@@ -381,19 +405,19 @@ components:
         path:
           type: string
         awsConfig:
-          $ref: "#/components/schemas/AWSConfig"
+          $ref: '#/components/schemas/AWSConfig'
       required:
-        - bucket
+      - bucket
       type: object
     User:
       example:
         username: myuser
         password: changeme
         grants:
-          - database: blue
-            accessMode: readwrite
-          - database: red
-            accessMode: readonly
+        - database: blue
+          accessMode: readwrite
+        - database: red
+          accessMode: readonly
       properties:
         username:
           type: string
@@ -401,11 +425,11 @@ components:
           type: string
         grants:
           items:
-            $ref: "#/components/schemas/Grant"
+            $ref: '#/components/schemas/Grant'
           type: array
       required:
-        - password
-        - username
+      - password
+      - username
       type: object
   securitySchemes:
     api_key:

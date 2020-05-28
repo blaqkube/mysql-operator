@@ -28,6 +28,7 @@ type MysqlApiRouter interface {
 	DeleteUser(http.ResponseWriter, *http.Request)
 	GetBackupByName(http.ResponseWriter, *http.Request)
 	GetDatabaseByName(http.ResponseWriter, *http.Request)
+	GetDatabases(http.ResponseWriter, *http.Request)
 	GetUserByName(http.ResponseWriter, *http.Request)
 }
 
@@ -44,5 +45,6 @@ type MysqlApiServicer interface {
 	DeleteUser(string, string) (interface{}, error)
 	GetBackupByName(string, string) (interface{}, int, error)
 	GetDatabaseByName(string, string) (interface{}, error)
+	GetDatabases(string) (interface{}, error)
 	GetUserByName(string, string) (interface{}, error)
 }

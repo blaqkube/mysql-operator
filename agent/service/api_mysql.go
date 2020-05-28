@@ -81,6 +81,12 @@ func (c *MysqlApiController) Routes() openapi.Routes {
 			c.GetDatabaseByName,
 		},
 		{
+			"GetDatabases",
+			strings.ToUpper("Get"),
+			"/database",
+			c.GetDatabases,
+		},
+		{
 			"GetUserByName",
 			strings.ToUpper("Get"),
 			"/user/{user}",
@@ -209,6 +215,17 @@ func (c *MysqlApiController) GetDatabaseByName(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	openapi.EncodeJSONResponse(result, nil, w)
+}
+
+// GetDatabases - list all databases
+func (c *MysqlApiController) GetDatabases(w http.ResponseWriter, r *http.Request) {
+	apiKey := r.Header.Get("apiKey")
+	result, err := c.service.GetDatabases(apiKey)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
 	openapi.EncodeJSONResponse(result, nil, w)
 }
 

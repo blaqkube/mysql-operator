@@ -123,6 +123,30 @@ paths:
       tags:
       - mysql
   /database:
+    get:
+      operationId: getDatabases
+      parameters:
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Database'
+                type: array
+          description: Array of databases
+      security:
+      - api_key: []
+      summary: list all databases
+      tags:
+      - mysql
     post:
       operationId: createDatabase
       parameters:
