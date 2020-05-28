@@ -20,12 +20,6 @@ type InstanceSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
-	// Database additional user details (base64 encoded)
-	Username string `json:"username"`
-
-	// Database additional user password (base64 encoded)
-	Password string `json:"password"`
-
 	// New Database name
 	Database string `json:"database"`
 
