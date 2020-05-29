@@ -16,7 +16,7 @@ spec:
       containers:
         - name: mysql-operator
           # Replace this with the built image name
-          image: quay.io/blaqkube/mysql-controller:0423025
+          image: quay.io/blaqkube/mysql-controller:9bde7fe
           command:
           - mysql-operator
           imagePullPolicy: Always
