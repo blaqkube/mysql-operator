@@ -186,6 +186,9 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 		if err != nil {
 			return reconcile.Result{}, err
 		}
+		if err := controllerutil.SetControllerReference(instance, secret, r.scheme); err != nil {
+			return reconcile.Result{}, err
+		}
 	}
 
 	// Check if this StatefulSet already exists
@@ -356,13 +359,13 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 					},
 					Volumes: []corev1.Volume{
 						corev1.Volume{
-							Name: cr.Name+"-exporter",
+							Name: cr.Name + "-exporter",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: cr.Name+"-exporter",
+									SecretName: cr.Name + "-exporter",
 									Items: []corev1.KeyToPath{
 										corev1.KeyToPath{
-											Key: ".my.cnf",
+											Key:  ".my.cnf",
 											Path: ".my.cnf",
 										},
 									},
