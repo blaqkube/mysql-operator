@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
@@ -127,5 +129,55 @@ func PullS3File(filename, bucket, location string) error {
 			Bucket: aws.String(bucket),
 			Key:    aws.String(location),
 		})
+	return err
+}
+
+func CheckDb(dsn string, retry int) error {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		panic(err.Error()) // proper error handling instead of panic
+	}
+	defer db.Close()
+
+	for i := 0; i < retry; i++ {
+		err = db.Ping()
+		if err == nil {
+			return nil
+		}
+		time.Sleep(5 * time.Second)
+	}
+	return errors.New("Connection failed")
+}
+
+func CreateExporter(dsn string) error {
+	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
+	defer db.Close()
+	if err != nil {
+		fmt.Printf("Error %v\n", err)
+		return err
+	}
+	sql := "create user if not exists 'exporter'@'localhost' identified by 'exporter' WITH MAX_USER_CONNECTIONS 3"
+	_, err = db.Exec(sql)
+	if err != nil {
+		fmt.Printf("Error %v\n", err)
+		return err
+	}
+	sql = "create user if not exists 'exporter'@'::1' identified by 'exporter' WITH MAX_USER_CONNECTIONS 3"
+	_, err = db.Exec(sql)
+	if err != nil {
+		fmt.Printf("Error %v\n", err)
+		return err
+	}
+	sql = "GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'localhost'"
+	_, err = db.Exec(sql)
+	if err != nil {
+		fmt.Printf("Error %v\n", err)
+		return err
+	}
+	sql = "GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'::1'"
+	_, err = db.Exec(sql)
+	if err != nil {
+		fmt.Printf("Error %v\n", err)
+	}
 	return err
 }

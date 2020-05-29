@@ -12,10 +12,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"fmt"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	service "github.com/blaqkube/mysql-operator/agent/service"
@@ -39,6 +39,17 @@ func main() {
 			os.Exit(1)
 		}
 		return
+	}
+	log.Printf("Create exporter user")
+	err := service.CheckDb("root@tcp(localhost:3306)/", 20)
+	if err != nil {
+		fmt.Printf("Error checking database: %v\n", err)
+		os.Exit(1)
+	}
+	err = service.CreateExporter("root@tcp(localhost:3306)/")
+	if err != nil {
+		fmt.Printf("Error create user: %v\n", err)
+		os.Exit(1)
 	}
 
 	log.Printf("Server started")
