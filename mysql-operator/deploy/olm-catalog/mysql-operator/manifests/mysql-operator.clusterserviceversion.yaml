@@ -25,8 +25,8 @@ metadata:
             "backend": "s3",
             "s3access": {
               "awsConfig": {
-                "aws_access_key_id": "AKIAZ7RNQBFEYX7MMN6K",
-                "aws_secret_access_key": "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",
+                "aws_access_key_id": "AKIAXXXXXXXXXXXXXXXXXX",
+                "aws_secret_access_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
                 "region": "us-east-1"
               },
               "bucket": "docs.blaqkube.io",
