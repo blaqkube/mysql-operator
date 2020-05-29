@@ -8,62 +8,6 @@ metadata:
           "apiVersion": "mysql.blaqkube.io/v1alpha1",
           "kind": "Backup",
           "metadata": {
-            "name": "backup3"
-          },
-          "spec": {
-            "instance": "pv",
-            "store": "docs"
-          }
-        },
-        {
-          "apiVersion": "mysql.blaqkube.io/v1alpha1",
-          "kind": "Store",
-          "metadata": {
-            "name": "docs"
-          },
-          "spec": {
-            "backend": "s3",
-            "s3access": {
-              "awsConfig": {
-                "aws_access_key_id": "AKIAXXXXXXXXXXXXXXXXXX",
-                "aws_secret_access_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-                "region": "us-east-1"
-              },
-              "bucket": "docs.blaqkube.io",
-              "path": "/pv"
-            }
-          }
-        },
-        {
-          "apiVersion": "mysql.blaqkube.io/v1alpha1",
-          "kind": "Instance",
-          "metadata": {
-            "name": "greg"
-          },
-          "spec": {
-            "database": "greg",
-            "password": "me",
-            "restore": {
-              "filePath": "/pv/backup-20200527151100.sql",
-              "store": "docs"
-            },
-            "username": "me"
-          }
-        },
-        {
-          "apiVersion": "mysql.blaqkube.io/v1alpha1",
-          "kind": "Instance",
-          "metadata": {
-            "name": "blue"
-          },
-          "spec": {
-            "database": "blue"
-          }
-        },
-        {
-          "apiVersion": "mysql.blaqkube.io/v1alpha1",
-          "kind": "Backup",
-          "metadata": {
             "name": "blue-backup"
           },
           "spec": {
@@ -132,20 +76,10 @@ metadata:
             "password": "changeme",
             "username": "myuser"
           }
-        },
-        {
-          "apiVersion": "mysql.blaqkube.io/v1alpha1",
-          "kind": "Instance",
-          "metadata": {
-            "name": "pv"
-          },
-          "spec": {
-            "database": "blue"
-          }
         }
       ]
     capabilities: Basic Install
-  name: mysql-operator.v0.0.7
+  name: mysql-operator.v0.0.8
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -205,7 +139,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: mysql-operator
-                image: quay.io/blaqkube/mysql-controller:9bde7fe
+                image: quay.io/blaqkube/mysql-controller:29620f8
                 imagePullPolicy: Always
                 name: mysql-operator
                 resources: {}
@@ -310,5 +244,5 @@ spec:
   maturity: alpha
   provider:
     name: blaqkube
-  replaces: mysql-operator.v0.0.6
-  version: 0.0.7
+  replaces: mysql-operator.v0.0.7
+  version: 0.0.8
