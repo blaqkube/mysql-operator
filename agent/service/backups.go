@@ -156,13 +156,13 @@ func CreateExporter(dsn string) error {
 		fmt.Printf("Error %v\n", err)
 		return err
 	}
-	sql := "create user 'exporter'@'localhost' identified by 'exporter' WITH MAX_USER_CONNECTIONS 3"
+	sql := "create user if not exists 'exporter'@'localhost' identified by 'exporter' WITH MAX_USER_CONNECTIONS 3"
 	_, err = db.Exec(sql)
 	if err != nil {
 		fmt.Printf("Error %v\n", err)
 		return err
 	}
-	sql = "create user 'exporter'@'::1' identified by 'exporter' WITH MAX_USER_CONNECTIONS 3"
+	sql = "create user if not exists 'exporter'@'::1' identified by 'exporter' WITH MAX_USER_CONNECTIONS 3"
 	_, err = db.Exec(sql)
 	if err != nil {
 		fmt.Printf("Error %v\n", err)
