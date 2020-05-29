@@ -34,9 +34,6 @@ spec:
             database:
               description: New Database name
               type: string
-            password:
-              description: Database additional user password (base64 encoded)
-              type: string
             restore:
               description: Restore when starting from an existing configuration
               properties:
@@ -45,13 +42,8 @@ spec:
                 store:
                   type: string
               type: object
-            username:
-              description: Database additional user details (base64 encoded)
-              type: string
           required:
           - database
-          - password
-          - username
           type: object
         status:
           description: InstanceStatus defines the observed state of Instance
