@@ -1,7 +1,7 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: User
 metadata:
-  name: example-user
+  name: myuser
 spec:
   instance: blue
   username: myuser
