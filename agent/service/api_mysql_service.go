@@ -78,16 +78,32 @@ func (s *MysqlApiService) CreateUser(user openapi.User, apiKey string) (interfac
 		fmt.Printf("Error %v\n", err)
 		return nil, err
 	}
+	var name string
+	err = db.QueryRow("SELECT user FROM mysql.user where user=?", user.Username).Scan(&name)
+	if err == nil {
+		return user, nil
+	} else if err != sql.ErrNoRows {
+		return nil, err
+	}
 	sql := fmt.Sprintf(
 		"create user '%s'@'%%' identified by '%s'",
 		user.Username,
 		user.Password,
 	)
-	fmt.Printf(sql)
+	fmt.Println(sql)
 	_, err = db.Exec(sql)
 	if err != nil {
 		fmt.Printf("Error %v\n", err)
 		return nil, err
+	}
+	for _, v := range user.Grants {
+		sql = fmt.Sprintf("GRANT ALL PRIVILEGES ON %s.* TO '%s'@'%%'", v.Database, user.Username)
+		fmt.Println(sql)
+		_, err = db.Exec(sql)
+		if err != nil {
+			fmt.Printf("Error granting privileges; %v\n", err)
+			return nil, err
+		}
 	}
 	return user, nil
 }
