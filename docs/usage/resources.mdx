@@ -5,10 +5,13 @@ title: Resources
 `blaqkube/mysql-operator` comes with a number of resources to manage your
 mysql instances. Resources available are:
 
-- `Instance` defines a MySQL Instance, its attributes and when useful, the
+- `Instance` defines a MySQL instance, its attributes and when useful, the
   backup to use as a source to create the instance,
-- `Store` defines backup stores
-- `Backup` defines a backup request
+- `Database` defines a Database that is part of a MySQL instance,
+- `User` defines a User part of an Instance as well as the databases the
+  user can access,
+- `Store` defines backup stores,
+- `Backup` defines a backup request.
 
 ## Instance
 
@@ -34,6 +37,53 @@ _ `restore` is used to define the 2 mandatory parameter to base the instance
   on a previous backup:
   - `store` name the Store the backup is located in
   - `filePath` defines the key for the file. It should start with a `/`
+
+## Database
+
+Databases are created in the MySQL Instance. This is an example of a manifest:
+
+```yaml
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Database
+metadata:
+  name: red
+spec:
+  instance: blue
+  name: red
+```
+
+The properties are the following:
+
+- `name` defines the database name
+_ `instance` defines the instance the database is created with
+
+## User
+
+User are created with a MySQL Instance. This is an example of a manifest:
+
+```yaml
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: User
+metadata:
+  name: myuser
+spec:
+  instance: blue
+  username: myuser
+  password: changeme
+  grants:
+    - database: red
+      accessMode: readwrite
+```
+
+The properties are the following:
+
+_ `instance` defines the instance the user is created in
+- `username` defines the user name
+- `password` set the user password
+- `grants` contains a list of `database` and `accessMode` peers:
+  - `database` defines the databases the user can access
+  - `accessMode` defines the privileges associated with the user. For now
+    only `readwrite` is supported.
 
 ## Store
 
