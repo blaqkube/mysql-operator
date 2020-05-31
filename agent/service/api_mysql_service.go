@@ -83,7 +83,7 @@ func (s *MysqlApiService) CreateUser(user openapi.User, apiKey string) (interfac
 		user.Username,
 		user.Password,
 	)
-	fmt.Printf(sql)
+	fmt.Println(sql)
 	_, err = db.Exec(sql)
 	if err != nil {
 		fmt.Printf("Error %v\n", err)
