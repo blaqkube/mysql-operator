@@ -214,7 +214,7 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 
 // newStatefulSetForCR returns a busybox pod with the same name/namespace as the cr
 func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, filePath string) *appsv1.StatefulSet {
-	tag := "ee58366"
+	tag := "7f5cbb1"
 	labels := map[string]string{
 		"app": cr.Name,
 	}
