@@ -19,7 +19,7 @@ metadata:
           "apiVersion": "mysql.blaqkube.io/v1alpha1",
           "kind": "Database",
           "metadata": {
-            "name": "example-database"
+            "name": "red"
           },
           "spec": {
             "instance": "blue",
@@ -63,7 +63,7 @@ metadata:
           "apiVersion": "mysql.blaqkube.io/v1alpha1",
           "kind": "User",
           "metadata": {
-            "name": "example-user"
+            "name": "myuser"
           },
           "spec": {
             "grants": [
@@ -79,7 +79,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-  name: mysql-operator.v0.0.8
+  name: mysql-operator.v0.0.9
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -139,7 +139,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: mysql-operator
-                image: quay.io/blaqkube/mysql-controller:29620f8
+                image: quay.io/blaqkube/mysql-controller:e4fc4c6
                 imagePullPolicy: Always
                 name: mysql-operator
                 resources: {}
@@ -244,5 +244,5 @@ spec:
   maturity: alpha
   provider:
     name: blaqkube
-  replaces: mysql-operator.v0.0.7
-  version: 0.0.8
+  replaces: mysql-operator.v0.0.8
+  version: 0.0.9
