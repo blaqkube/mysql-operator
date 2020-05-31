@@ -133,6 +133,13 @@ func (r *ReconcileUser) Reconcile(request reconcile.Request) (reconcile.Result, 
 	user := agent.User{
 		Username: instance.Spec.Username,
 		Password: instance.Spec.Password,
+		Grants:   []agent.Grant{},
+	}
+	for _, v := range instance.Spec.Grants {
+		user.Grants = append(user.Grants, agent.Grant{
+			Database:   v.Database,
+			AccessMode: v.AccessMode,
+		})
 	}
 	_, _, err = api.MysqlApi.CreateUser(context.TODO(), user, nil)
 	if err != nil {

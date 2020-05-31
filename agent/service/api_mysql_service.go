@@ -89,6 +89,14 @@ func (s *MysqlApiService) CreateUser(user openapi.User, apiKey string) (interfac
 		fmt.Printf("Error %v\n", err)
 		return nil, err
 	}
+	for _, v := range user.Grants {
+		sql = fmt.Sprintf("grant GRANT ALL PRIVILEGES ON %s.* TO '%s'@'%%'", v.Database, user.Username)
+		_, err = db.Exec(sql)
+		if err != nil {
+			fmt.Printf("Error granting priviles; %v\n", err)
+			return nil, err
+		}
+	}
 	return user, nil
 }
 
