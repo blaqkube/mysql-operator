@@ -1,4 +1,4 @@
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: instances.mysql.blaqkube.io
@@ -10,70 +10,83 @@ spec:
     plural: instances
     singular: instance
   scope: Namespaced
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: Instance is the Schema for the instances API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: InstanceSpec defines the desired state of Instance
-          properties:
-            database:
-              description: New Database name
-              type: string
-            restore:
-              description: Restore when starting from an existing configuration
-              properties:
-                filePath:
-                  type: string
-                store:
-                  type: string
-              type: object
-          required:
-          - database
-          type: object
-        status:
-          description: InstanceStatus defines the observed state of Instance
-          properties:
-            conditions:
-              items:
-                description: ConditionStatus provide details about the observed conditions
-                properties:
-                  lastProbeTime:
-                    format: date-time
-                    type: string
-                  message:
-                    type: string
-                  status:
-                    type: string
-                type: object
-              type: array
-            lastCondition:
-              type: string
-            node:
-              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                of cluster Important: Run "operator-sdk generate k8s" to regenerate
-                code after modifying this file Add custom validation using kubebuilder
-                tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-                Nodes are the names of the pods'
-              type: string
-          type: object
-      type: object
-  version: v1alpha1
   versions:
   - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Instance is the Schema for the instances API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: InstanceSpec defines the desired state of Instance
+            properties:
+              database:
+                description: New Database name
+                type: string
+              maintenance:
+                description: MaintenanceSpec defines the maintenance window for operations
+                properties:
+                  backup:
+                    type: boolean
+                  backupStore:
+                    type: string
+                  windowStart:
+                    type: string
+                type: object
+              restore:
+                description: Restore when starting from an existing configuration
+                properties:
+                  filePath:
+                    type: string
+                  store:
+                    type: string
+                type: object
+              version:
+                type: string
+            required:
+            - database
+            - version
+            type: object
+          status:
+            description: InstanceStatus defines the observed state of Instance
+            properties:
+              conditions:
+                items:
+                  description: ConditionStatus provide details about the observed
+                    conditions
+                  properties:
+                    lastProbeTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    status:
+                      type: string
+                  type: object
+                type: array
+              lastCondition:
+                type: string
+              node:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "operator-sdk generate k8s" to regenerate
+                  code after modifying this file Add custom validation using kubebuilder
+                  tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+                  Nodes are the names of the pods'
+                type: string
+            type: object
+        type: object
     served: true
     storage: true
+    subresources:
+      status: {}

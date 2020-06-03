@@ -3,8 +3,11 @@ package instance
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/pkg/apis/mysql/v1alpha1"
+	"github.com/robfig/cron/v3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -22,7 +25,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
-var log = logf.Log.WithName("controller_instance")
+var (
+	log   = logf.Log.WithName("controller_instance")
+	crond = cron.New()
+)
 
 // Add creates a new Instance Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -200,7 +206,17 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 		if err != nil {
 			return reconcile.Result{}, err
 		}
+		if instance.Spec.Maintenance.Backup && len(instance.Spec.Maintenance.WindowStart) >= 5 {
+			hour, _ := strconv.Atoi(instance.Spec.Maintenance.WindowStart[0:2])
+			min, _ := strconv.Atoi(instance.Spec.Maintenance.WindowStart[3:5])
+			//TODO: manage errors
+			crond.AddFunc(fmt.Sprintf("%d %d * * *", min, hour), func() {
+				currentTime := time.Now()
+				fmt.Printf("Backup database at \n", currentTime.Format("2006.01.02 15:04:05"))
+				r.KickBackup(instance, instance.Spec.Maintenance.BackupStore)
+			})
 
+		}
 		// StatefulSet created successfully - don't requeue
 		return reconcile.Result{}, nil
 	} else if err != nil {
@@ -422,4 +438,27 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 		)
 	}
 	return sts
+}
+
+func (r *ReconcileInstance) KickBackup(instance *mysqlv1alpha1.Instance, store string) {
+	currentTime := time.Now()
+	b := &mysqlv1alpha1.Backup{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "automatic-" + instance.ObjectMeta.Name + fmt.Sprintf("-%s", currentTime.Format("20060102-1504")),
+			Namespace: instance.ObjectMeta.Namespace,
+			Labels:    instance.ObjectMeta.Labels,
+		},
+		Spec: mysqlv1alpha1.BackupSpec{
+			Store:    store,
+			Instance: instance.ObjectMeta.Name,
+		},
+	}
+	err := r.client.Create(context.TODO(), b)
+	if err != nil {
+		fmt.Printf(
+			"Error creating backup %s: %v",
+			"automatic-"+instance.ObjectMeta.Name+fmt.Sprintf("-%s", currentTime.Format("20060102-1504")),
+			err,
+		)
+	}
 }

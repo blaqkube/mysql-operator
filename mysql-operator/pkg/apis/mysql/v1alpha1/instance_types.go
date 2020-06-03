@@ -7,6 +7,14 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+// MaintenanceSpec defines the maintenance window for operations
+type MaintenanceSpec struct {
+	WindowStart string `json:"windowStart,omitempty"`
+	Backup      bool   `json:"backup,omitempty"`
+	BackupStore string `json:"backupStore,omitempty"`
+}
+
+// InstanceSpec defines the desired state of Instance
 // RestoreSpec defines the backup location when create a instance with a restore
 type RestoreSpec struct {
 	Store string `json:"store,omitempty"`
@@ -21,10 +29,11 @@ type InstanceSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// New Database name
-	Database string `json:"database"`
-
+	Database    string          `json:"database"`
+	Maintenance MaintenanceSpec `json:"maintenance,omitempty"`
 	// Restore when starting from an existing configuration
 	Restore RestoreSpec `json:"restore,omitempty"`
+	Version string      `json:"version"`
 }
 
 // InstanceStatus defines the observed state of Instance
