@@ -30,6 +30,12 @@ var (
 	crond = cron.New()
 )
 
+func init() {
+	reqLogger := log.WithValues("Controller", "instance")
+	reqLogger.Info("Start crond")
+	crond.Start()
+}
+
 // Add creates a new Instance Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -207,12 +213,15 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 			return reconcile.Result{}, err
 		}
 		if instance.Spec.Maintenance.Backup && len(instance.Spec.Maintenance.WindowStart) >= 5 {
+			reqLogger.Info("Create backup schedule", "StatefulSet.Namespace", statefulSet.Namespace, "StatefulSet.Name", statefulSet.Name)
 			hour, _ := strconv.Atoi(instance.Spec.Maintenance.WindowStart[0:2])
 			min, _ := strconv.Atoi(instance.Spec.Maintenance.WindowStart[3:5])
 			//TODO: manage errors
 			crond.AddFunc(fmt.Sprintf("%d %d * * *", min, hour), func() {
 				currentTime := time.Now()
-				fmt.Printf("Backup database at \n", currentTime.Format("2006.01.02 15:04:05"))
+				reqLogger.Info(
+					fmt.Printf("Create backup schedule at %s", currentTime.Format("2006.01.02 15:04:05")),
+					"StatefulSet.Namespace", statefulSet.Namespace, "StatefulSet.Name", statefulSet.Name)
 				r.KickBackup(instance, instance.Spec.Maintenance.BackupStore)
 			})
 

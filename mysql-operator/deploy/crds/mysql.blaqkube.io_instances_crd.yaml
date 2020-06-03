@@ -56,7 +56,6 @@ spec:
                 type: string
             required:
             - database
-            - version
             type: object
           status:
             description: InstanceStatus defines the observed state of Instance

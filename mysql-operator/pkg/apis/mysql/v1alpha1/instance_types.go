@@ -33,7 +33,7 @@ type InstanceSpec struct {
 	Maintenance MaintenanceSpec `json:"maintenance,omitempty"`
 	// Restore when starting from an existing configuration
 	Restore RestoreSpec `json:"restore,omitempty"`
-	Version string      `json:"version"`
+	Version string      `json:"version,omitempty"`
 }
 
 // InstanceStatus defines the observed state of Instance
