@@ -220,7 +220,7 @@ func (r *ReconcileInstance) Reconcile(request reconcile.Request) (reconcile.Resu
 			crond.AddFunc(fmt.Sprintf("%d %d * * *", min, hour), func() {
 				currentTime := time.Now()
 				reqLogger.Info(
-					fmt.Printf("Create backup schedule at %s", currentTime.Format("2006.01.02 15:04:05")),
+					fmt.Sprintf("Create backup schedule at %s", currentTime.Format("2006.01.02 15:04:05")),
 					"StatefulSet.Namespace", statefulSet.Namespace, "StatefulSet.Name", statefulSet.Name)
 				r.KickBackup(instance, instance.Spec.Maintenance.BackupStore)
 			})
