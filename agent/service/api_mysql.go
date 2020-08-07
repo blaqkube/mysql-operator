@@ -17,28 +17,28 @@ import (
 	"strings"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
+	"github.com/blaqkube/mysql-operator/agent/service/backup"
 	"github.com/gorilla/mux"
 )
 
 // A MysqlApiController binds http requests to an api service and writes the service results to the http response
 type MysqlApiController struct {
 	service MysqlApiServicer
+	backup  backup.MysqlBackupRouter
 }
 
 // NewMysqlApiController creates a default api controller
 func NewMysqlApiController(s MysqlApiServicer) openapi.Router {
-	return &MysqlApiController{service: s}
+	b := backup.NewMysqlBackupService()
+	return &MysqlApiController{
+		service: s,
+		backup:  backup.NewMysqlBackupController(b),
+	}
 }
 
 // Routes returns all of the api route for the MysqlApiController
 func (c *MysqlApiController) Routes() openapi.Routes {
-	return openapi.Routes{
-		{
-			"CreateBackup",
-			strings.ToUpper("Post"),
-			"/backup",
-			c.CreateBackup,
-		},
+	routes := openapi.Routes{
 		{
 			"CreateDatabase",
 			strings.ToUpper("Post"),
@@ -52,12 +52,6 @@ func (c *MysqlApiController) Routes() openapi.Routes {
 			c.CreateUser,
 		},
 		{
-			"DeleteBackup",
-			strings.ToUpper("Delete"),
-			"/backup/{backup}",
-			c.DeleteBackup,
-		},
-		{
 			"DeleteDatabase",
 			strings.ToUpper("Delete"),
 			"/database/{database}",
@@ -68,12 +62,6 @@ func (c *MysqlApiController) Routes() openapi.Routes {
 			strings.ToUpper("Delete"),
 			"/user/{user}",
 			c.DeleteUser,
-		},
-		{
-			"GetBackupByName",
-			strings.ToUpper("Get"),
-			"/backup/{backup}",
-			c.GetBackupByName,
 		},
 		{
 			"GetDatabaseByName",
@@ -100,24 +88,8 @@ func (c *MysqlApiController) Routes() openapi.Routes {
 			c.GetUsers,
 		},
 	}
-}
-
-// CreateBackup - create an on-demand backup
-func (c *MysqlApiController) CreateBackup(w http.ResponseWriter, r *http.Request) {
-	backup := &openapi.Backup{}
-	if err := json.NewDecoder(r.Body).Decode(&backup); err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.CreateBackup(*backup, apiKey)
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-	code := http.StatusCreated
-	openapi.EncodeJSONResponse(result, &code, w)
+	routes = append(routes, c.backup.Routes()...)
+	return routes
 }
 
 // CreateDatabase - create an on-demand database
@@ -156,20 +128,6 @@ func (c *MysqlApiController) CreateUser(w http.ResponseWriter, r *http.Request) 
 	openapi.EncodeJSONResponse(result, nil, w)
 }
 
-// DeleteBackup - Deletes a backup
-func (c *MysqlApiController) DeleteBackup(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	backup := params["backup"]
-	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.DeleteBackup(backup, apiKey)
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	openapi.EncodeJSONResponse(result, nil, w)
-}
-
 // DeleteDatabase - Deletes a database
 func (c *MysqlApiController) DeleteDatabase(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
@@ -196,19 +154,6 @@ func (c *MysqlApiController) DeleteUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	openapi.EncodeJSONResponse(result, nil, w)
-}
-
-// GetBackupByName - Get backup properties
-func (c *MysqlApiController) GetBackupByName(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	backup := params["backup"]
-	apiKey := r.Header.Get("apiKey")
-	result, code, err := c.service.GetBackupByName(backup, apiKey)
-	if err != nil && code != 0 {
-		w.WriteHeader(500)
-		return
-	}
-	openapi.EncodeJSONResponse(result, &code, w)
 }
 
 // GetDatabaseByName - Get Database properties

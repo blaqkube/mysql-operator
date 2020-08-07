@@ -20,13 +20,10 @@ import (
 // The MysqlApiRouter implementation should parse necessary information from the http request,
 // pass the data to a MysqlApiServicer to perform the required actions, then write the service results to the http response.
 type MysqlApiRouter interface {
-	CreateBackup(http.ResponseWriter, *http.Request)
 	CreateDatabase(http.ResponseWriter, *http.Request)
 	CreateUser(http.ResponseWriter, *http.Request)
-	DeleteBackup(http.ResponseWriter, *http.Request)
 	DeleteDatabase(http.ResponseWriter, *http.Request)
 	DeleteUser(http.ResponseWriter, *http.Request)
-	GetBackupByName(http.ResponseWriter, *http.Request)
 	GetDatabaseByName(http.ResponseWriter, *http.Request)
 	GetDatabases(http.ResponseWriter, *http.Request)
 	GetUserByName(http.ResponseWriter, *http.Request)
@@ -38,13 +35,10 @@ type MysqlApiRouter interface {
 // while the service implementation can ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type MysqlApiServicer interface {
-	CreateBackup(openapi.Backup, string) (interface{}, error)
 	CreateDatabase(map[string]interface{}, string) (interface{}, error)
 	CreateUser(openapi.User, string) (interface{}, error)
-	DeleteBackup(string, string) (interface{}, error)
 	DeleteDatabase(string, string) (interface{}, error)
 	DeleteUser(string, string) (interface{}, error)
-	GetBackupByName(string, string) (interface{}, int, error)
 	GetDatabaseByName(string, string) (interface{}, error)
 	GetDatabases(string) (interface{}, error)
 	GetUserByName(string, string) (interface{}, error)
