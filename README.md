@@ -1,3 +1,5 @@
+[![mysql-operator](https://circleci.com/gh/blaqkube/mysql-operator.svg?style=svg)](https://circleci.com/gh/blaqkube/mysql-operator)
+
 `blaqkube/mysql-operator` is a Kubernetes operator that manages MySQL instances
 and their backups. It supports
 [MySQL Community Edition](https://www.mysql.com/products/community/) and is
