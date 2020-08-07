@@ -1,0 +1,13 @@
+version: 2
+jobs:
+  test:
+    docker:
+      - image: circleci/golang:1.14.6-buster
+    steps:
+      - checkout
+      - run: echo "A first hello"
+workflows:
+  version: 2
+  test_and_build:
+    jobs:
+      - test
