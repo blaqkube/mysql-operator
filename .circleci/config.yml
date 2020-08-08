@@ -2,10 +2,15 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/golang:1.14.6-buster
+      - image: docker:19.03
     steps:
       - checkout
-      - run: echo "A first hello"
+      - setup_remote_docker
+      - run:
+          name: Build agent with docker
+          command: |
+            cd agent
+            docker build -t agent .
 workflows:
   version: 2
   test_and_build:

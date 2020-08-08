@@ -1,9 +1,7 @@
 FROM golang:1.14 AS build
 WORKDIR /go/src/github.com/blaqkube/mysql-operator/agent
-COPY go ./go
-COPY service ./service
-COPY main.go .
-RUN go get -v ./...
+COPY . /.
+RUN go test -cover ./...
 
 ENV CGO_ENABLED=0
 RUN go build -a -installsuffix cgo -o mysql-agent .
