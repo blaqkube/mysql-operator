@@ -33,7 +33,7 @@ func NewMysqlApiController(
 	bck mysql.S3MysqlBackup,
 ) MysqlApiRouter {
 	b := backup.NewMysqlBackupService(bck)
-	d := database.NewMysqlDatabaseService()
+	d := database.NewMysqlDatabaseService(db)
 	u := user.NewMysqlUserService(db)
 	return &MysqlApiController{
 		backup:   backup.NewMysqlBackupController(b),

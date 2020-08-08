@@ -44,5 +44,5 @@ func (s *mockService) GetDatabases(apikey string) (interface{}, error) {
 			}},
 		}, nil
 	}
-	return nil, errors.New("failed")
+	return &openapi.Message{Code: int32(http.StatusInternalServerError), Message: "Internal Server Error"}, errors.New("failed")
 }

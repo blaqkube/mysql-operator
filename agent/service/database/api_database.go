@@ -12,7 +12,6 @@ package database
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -115,8 +114,8 @@ func (c *MysqlDatabaseController) GetDatabases(w http.ResponseWriter, r *http.Re
 	apiKey := r.Header.Get("apiKey")
 	result, err := c.service.GetDatabases(apiKey)
 	if err != nil {
-		fmt.Printf("Error: %v", err)
-		w.WriteHeader(500)
+		statusCode := http.StatusInternalServerError
+		openapi.EncodeJSONResponse(result, &statusCode, w)
 		return
 	}
 	openapi.EncodeJSONResponse(result, nil, w)
