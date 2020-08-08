@@ -14,6 +14,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	_ "github.com/go-sql-driver/mysql"
@@ -23,11 +24,14 @@ import (
 // This service should implement the business logic for every endpoint for the MysqlUser API.
 // Include any external packages or services that will be required by this service.
 type MysqlUserService struct {
+	DB *sql.DB
 }
 
 // NewMysqlUserService creates a default api service
-func NewMysqlUserService() MysqlUserServicer {
-	return &MysqlUserService{}
+func NewMysqlUserService(db *sql.DB) MysqlUserServicer {
+	return &MysqlUserService{
+		DB: db,
+	}
 }
 
 // CreateUser - create an on-demand user
@@ -35,14 +39,8 @@ func (s *MysqlUserService) CreateUser(user openapi.User, apiKey string) (interfa
 	// TODO - update CreateUser with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 	fmt.Printf("Connect to database\n")
-	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
-	defer db.Close()
-	if err != nil {
-		fmt.Printf("Error %v\n", err)
-		return nil, err
-	}
 	var name string
-	err = db.QueryRow("SELECT user FROM mysql.user where user=?", user.Username).Scan(&name)
+	err := s.DB.QueryRow("SELECT user FROM mysql.user where user=?", user.Username).Scan(&name)
 	if err == nil {
 		return user, nil
 	} else if err != sql.ErrNoRows {
@@ -54,7 +52,7 @@ func (s *MysqlUserService) CreateUser(user openapi.User, apiKey string) (interfa
 		user.Password,
 	)
 	fmt.Println(sql)
-	_, err = db.Exec(sql)
+	_, err = s.DB.Exec(sql)
 	if err != nil {
 		fmt.Printf("Error %v\n", err)
 		return nil, err
@@ -62,7 +60,7 @@ func (s *MysqlUserService) CreateUser(user openapi.User, apiKey string) (interfa
 	for _, v := range user.Grants {
 		sql = fmt.Sprintf("GRANT ALL PRIVILEGES ON %s.* TO '%s'@'%%'", v.Database, user.Username)
 		fmt.Println(sql)
-		_, err = db.Exec(sql)
+		_, err = s.DB.Exec(sql)
 		if err != nil {
 			fmt.Printf("Error granting privileges; %v\n", err)
 			return nil, err
@@ -82,34 +80,20 @@ func (s *MysqlUserService) DeleteUser(user string, apiKey string) (interface{}, 
 func (s *MysqlUserService) GetUserByName(user string, apiKey string) (interface{}, error) {
 	// TODO - update GetUserByName with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
-	defer db.Close()
-	if err != nil {
-		fmt.Printf("Error %v\n", err)
-		return nil, err
-	}
 	var name string
-	err = db.QueryRow("SELECT User FROM mysql.user where User=?", user).Scan(&name)
+	err := s.DB.QueryRow("SELECT User FROM mysql.user where User=?", user).Scan(&name)
 	if err != nil {
 		fmt.Printf("Error %v\n", err)
 		return nil, err
-	}
-	if user != name {
-		return nil, errors.New("User not found")
 	}
 	return openapi.User{Username: name}, nil
 }
 
 // GetUsers - list all users
 func (s *MysqlUserService) GetUsers(apiKey string) (interface{}, error) {
-	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
-	defer db.Close()
+	results, err := s.DB.Query("SELECT User FROM mysql.user WHERE Host='%'")
 	if err != nil {
-		return nil, err
-	}
-	results, err := db.Query("SELECT User FROM mysql.user WHERE Host='%'")
-	if err != nil {
-		return nil, err
+		return openapi.Message{Code: int32(http.StatusInternalServerError), Message: fmt.Sprintf("%v", err)}, err
 	}
 	users := []openapi.User{}
 	count := int32(0)

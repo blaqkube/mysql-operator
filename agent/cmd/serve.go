@@ -41,7 +41,7 @@ var serveCmd = &cobra.Command{
 
 		log.Printf("Server started")
 		my := mysql.NewS3MysqlBackup()
-		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), openapi.NewRouter(service.NewMysqlApiController(my))))
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), openapi.NewRouter(service.NewMysqlApiController(db, my))))
 	},
 }
 
