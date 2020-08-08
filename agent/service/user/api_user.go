@@ -12,7 +12,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -113,8 +112,8 @@ func (c *MysqlUserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	apiKey := r.Header.Get("apiKey")
 	result, err := c.service.GetUsers(apiKey)
 	if err != nil {
-		fmt.Printf("Error: %v", err)
-		w.WriteHeader(500)
+		statusCode := int(http.StatusInternalServerError)
+		openapi.EncodeJSONResponse(result, &statusCode, w)
 		return
 	}
 	openapi.EncodeJSONResponse(result, nil, w)
