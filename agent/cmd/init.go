@@ -1,51 +1,59 @@
-/*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
 
+	"github.com/blaqkube/mysql-operator/agent/service/backup"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "initialization steps and stops",
+	Long: `initialization consists in
+   - recovery a backup when specified
+   - create a user for the api commands`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("init called")
+		restore, _ := cmd.Flags().GetBool("restore")
+		if !restore {
+			fmt.Printf("nothing to restore\n")
+			return
+		}
+
+		log.Printf("Restore database...")
+		filename, err := cmd.Flags().GetString("filename")
+		if err != nil || filename == "" {
+			filename = viper.GetString("filename")
+		}
+		bucket, err := cmd.Flags().GetString("bucket")
+		if err != nil || bucket == "" {
+			bucket = viper.GetString("bucket")
+		}
+		filePath, err := cmd.Flags().GetString("path")
+		if err != nil || filePath == "" {
+			filePath = viper.GetString("path")
+		}
+		if filePath == "" || bucket == "" || filename == "" {
+			fmt.Println("Missing parameter, check FILENAME, BUCKET and FILEPATH are set")
+			os.Exit(1)
+		}
+		err = backup.PullS3File(filename, bucket, filePath)
+		if err != nil {
+			fmt.Printf("Error while reading s3://%s%s: %v\n", bucket, filePath, err)
+			os.Exit(1)
+		}
+		return
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	initCmd.Flags().BoolP("restore", "r", false, "restore a dump file")
+	initCmd.Flags().StringP("filename", "f", "", "dump file name")
+	initCmd.Flags().StringP("bucket", "b", "", "dump file bucket")
+	initCmd.Flags().StringP("path", "p", "", "dump file remote path")
 }

@@ -1,51 +1,46 @@
-/*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	"os"
 
+	openapi "github.com/blaqkube/mysql-operator/agent/go"
+	"github.com/blaqkube/mysql-operator/agent/service"
+	"github.com/blaqkube/mysql-operator/agent/service/backup"
 	"github.com/spf13/cobra"
 )
 
 // serveCmd represents the serve command
 var serveCmd = &cobra.Command{
 	Use:   "serve",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Start the MySQL agent",
+	Long:  `Start the MySQL agent and serve the OpenAPI for database, user and backup`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("serve called")
+		port, err := cmd.Flags().GetInt("port")
+		if err != nil {
+			log.Panic(err)
+		}
+
+		log.Printf("Create exporter user")
+		err = backup.CheckDb("root@tcp(localhost:3306)/", 20)
+		if err != nil {
+			fmt.Printf("Error checking database: %v\n", err)
+			os.Exit(1)
+		}
+		err = backup.CreateExporter("root@tcp(localhost:3306)/")
+		if err != nil {
+			fmt.Printf("Error create user: %v\n", err)
+			os.Exit(1)
+		}
+
+		log.Printf("Server started")
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), openapi.NewRouter(service.NewMysqlApiController())))
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(serveCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// serveCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	serveCmd.Flags().IntP("port", "p", 8080, "agent api port")
 }

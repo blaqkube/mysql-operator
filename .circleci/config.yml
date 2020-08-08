@@ -10,7 +10,10 @@ jobs:
           name: Build agent with docker
           command: |
             cd agent
-            docker build -t agent .
+            VERSION=$(git log -1 --pretty='format:%H' . |cut -c1-10)
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin quay.io
+            docker build -t quay.io/blaqkube/mysql-agent:$VERSION .
+            docker push quay.io/blaqkube/mysql-agent:$VERSION
 workflows:
   version: 2
   test_and_build:

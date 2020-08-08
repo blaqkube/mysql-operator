@@ -4,11 +4,11 @@ COPY . ./
 RUN go test -cover ./...
 
 ENV CGO_ENABLED=0
-RUN go build -a -installsuffix cgo -o agent .
+RUN go build -a -installsuffix cgo -o mysql-agent .
 
 FROM mysql:8.0.21
 RUN apt update && \
     apt install -y ca-certificates
-COPY --from=build /project/agent/agent ./
+COPY --from=build /project/agent/mysql-agent ./
 EXPOSE 8080/tcp
-ENTRYPOINT ["./agent"]
+ENTRYPOINT ["./mysql-agent"]

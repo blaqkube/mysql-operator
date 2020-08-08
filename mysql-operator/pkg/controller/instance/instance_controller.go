@@ -266,15 +266,15 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 						Value: store.Spec.S3Access.AWSConfig.SecretKey,
 					},
 					corev1.EnvVar{
-						Name:  "BUCKET",
+						Name:  "AGT_BUCKET",
 						Value: store.Spec.S3Access.Bucket,
 					},
 					corev1.EnvVar{
-						Name:  "FILEPATH",
+						Name:  "AGT_PATH",
 						Value: filePath,
 					},
 					corev1.EnvVar{
-						Name:  "FILENAME",
+						Name:  "AGT_FILENAME",
 						Value: "/docker-entrypoint-initdb.d/init-script.sql",
 					},
 				},
@@ -286,7 +286,8 @@ func newStatefulSetForCR(cr *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store,
 				},
 				Command: []string{
 					"./mysql-agent",
-					"-restore",
+					"init",
+					"--restore",
 				},
 			},
 		}
