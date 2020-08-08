@@ -12,9 +12,6 @@ jobs:
             apk add  --no-cache git
             cd agent
             VERSION=$(git log -1 --pretty='format:%H' . |cut -c1-10)
-            echo $VERSION
-            echo $DOCKER_USER
-            echo $DOCKER_PASSWORD
             docker login -u $DOCKER_USER -p $DOCKER_PASSWORD quay.io
             docker build -t quay.io/blaqkube/mysql-agent:$VERSION .
             docker push quay.io/blaqkube/mysql-agent:$VERSION
