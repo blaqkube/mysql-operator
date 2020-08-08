@@ -11,199 +11,36 @@
 package service
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"strings"
-
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	"github.com/blaqkube/mysql-operator/agent/service/backup"
-	"github.com/gorilla/mux"
+	"github.com/blaqkube/mysql-operator/agent/service/database"
+	"github.com/blaqkube/mysql-operator/agent/service/user"
 )
 
 // A MysqlApiController binds http requests to an api service and writes the service results to the http response
 type MysqlApiController struct {
-	service MysqlApiServicer
-	backup  backup.MysqlBackupRouter
+	backup   backup.MysqlBackupRouter
+	database database.MysqlDatabaseRouter
+	user     user.MysqlUserRouter
 }
 
 // NewMysqlApiController creates a default api controller
-func NewMysqlApiController(s MysqlApiServicer) openapi.Router {
+func NewMysqlApiController() openapi.Router {
 	b := backup.NewMysqlBackupService()
+	d := database.NewMysqlDatabaseService()
+	u := user.NewMysqlUserService()
 	return &MysqlApiController{
-		service: s,
-		backup:  backup.NewMysqlBackupController(b),
+		backup:   backup.NewMysqlBackupController(b),
+		database: database.NewMysqlDatabaseController(d),
+		user:     user.NewMysqlUserController(u),
 	}
 }
 
 // Routes returns all of the api route for the MysqlApiController
 func (c *MysqlApiController) Routes() openapi.Routes {
-	routes := openapi.Routes{
-		{
-			"CreateDatabase",
-			strings.ToUpper("Post"),
-			"/database",
-			c.CreateDatabase,
-		},
-		{
-			"CreateUser",
-			strings.ToUpper("Post"),
-			"/user",
-			c.CreateUser,
-		},
-		{
-			"DeleteDatabase",
-			strings.ToUpper("Delete"),
-			"/database/{database}",
-			c.DeleteDatabase,
-		},
-		{
-			"DeleteUser",
-			strings.ToUpper("Delete"),
-			"/user/{user}",
-			c.DeleteUser,
-		},
-		{
-			"GetDatabaseByName",
-			strings.ToUpper("Get"),
-			"/database/{database}",
-			c.GetDatabaseByName,
-		},
-		{
-			"GetDatabases",
-			strings.ToUpper("Get"),
-			"/database",
-			c.GetDatabases,
-		},
-		{
-			"GetUserByName",
-			strings.ToUpper("Get"),
-			"/user/{user}",
-			c.GetUserByName,
-		},
-		{
-			"GetUsers",
-			strings.ToUpper("Get"),
-			"/user",
-			c.GetUsers,
-		},
-	}
+	routes := openapi.Routes{}
 	routes = append(routes, c.backup.Routes()...)
+	routes = append(routes, c.database.Routes()...)
+	routes = append(routes, c.user.Routes()...)
 	return routes
-}
-
-// CreateDatabase - create an on-demand database
-func (c *MysqlApiController) CreateDatabase(w http.ResponseWriter, r *http.Request) {
-	body := &map[string]interface{}{}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.CreateDatabase(*body, apiKey)
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	openapi.EncodeJSONResponse(result, nil, w)
-}
-
-// CreateUser - create an on-demand user
-func (c *MysqlApiController) CreateUser(w http.ResponseWriter, r *http.Request) {
-	user := &openapi.User{}
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.CreateUser(*user, apiKey)
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	openapi.EncodeJSONResponse(result, nil, w)
-}
-
-// DeleteDatabase - Deletes a database
-func (c *MysqlApiController) DeleteDatabase(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	database := params["database"]
-	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.DeleteDatabase(database, apiKey)
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	openapi.EncodeJSONResponse(result, nil, w)
-}
-
-// DeleteUser - Deletes a user
-func (c *MysqlApiController) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	user := params["user"]
-	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.DeleteUser(user, apiKey)
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	openapi.EncodeJSONResponse(result, nil, w)
-}
-
-// GetDatabaseByName - Get Database properties
-func (c *MysqlApiController) GetDatabaseByName(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	database := params["database"]
-	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.GetDatabaseByName(database, apiKey)
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	openapi.EncodeJSONResponse(result, nil, w)
-}
-
-// GetDatabases - list all databases
-func (c *MysqlApiController) GetDatabases(w http.ResponseWriter, r *http.Request) {
-	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.GetDatabases(apiKey)
-	if err != nil {
-		fmt.Printf("Error: %v", err)
-		w.WriteHeader(500)
-		return
-	}
-	openapi.EncodeJSONResponse(result, nil, w)
-}
-
-// GetUserByName - Get user properties
-func (c *MysqlApiController) GetUserByName(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	user := params["user"]
-	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.GetUserByName(user, apiKey)
-	if err != nil {
-		w.WriteHeader(500)
-		return
-	}
-
-	openapi.EncodeJSONResponse(result, nil, w)
-}
-
-// GetUsers - list all users
-func (c *MysqlApiController) GetUsers(w http.ResponseWriter, r *http.Request) {
-	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.GetUsers(apiKey)
-	if err != nil {
-		fmt.Printf("Error: %v", err)
-		w.WriteHeader(500)
-		return
-	}
-	openapi.EncodeJSONResponse(result, nil, w)
 }
