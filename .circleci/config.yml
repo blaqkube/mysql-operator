@@ -35,5 +35,7 @@ workflows:
   version: 2
   test_and_build:
     jobs:
+      - test:
+          context: QUAY
       - build:
           context: QUAY
