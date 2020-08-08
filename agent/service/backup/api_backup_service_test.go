@@ -1,15 +1,8 @@
 package backup
 
-/*
 import (
-	"database/sql"
-	"encoding/json"
-	"fmt"
-	"regexp"
 	"testing"
-	"time"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	_ "github.com/go-sql-driver/mysql"
 
@@ -17,87 +10,46 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type Suite struct {
+type BackupSuite struct {
 	suite.Suite
-	DB          *sql.DB
-	mock        sqlmock.Sqlmock
 	testService MysqlBackupServicer
 }
 
-func (s *Suite) SetupSuite() {
-	var err error
-	s.DB, s.mock, err = sqlmock.New()
-	require.NoError(s.T(), err)
-
-	s.testService = &MysqlBackupService{DB: s.DB}
+func (s *BackupSuite) SetupSuite() {
+	s.testService = NewMysqlBackupService(&mockBackupPrimitive{})
 }
 
-func (s *Suite) Test_Delete() {
-	var (
-		id     = int32(1)
-		tenant = "test1"
-	)
-
-	s.mock.ExpectBegin()
-
-	s.mock.ExpectExec(regexp.QuoteMeta(
-		"UPDATE `NGN_FACTS` SET `deleted_at`=? WHERE tenant = ? and id=?",
-	)).
-		WithArgs(sqlmock.AnyArg(), tenant, id).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	s.mock.ExpectCommit()
-	err := s.testService.Delete(id, "test1")
+func (s *BackupSuite) Test_Delete() {
+	_, err := s.testService.DeleteBackup("1", "2")
 	require.NoError(s.T(), err)
 }
 
-func (s *Suite) Test_List() {
-	var (
-		id     = int32(1)
-		tenant = "test1"
-	)
-
-	s.mock.ExpectQuery(regexp.QuoteMeta(
-		"SELECT * FROM `NGN_FACTS` WHERE tenant = ? AND `NGN_FACTS`.`deleted_at` IS NULL",
-	)).
-		WithArgs(tenant).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at", "updated_at", "deleted_at", "tenant", "inventory_id", "product_id", "repository_id", "indicator_id", "value"}).
-			AddRow(id, time.Now(), time.Now(), nil, tenant, uint(1), uint(1), uint(1), uint(1), float64(5)))
-
-	v, err := s.testService.List("test1")
+func (s *BackupSuite) Test_GetByName() {
+	_, _, err := s.testService.GetBackupByName("2006-01-02T15:04:05Z", "2")
 	require.NoError(s.T(), err)
-	switch i := v.(type) {
-	case openapi.ListFactsResponse:
-		require.Equal(s.T(), int32(1), i.Size, "Return an array size 1")
-	default:
-		panic("wrong type")
-	}
-
 }
 
-func (s *Suite) Test_GetByID() {
-	var (
-		id     = int32(1)
-		tenant = "test1"
-	)
-
-	s.mock.ExpectQuery(regexp.QuoteMeta(
-		"SELECT * FROM `NGN_FACTS` WHERE tenant = ? and id=? AND `NGN_FACTS`.`deleted_at` IS NULL ORDER BY `NGN_FACTS`.`id` LIMIT 1",
-	)).
-		WithArgs(tenant, uint(id)).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at", "updated_at", "deleted_at", "tenant", "inventory_id", "product_id", "repository_id", "indicator_id", "value"}).
-			AddRow(id, time.Now(), time.Now(), nil, tenant, uint(1), uint(1), uint(1), uint(1), float64(5)))
-
-	v, err := s.testService.GetByID(id, "test1")
+func (s *BackupSuite) Test_GetByNameWithZeroTime() {
+	_, _, err := s.testService.GetBackupByName("0001-01-01T00:00:00Z", "2")
 	require.NoError(s.T(), err)
-	switch i := v.(type) {
-	case openapi.Fact:
-		require.Equal(s.T(), int32(1), i.Id, "Return Fact with Id 1")
-	default:
-		panic("wrong type")
-	}
-
 }
 
+func (s *BackupSuite) Test_GetByNameWithError() {
+	_, _, err := s.testService.GetBackupByName("123", "2")
+	require.Error(s.T(), err)
+}
+
+func (s *BackupSuite) Test_CreateBackup() {
+	_, err := s.testService.CreateBackup(openapi.Backup{}, "2")
+	require.NoError(s.T(), err)
+}
+
+func (s *BackupSuite) Test_CreateBackupWithError() {
+	_, err := s.testService.CreateBackup(openapi.Backup{Location: "/123"}, "2")
+	require.Error(s.T(), err)
+}
+
+/*
 func (s *Suite) Test_UpdateByID() {
 	var (
 		id     = int32(1)
@@ -185,3 +137,7 @@ func TestSuite(t *testing.T) {
 	suite.Run(t, &Suite{})
 }
 */
+
+func TestBackupSuite(t *testing.T) {
+	suite.Run(t, &BackupSuite{})
+}
