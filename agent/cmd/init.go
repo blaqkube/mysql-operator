@@ -5,7 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/blaqkube/mysql-operator/agent/service/backup"
+	openapi "github.com/blaqkube/mysql-operator/agent/go"
+	"github.com/blaqkube/mysql-operator/agent/mysql"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -41,7 +42,15 @@ var initCmd = &cobra.Command{
 			fmt.Println("Missing parameter, check FILENAME, BUCKET and FILEPATH are set")
 			os.Exit(1)
 		}
-		err = backup.PullS3File(filename, bucket, filePath)
+		my := mysql.NewS3MysqlBackup()
+		b := &openapi.Backup{
+			Location: filePath,
+			S3access: openapi.S3Info{
+				Bucket: bucket,
+				Path:   filePath,
+			},
+		}
+		err = my.PullS3File(b, filePath, filename)
 		if err != nil {
 			fmt.Printf("Error while reading s3://%s%s: %v\n", bucket, filePath, err)
 			os.Exit(1)
