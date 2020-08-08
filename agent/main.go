@@ -17,12 +17,13 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/blaqkube/mysql-operator/agent/cmd"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	"github.com/blaqkube/mysql-operator/agent/service"
 	"github.com/blaqkube/mysql-operator/agent/service/backup"
 )
 
-func main() {
+func start() {
 	boolPtr := flag.Bool("restore", false, "restore the database from store")
 	flag.Parse()
 	if *boolPtr {
@@ -60,4 +61,8 @@ func main() {
 	router := openapi.NewRouter(MysqlApiController)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
+}
+
+func main() {
+	cmd.Execute()
 }
