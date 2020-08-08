@@ -65,20 +65,21 @@ func (c *MysqlDatabaseController) Routes() openapi.Routes {
 
 // CreateDatabase - create an on-demand database
 func (c *MysqlDatabaseController) CreateDatabase(w http.ResponseWriter, r *http.Request) {
-	body := &map[string]interface{}{}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	database := openapi.Database{}
+	if err := json.NewDecoder(r.Body).Decode(&database); err != nil {
 		w.WriteHeader(500)
 		return
 	}
 
 	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.CreateDatabase(*body, apiKey)
+	result, err := c.service.CreateDatabase(database, apiKey)
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
 
-	openapi.EncodeJSONResponse(result, nil, w)
+	statusCode := http.StatusCreated
+	openapi.EncodeJSONResponse(result, &statusCode, w)
 }
 
 // DeleteDatabase - Deletes a database

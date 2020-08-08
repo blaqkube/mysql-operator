@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -20,7 +21,7 @@ func NewMysqlDatabaseService() MysqlDatabaseServicer {
 }
 
 // CreateDatabase - create an on-demand database
-func (s *MysqlDatabaseService) CreateDatabase(body map[string]interface{}, apiKey string) (interface{}, error) {
+func (s *MysqlDatabaseService) CreateDatabase(database openapi.Database, apiKey string) (interface{}, error) {
 	// TODO - update CreateDatabase with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 	fmt.Printf("Connect to database\n")
@@ -30,15 +31,8 @@ func (s *MysqlDatabaseService) CreateDatabase(body map[string]interface{}, apiKe
 		fmt.Printf("Error %v\n", err)
 		return nil, err
 	}
-	if w, ok := body["name"].(string); ok {
-		_, err = db.Exec("create database " + w)
-		if err != nil {
-			fmt.Printf("Error %v\n", err)
-			return nil, err
-		}
-		return body, nil
-	}
-	return nil, errors.New("Unknown Name")
+	_, err = db.Exec("create database " + database.Name)
+	return database, err
 }
 
 // DeleteDatabase - Deletes a database

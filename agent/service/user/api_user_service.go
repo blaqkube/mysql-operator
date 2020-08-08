@@ -112,11 +112,16 @@ func (s *MysqlUserService) GetUsers(apiKey string) (interface{}, error) {
 		return nil, err
 	}
 	users := []openapi.User{}
+	count := int32(0)
 	for results.Next() {
 		var name string
 		err = results.Scan(&name)
 		user := openapi.User{Username: name}
 		users = append(users, user)
+		count++
 	}
-	return users, nil
+	return openapi.ListUsers{
+		Size:  count,
+		Items: users,
+	}, nil
 }
