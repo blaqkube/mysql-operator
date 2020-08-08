@@ -9,8 +9,7 @@ jobs:
       - run:
           name: Build agent with docker
           command: |
-            apt -y update
-            apt install -y git
+            apk add git
             cd agent
             VERSION=$(git log -1 --pretty='format:%H' . |cut -c1-10)
             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin quay.io
