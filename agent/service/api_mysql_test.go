@@ -26,7 +26,7 @@ func (s *Suite) SetupSuite() {
 	require.NoError(s.T(), err)
 
 	my := mysql.NewS3MysqlBackup()
-	s.testService = NewMysqlApiController(s.db, my)
+	s.testService = NewMysqlApiController(my)
 }
 
 func (s *Suite) Test_Routes() {

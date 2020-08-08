@@ -49,94 +49,17 @@ func (s *BackupSuite) Test_CreateBackupWithError() {
 	require.Error(s.T(), err)
 }
 
-/*
-func (s *Suite) Test_UpdateByID() {
-	var (
-		id     = int32(1)
-		tenant = "test1"
-	)
-
-	s.mock.ExpectBegin()
-	s.mock.ExpectExec(regexp.QuoteMeta(
-		"INSERT INTO `NGN_FACTS` (`created_at`,`updated_at`,`deleted_at`,`tenant`,`inventory_id`,`product_id`,`repository_id`,`indicator_id`,`value`) VALUES (?,?,?,?,?,?,?,?,?)",
-	)).
-		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), tenant, uint(1), uint(1), uint(1), uint(1), float64(5)).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	s.mock.ExpectCommit()
-	input := openapi.Fact{
-		Value: float64(5),
-		Product: openapi.Product{
-			Id: int32(1),
-			Inventory: openapi.Inventory{
-				Id: int32(1),
-			},
-		},
-		Repository: openapi.Repository{
-			Id: int32(1),
-		},
-		Indicator: openapi.Indicator{
-			Id: int32(1),
-		},
-	}
-	v, err := s.testService.UpdateByID(input, id, "test1")
-	t, err := json.Marshal(v)
-	fmt.Println(string(t))
+func (s *BackupSuite) Test_PullS3() {
+	m := &mockBackupPrimitive{}
+	err := m.PullS3File(&openapi.Backup{}, "/", "myfile.dmp")
 	require.NoError(s.T(), err)
-	switch i := v.(type) {
-	case openapi.Fact:
-		require.Equal(s.T(), int32(1), i.Id, "Return Fact Id 1")
-	default:
-		panic("wrong type")
-	}
-
 }
 
-func (s *Suite) Test_Create() {
-	var (
-		id     = int32(1)
-		tenant = "test1"
-	)
-
-	s.mock.ExpectBegin()
-	s.mock.ExpectExec(regexp.QuoteMeta(
-		"INSERT INTO `NGN_FACTS` (`created_at`,`updated_at`,`deleted_at`,`tenant`,`inventory_id`,`product_id`,`repository_id`,`indicator_id`,`value`) VALUES (?,?,?,?,?,?,?,?,?)",
-	)).
-		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), tenant, uint(1), uint(1), uint(1), uint(1), float64(5)).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	s.mock.ExpectCommit()
-	input := openapi.Fact{
-		Value: float64(5),
-		Product: openapi.Product{
-			Id: int32(1),
-			Inventory: openapi.Inventory{
-				Id: int32(1),
-			},
-		},
-		Repository: openapi.Repository{
-			Id: int32(1),
-		},
-		Indicator: openapi.Indicator{
-			Id: int32(1),
-		},
-	}
-
-	v, err := s.testService.Create(input, "test1")
-	t, err := json.Marshal(v)
-	fmt.Println(string(t))
+func (s *BackupSuite) Test_PushS3() {
+	m := &mockBackupPrimitive{}
+	err := m.PushS3File(&openapi.Backup{}, "myfile.dmp")
 	require.NoError(s.T(), err)
-	switch i := v.(type) {
-	case openapi.Fact:
-		require.Equal(s.T(), id, i.Id, "Return an array size 1")
-	default:
-		panic("wrong type")
-	}
-
 }
-
-func TestSuite(t *testing.T) {
-	suite.Run(t, &Suite{})
-}
-*/
 
 func TestBackupSuite(t *testing.T) {
 	suite.Run(t, &BackupSuite{})

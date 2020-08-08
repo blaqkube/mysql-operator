@@ -26,3 +26,11 @@ func (m *mockBackupPrimitive) GetBackup(t time.Time) (*openapi.Backup, error) {
 	}
 	return nil, nil
 }
+
+func (m *mockBackupPrimitive) PullS3File(backup *openapi.Backup, location, filename string) error {
+	return nil
+}
+
+func (m *mockBackupPrimitive) PushS3File(backup *openapi.Backup, filename string) error {
+	return nil
+}
