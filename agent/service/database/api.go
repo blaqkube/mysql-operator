@@ -22,7 +22,7 @@ type MysqlDatabaseRouter interface {
 // while the service implementation can ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type MysqlDatabaseServicer interface {
-	CreateDatabase(map[string]interface{}, string) (interface{}, error)
+	CreateDatabase(openapi.Database, string) (interface{}, error)
 	DeleteDatabase(string, string) (interface{}, error)
 	GetDatabaseByName(string, string) (interface{}, error)
 	GetDatabases(string) (interface{}, error)

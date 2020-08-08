@@ -77,8 +77,8 @@ func (c *MysqlUserController) CreateUser(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(500)
 		return
 	}
-
-	openapi.EncodeJSONResponse(result, nil, w)
+	statusCode := http.StatusCreated
+	openapi.EncodeJSONResponse(result, &statusCode, w)
 }
 
 // DeleteUser - Deletes a user
@@ -91,7 +91,6 @@ func (c *MysqlUserController) DeleteUser(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(500)
 		return
 	}
-
 	openapi.EncodeJSONResponse(result, nil, w)
 }
 

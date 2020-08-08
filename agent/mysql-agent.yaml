@@ -138,10 +138,8 @@ paths:
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/Database'
-                type: array
-          description: Array of databases
+                $ref: '#/components/schemas/listDatabases'
+          description: List of databases
       security:
       - api_key: []
       summary: list all databases
@@ -260,10 +258,8 @@ paths:
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/User'
-                type: array
-          description: Array of Users
+                $ref: '#/components/schemas/listUsers'
+          description: List of Users
       security:
       - api_key: []
       summary: list all users
@@ -407,6 +403,9 @@ components:
     Database:
       example:
         name: mydb
+      properties:
+        name:
+          type: string
       required:
       - name
       type: object
@@ -421,6 +420,48 @@ components:
           type: string
       required:
       - database
+      type: object
+    listBackups:
+      example:
+        size: 1
+        items:
+        - s3access:
+            bucket: backup.blaqkube.io
+            path: /blue
+      properties:
+        size:
+          type: integer
+        items:
+          items:
+            $ref: '#/components/schemas/Backup'
+          type: array
+      type: object
+    listDatabases:
+      example:
+        size: 1
+        items:
+        - name: mydb
+      properties:
+        size:
+          type: integer
+        items:
+          items:
+            $ref: '#/components/schemas/Database'
+          type: array
+      type: object
+    listUsers:
+      example:
+        size: 1
+        items:
+        - username: me
+          password: "**"
+      properties:
+        size:
+          type: integer
+        items:
+          items:
+            $ref: '#/components/schemas/User'
+          type: array
       type: object
     Message:
       example:
