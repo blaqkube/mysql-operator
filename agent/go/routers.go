@@ -1,7 +1,7 @@
 /*
  * blaqkube MySQL agent
  *
- * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore 
+ * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore
  *
  * API version: 0.0.1
  * Contact: contact@blaqkube.io
@@ -12,11 +12,11 @@ package openapi
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
-	"github.com/gorilla/mux"
 )
 
 // A Route defines the parameters for an api endpoint
@@ -31,7 +31,7 @@ type Route struct {
 type Routes []Route
 
 // Router defines the required methods for retrieving api routes
-type Router interface { 
+type Router interface {
 	Routes() Routes
 }
 
