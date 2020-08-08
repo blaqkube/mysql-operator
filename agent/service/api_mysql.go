@@ -25,7 +25,7 @@ type MysqlApiController struct {
 }
 
 // NewMysqlApiController creates a default api controller
-func NewMysqlApiController() openapi.Router {
+func NewMysqlApiController() MysqlApiRouter {
 	b := backup.NewMysqlBackupService()
 	d := database.NewMysqlDatabaseService()
 	u := user.NewMysqlUserService()

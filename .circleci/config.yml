@@ -2,12 +2,22 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/golang:1.14.6-buster
+      - image: docker:19.03
     steps:
       - checkout
-      - run: echo "A first hello"
+      - setup_remote_docker
+      - run:
+          name: Build agent with docker
+          command: |
+            apk add  --no-cache git
+            cd agent
+            VERSION=$(git log -1 --pretty='format:%H' . |cut -c1-10)
+            docker login -u $DOCKER_USER -p $DOCKER_PASSWORD quay.io
+            docker build -t quay.io/blaqkube/mysql-agent:$VERSION .
+            docker push quay.io/blaqkube/mysql-agent:$VERSION
 workflows:
   version: 2
   test_and_build:
     jobs:
-      - test
+      - test:
+          context: QUAY

@@ -11,53 +11,9 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-	"log"
-	"net/http"
-	"os"
-
-	openapi "github.com/blaqkube/mysql-operator/agent/go"
-	service "github.com/blaqkube/mysql-operator/agent/service"
+	"github.com/blaqkube/mysql-operator/agent/cmd"
 )
 
 func main() {
-	boolPtr := flag.Bool("restore", false, "restore the database from store")
-	flag.Parse()
-	if *boolPtr {
-		log.Printf("Restore database...")
-		filename := os.Getenv("FILENAME")
-		bucket := os.Getenv("BUCKET")
-		filePath := os.Getenv("FILEPATH")
-		if filePath == "" || bucket == "" || filename == "" {
-			fmt.Println("Missing parameter, check FILENAME, BUCKET and FILEPATH are set")
-			os.Exit(1)
-		}
-		err := service.PullS3File(filename, bucket, filePath)
-		if err != nil {
-			fmt.Printf("Error while reading s3://%s%s: %v\n", bucket, filePath, err)
-			os.Exit(1)
-		}
-		return
-	}
-	log.Printf("Create exporter user")
-	err := service.CheckDb("root@tcp(localhost:3306)/", 20)
-	if err != nil {
-		fmt.Printf("Error checking database: %v\n", err)
-		os.Exit(1)
-	}
-	err = service.CreateExporter("root@tcp(localhost:3306)/")
-	if err != nil {
-		fmt.Printf("Error create user: %v\n", err)
-		os.Exit(1)
-	}
-
-	log.Printf("Server started")
-
-	MysqlApiService := service.NewMysqlApiService()
-	MysqlApiController := service.NewMysqlApiController(MysqlApiService)
-
-	router := openapi.NewRouter(MysqlApiController)
-
-	log.Fatal(http.ListenAndServe(":8080", router))
+	cmd.Execute()
 }
