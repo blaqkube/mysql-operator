@@ -27,19 +27,6 @@ func (s *Suite) SetupSuite() {
 	s.testService = NewMysqlUserService(s.db)
 }
 
-/*
-CreateUser(openapi.User, string) (interface{}, error)
-DeleteUser(string, string) (interface{}, error)
-GetUserByName(string, string) (interface{}, error)
-GetUsers(string) (interface{}, error)
-
-s.mock.ExpectExec(regexp.QuoteMeta(
-	"create user if not exists 'exporter'@'localhost' identified by 'exporter' WITH MAX_USER_CONNECTIONS 3",
-)).
-	WithArgs().
-	WillReturnResult(sqlmock.NewResult(0, 1))
-*/
-
 func (s *Suite) Test_CreateExistingUser() {
 	name := "me"
 	s.mock.ExpectQuery(regexp.QuoteMeta(

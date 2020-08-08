@@ -185,3 +185,47 @@ func TestCreateDatabaseFail(t *testing.T) {
 	assert.NotEqual(t, nil, err, "Should Fail")
 	assert.Equal(t, http.StatusInternalServerError, response.StatusCode, "result http-500")
 }
+
+func TestGetDatabases(t *testing.T) {
+	c := &MysqlDatabaseController{}
+
+	next := openapi.NewRouter(c)
+	c.service = &mockService{}
+	r := httptest.NewRequest("GET", "/database", nil)
+	r.Header.Set("apiKey", "test1")
+
+	w := httptest.NewRecorder()
+	next.ServeHTTP(w, r)
+	response := w.Result()
+
+	bodyBytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+	u := &openapi.ListDatabases{}
+	err = json.Unmarshal(bodyBytes, u)
+	assert.Equal(t, nil, err, "Should succeed")
+	assert.Equal(t, http.StatusOK, response.StatusCode, "result http-200")
+}
+
+func TestGetDatabasesFail(t *testing.T) {
+	c := &MysqlDatabaseController{}
+
+	next := openapi.NewRouter(c)
+	c.service = &mockService{}
+	r := httptest.NewRequest("GET", "/database", nil)
+	r.Header.Set("apiKey", "test2")
+
+	w := httptest.NewRecorder()
+	next.ServeHTTP(w, r)
+	response := w.Result()
+
+	bodyBytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+	u := &openapi.Message{}
+	err = json.Unmarshal(bodyBytes, u)
+	assert.Equal(t, nil, err, "Should succeed")
+	assert.Equal(t, http.StatusInternalServerError, response.StatusCode, "result http-500")
+}
