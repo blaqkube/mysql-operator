@@ -11,7 +11,10 @@
 package service
 
 import (
+	"database/sql"
+
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
+	"github.com/blaqkube/mysql-operator/agent/mysql"
 	"github.com/blaqkube/mysql-operator/agent/service/backup"
 	"github.com/blaqkube/mysql-operator/agent/service/database"
 	"github.com/blaqkube/mysql-operator/agent/service/user"
@@ -25,8 +28,11 @@ type MysqlApiController struct {
 }
 
 // NewMysqlApiController creates a default api controller
-func NewMysqlApiController() MysqlApiRouter {
-	b := backup.NewMysqlBackupService()
+func NewMysqlApiController(
+	db *sql.DB,
+	bck mysql.S3MysqlBackup,
+) MysqlApiRouter {
+	b := backup.NewMysqlBackupService(db, bck)
 	d := database.NewMysqlDatabaseService()
 	u := user.NewMysqlUserService()
 	return &MysqlApiController{

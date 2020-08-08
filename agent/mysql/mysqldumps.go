@@ -1,8 +1,7 @@
-package backup
+package mysql
 
 import (
 	"bytes"
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -17,7 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
@@ -25,7 +23,35 @@ var (
 	mutex   sync.Mutex
 )
 
-func InitializeBackup(b openapi.Backup) (*openapi.Backup, error) {
+// S3MysqlBackup defines an interface for the backup tools
+type S3MysqlBackup interface {
+	InitializeBackup(openapi.Backup) (*openapi.Backup, error)
+	ExecuteBackup(b openapi.Backup)
+	GetBackup(t time.Time) (*openapi.Backup, error)
+	PushS3File(*openapi.Backup, string) error
+	PullS3File(*openapi.Backup, string, string) error
+}
+
+// NewS3MysqlBackup takes a S3 connection and creates a default backup
+func NewS3MysqlBackup() S3MysqlBackup {
+	return &S3MysqlDefaultBackup{}
+}
+
+// S3MysqlDefaultBackup is the default S3MysqlBackup
+type S3MysqlDefaultBackup struct {
+}
+
+// GetBackup returns a backup from the execution time
+func (s *S3MysqlDefaultBackup) GetBackup(t time.Time) (*openapi.Backup, error) {
+	b, ok := backups[t]
+	if !ok {
+		return nil, errors.New("no backup")
+	}
+	return &b, nil
+}
+
+// InitializeBackup registers a backup to start it later
+func (s *S3MysqlDefaultBackup) InitializeBackup(b openapi.Backup) (*openapi.Backup, error) {
 	if !b.Timestamp.IsZero() {
 		return &b, errors.New("Timestamp already exists")
 	}
@@ -47,7 +73,8 @@ func InitializeBackup(b openapi.Backup) (*openapi.Backup, error) {
 	}
 }
 
-func ExecuteBackup(b openapi.Backup) {
+// ExecuteBackup executes an initialized backup
+func (s *S3MysqlDefaultBackup) ExecuteBackup(b openapi.Backup) {
 	t := b.Timestamp
 	filename := `backup-` + t.Format("20060102150405") + `.sql`
 	b.Status = "Running"
@@ -67,7 +94,7 @@ func ExecuteBackup(b openapi.Backup) {
 	mutex.Lock()
 	backups[t] = b
 	mutex.Unlock()
-	err := PushS3File(filename, b.S3access.AwsConfig.AwsAccessKeyId, b.S3access.AwsConfig.AwsSecretAccessKey, b.S3access.AwsConfig.Region, b.S3access.Bucket, b.S3access.Path)
+	err := s.PushS3File(&b, filename)
 	b.Status = "Available"
 	if err != nil {
 		b.Status = "Failed"
@@ -79,10 +106,15 @@ func ExecuteBackup(b openapi.Backup) {
 	return
 }
 
-func PushS3File(filename, accesskey, secretkey, region, bucket, path string) error {
-	s, err := session.NewSession(&aws.Config{
-		Region:      aws.String(region),
-		Credentials: credentials.NewStaticCredentials(accesskey, secretkey, ""),
+// PushS3File pushes a file to S3
+func (s *S3MysqlDefaultBackup) PushS3File(backup *openapi.Backup, filename string) error {
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(backup.S3access.AwsConfig.Region),
+		Credentials: credentials.NewStaticCredentials(
+			backup.S3access.AwsConfig.AwsAccessKeyId,
+			backup.S3access.AwsConfig.AwsSecretAccessKey,
+			"",
+		),
 	})
 	if err != nil {
 		return err
@@ -93,17 +125,14 @@ func PushS3File(filename, accesskey, secretkey, region, bucket, path string) err
 	}
 	defer file.Close()
 
-	// Get file size and read the file content into a buffer
 	fileInfo, _ := file.Stat()
 	var size int64 = fileInfo.Size()
 	buffer := make([]byte, size)
 	file.Read(buffer)
 
-	// Config settings: this is where you choose the bucket, filename, content-type etc.
-	// of the file you're uploading.
-	_, err = s3.New(s).PutObject(&s3.PutObjectInput{
-		Bucket:             aws.String(bucket),
-		Key:                aws.String(path + "/" + filename),
+	_, err = s3.New(sess).PutObject(&s3.PutObjectInput{
+		Bucket:             aws.String(backup.S3access.Bucket),
+		Key:                aws.String(backup.S3access.Path + "/" + filename),
 		ACL:                aws.String("private"),
 		Body:               bytes.NewReader(buffer),
 		ContentLength:      aws.Int64(size),
@@ -113,7 +142,8 @@ func PushS3File(filename, accesskey, secretkey, region, bucket, path string) err
 	return err
 }
 
-func PullS3File(filename, bucket, location string) error {
+// PullS3File pull a file from S3, using a different location if necessary
+func (s *S3MysqlDefaultBackup) PullS3File(backup *openapi.Backup, location, filename string) error {
 	sess, err := session.NewSession(&aws.Config{})
 	if err != nil {
 		return err
@@ -124,60 +154,14 @@ func PullS3File(filename, bucket, location string) error {
 	if err != nil {
 		return err
 	}
+	l := location
+	if location == "" {
+		l = backup.S3access.Path
+	}
 	_, err = downloader.Download(file,
 		&s3.GetObjectInput{
-			Bucket: aws.String(bucket),
-			Key:    aws.String(location),
+			Bucket: aws.String(backup.S3access.Bucket),
+			Key:    aws.String(l),
 		})
-	return err
-}
-
-func CheckDb(dsn string, retry int) error {
-	db, err := sql.Open("mysql", dsn)
-	if err != nil {
-		panic(err.Error()) // proper error handling instead of panic
-	}
-	defer db.Close()
-
-	for i := 0; i < retry; i++ {
-		err = db.Ping()
-		if err == nil {
-			return nil
-		}
-		time.Sleep(5 * time.Second)
-	}
-	return errors.New("Connection failed")
-}
-
-func CreateExporter(dsn string) error {
-	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/")
-	defer db.Close()
-	if err != nil {
-		fmt.Printf("Error %v\n", err)
-		return err
-	}
-	sql := "create user if not exists 'exporter'@'localhost' identified by 'exporter' WITH MAX_USER_CONNECTIONS 3"
-	_, err = db.Exec(sql)
-	if err != nil {
-		fmt.Printf("Error %v\n", err)
-		return err
-	}
-	sql = "create user if not exists 'exporter'@'::1' identified by 'exporter' WITH MAX_USER_CONNECTIONS 3"
-	_, err = db.Exec(sql)
-	if err != nil {
-		fmt.Printf("Error %v\n", err)
-		return err
-	}
-	sql = "GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'localhost'"
-	_, err = db.Exec(sql)
-	if err != nil {
-		fmt.Printf("Error %v\n", err)
-		return err
-	}
-	sql = "GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'::1'"
-	_, err = db.Exec(sql)
-	if err != nil {
-		fmt.Printf("Error %v\n", err)
-	}
 	return err
 }

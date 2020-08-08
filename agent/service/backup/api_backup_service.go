@@ -6,19 +6,26 @@ import (
 	"time"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/blaqkube/mysql-operator/agent/mysql"
 )
 
 // MysqlBackupService is a service that implents the logic for the MysqlBackupServicer
 // This service should implement the business logic for every endpoint for the MysqlBackup API.
 // Include any external packages or services that will be required by this service.
 type MysqlBackupService struct {
-	DB *sql.DB
+	DB       *sql.DB
+	S3Backup mysql.S3MysqlBackup
 }
 
 // NewMysqlBackupService creates a MySQL backup service
-func NewMysqlBackupService() MysqlBackupServicer {
-	return &MysqlBackupService{}
+func NewMysqlBackupService(
+	db *sql.DB,
+	s3 mysql.S3MysqlBackup,
+) MysqlBackupServicer {
+	return &MysqlBackupService{
+		S3Backup: s3,
+		DB:       db,
+	}
 }
 
 // CreateBackup - create an on-demand backup
@@ -26,11 +33,12 @@ func (s *MysqlBackupService) CreateBackup(backup openapi.Backup, apiKey string) 
 	// TODO - update CreateBackup with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
 	// mysqldump --all-databases --single-transaction -h 127.0.0.1 > mysql.backup.sql
-	b, err := InitializeBackup(backup)
+	my := mysql.NewS3MysqlBackup()
+	b, err := my.InitializeBackup(backup)
 	if err != nil {
 		return nil, err
 	}
-	go ExecuteBackup(*b)
+	go my.ExecuteBackup(*b)
 	return b, nil
 }
 
@@ -50,8 +58,8 @@ func (s *MysqlBackupService) GetBackupByName(backup string, apiKey string) (inte
 	if err != nil {
 		return nil, http.StatusBadRequest, err
 	}
-	b, ok := backups[t]
-	if !ok {
+	b, err := s.S3Backup.GetBackup(t)
+	if err != nil {
 		return nil, http.StatusNotFound, nil
 	}
 	return b, http.StatusOK, nil
