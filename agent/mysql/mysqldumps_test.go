@@ -21,5 +21,5 @@ func (s *DumpSuite) Test_InitializeBackup() {
 	backup := openapi.Backup{}
 	b, err := s.testService.InitializeBackup(backup)
 	require.NoError(s.T(), err)
-	require.Equal(s.T(), "me", b.Status, "Status should be Started")
+	require.Equal(s.T(), "Pending", b.Status, "Status should be Started")
 }

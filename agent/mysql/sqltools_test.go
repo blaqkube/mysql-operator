@@ -58,4 +58,5 @@ func (s *Suite) Test_CreateExporter() {
 
 func TestSuite(t *testing.T) {
 	suite.Run(t, &Suite{})
+	suite.Run(t, &DumpSuite{})
 }
