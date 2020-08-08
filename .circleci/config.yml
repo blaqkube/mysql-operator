@@ -9,12 +9,20 @@ jobs:
       - run:
           name: Build agent with docker
           command: |
-            apk add  --no-cache git
+            apk add  --no-cache git curl
             cd agent
             VERSION=$(git log -1 --pretty='format:%H' . |cut -c1-10)
             docker login -u $DOCKER_USER -p $DOCKER_PASSWORD quay.io
             docker build -t quay.io/blaqkube/mysql-agent:$VERSION .
             docker push quay.io/blaqkube/mysql-agent:$VERSION
+      - run:
+          name: Start Kubernetes
+          command: |
+            docker run -d --name kube --privileged -p 8443:8443 -p 10080:10080 bsycorp/kind:latest-1.17.9
+            until curl -s --fail http://127.0.0.1:10080/kubernetes-ready; do
+              sleep 1;
+            done
+            echo "Kubernetes ready - run tests!"
 workflows:
   version: 2
   test_and_build:
