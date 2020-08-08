@@ -377,24 +377,6 @@ components:
         region:
           type: string
       type: object
-    Database:
-      example:
-        name: mydb
-      required:
-      - name
-      type: object
-    Grant:
-      example:
-        database: blue
-        accessMode: readwrite
-      properties:
-        database:
-          type: string
-        accessMode:
-          type: string
-      required:
-      - database
-      type: object
     Backup:
       example:
         s3access:
@@ -421,6 +403,36 @@ components:
           type: string
       required:
       - s3access
+      type: object
+    Database:
+      example:
+        name: mydb
+      required:
+      - name
+      type: object
+    Grant:
+      example:
+        database: blue
+        accessMode: readwrite
+      properties:
+        database:
+          type: string
+        accessMode:
+          type: string
+      required:
+      - database
+      type: object
+    Message:
+      example:
+        code: 200
+        message: Success
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+      - code
       type: object
     S3Info:
       properties:

@@ -10,10 +10,8 @@
 
 package openapi
 
-type S3Info struct {
-	Bucket string `json:"bucket"`
+type Message struct {
+	Code int32 `json:"code"`
 
-	Path string `json:"path,omitempty"`
-
-	AwsConfig AwsConfig `json:"awsConfig,omitempty"`
+	Message string `json:"message,omitempty"`
 }

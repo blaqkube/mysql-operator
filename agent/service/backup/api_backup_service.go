@@ -2,7 +2,6 @@ package backup
 
 import (
 	"database/sql"
-	"errors"
 	"net/http"
 	"time"
 
@@ -39,7 +38,8 @@ func (s *MysqlBackupService) CreateBackup(backup openapi.Backup, apiKey string) 
 func (s *MysqlBackupService) DeleteBackup(backup string, apiKey string) (interface{}, error) {
 	// TODO - update DeleteBackup with the required logic for this service method.
 	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	return nil, errors.New("service method 'DeleteBackup' not implemented")
+	b := openapi.Message{Code: int32(http.StatusNotImplemented), Message: "Not Implemented"}
+	return b, nil
 }
 
 // GetBackupByName - Get backup properties

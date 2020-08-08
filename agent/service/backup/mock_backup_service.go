@@ -28,15 +28,13 @@ func (s *mockService) CreateBackup(o openapi.Backup, apikey string) (interface{}
 			Message: "backup has succeeded",
 		}, nil
 	}
-	if apikey == "test2" {
-		return nil, errors.New("backup failed")
-	}
-	return nil, nil
+	return nil, errors.New("backup failed")
 }
 
 func (s *mockService) DeleteBackup(backup, apikey string) (interface{}, error) {
 	if apikey == "test1" {
-		return nil, errors.New("not implemented")
+		b := openapi.Message{Code: int32(http.StatusNotImplemented), Message: "Not Implemented"}
+		return b, nil
 	}
 	return nil, errors.New("not implemented")
 }
@@ -59,8 +57,5 @@ func (s *mockService) GetBackupByName(backup, apikey string) (interface{}, int, 
 			Message: "backup has succeeded",
 		}, http.StatusOK, nil
 	}
-	if apikey == "test2" {
-		return nil, http.StatusNotFound, nil
-	}
-	return nil, http.StatusBadRequest, nil
+	return nil, http.StatusNotFound, errors.New("failed")
 }
