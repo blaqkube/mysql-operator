@@ -28,8 +28,8 @@ type S3MysqlBackup interface {
 	InitializeBackup(openapi.Backup) (*openapi.Backup, error)
 	ExecuteBackup(b openapi.Backup)
 	GetBackup(t time.Time) (*openapi.Backup, error)
-	PushS3File(*openapi.Backup, string) error
-	PullS3File(*openapi.Backup, string, string) error
+	PullS3File(backup *openapi.Backup, location, filename string) error
+	PushS3File(backup *openapi.Backup, filename string) error
 }
 
 // NewS3MysqlBackup takes a S3 connection and creates a default backup
