@@ -15,10 +15,13 @@ jobs:
             docker login -u $DOCKER_USER -p $DOCKER_PASSWORD quay.io
             docker build -t quay.io/blaqkube/mysql-agent:$VERSION .
             docker push quay.io/blaqkube/mysql-agent:$VERSION
+  build:
+    machine: true
+    steps:
       - run:
           name: Start Kubernetes
           command: |
-            docker run -d --name kube --privileged -p 8443:8443 -p 10080:10080 bsycorp/kind:v1.17.9
+            docker run -d --name kube --privileged -p 8443:8443 -p 10080:10080 bsycorp/kind:latest-1.9
             until curl -s --fail http://127.0.0.1:10080/kubernetes-ready; do
               sleep 1;
             done
@@ -27,5 +30,5 @@ workflows:
   version: 2
   test_and_build:
     jobs:
-      - test:
+      - build:
           context: QUAY
