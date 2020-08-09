@@ -19,8 +19,7 @@ jobs:
       - run:
           name: Build agent with docker
           command: |
-            cd ~/mysql-operator/agent
-            VERSION=$(git log -1 --pretty='format:%H' . |cut -c1-10)
+            cd ~/mysql-operator
             gally build
   build:
     machine: true
