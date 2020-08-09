@@ -4,13 +4,21 @@ jobs:
     docker:
       - image: quay.io/blaqkube/docker-gally:b5f01fa76c
     steps:
-      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "9d:c2:3a:49:b6:9c:b0:20:6e:61:2a:8d:30:fe:20:b4"
+      - run:
+          name: Clone repository
+          command: |
+            mkdir -p ~/.ssh
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+            git clone git@github.com:blaqkube/mysql-operator.git ~/mysql-operator
+            git checkout -b ci $CIRCLE_SHA1
       - setup_remote_docker
       - run:
           name: Build agent with docker
           command: |
-            apk add  --no-cache git curl
-            cd agent
+            cd ~/mysql-operator/agent
             VERSION=$(git log -1 --pretty='format:%H' . |cut -c1-10)
             docker login -u $DOCKER_USER -p $DOCKER_PASSWORD quay.io
             docker build -t quay.io/blaqkube/mysql-agent:$VERSION .
