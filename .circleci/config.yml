@@ -15,6 +15,10 @@ jobs:
             docker login -u $DOCKER_USER -p $DOCKER_PASSWORD quay.io
             docker build -t quay.io/blaqkube/mysql-agent:$VERSION .
             docker push quay.io/blaqkube/mysql-agent:$VERSION
+            cd ../mysql-operator
+            VERSION=$(git log -1 --pretty='format:%H' . |cut -c1-10)
+            docker build -t quay.io/blaqkube/mysql-operator:$VERSION .
+            docker push quay.io/blaqkube/mysql-agent:$VERSION
   build:
     machine: true
     steps:
