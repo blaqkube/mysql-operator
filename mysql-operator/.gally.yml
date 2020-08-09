@@ -1,4 +1,4 @@
-name: agent
+name: mysql-operator
 strategies:
   compare-to:
     branch: master
@@ -8,5 +8,5 @@ build: ../.ci/build.sh
 tag: false
 env:
   - name: TAG
-    value: quay.io/blaqkube/mysql-agent
+    value: quay.io/blaqkube/mysql-operator
 
