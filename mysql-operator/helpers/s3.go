@@ -14,15 +14,23 @@ import (
 
 type S3Tool interface {
 	PushFileToS3(localFile, bucket, key string) error
+	TestS3Access(bucket, directory string) error
 }
 
 type S3DefaultTool struct {
-	session *session.Session
+	session    *session.Session
+	defaultDir string
 }
 
-func NewS3DefaultTool(s *session.Session) S3Tool {
+func NewS3DefaultTool(s *session.Session, path *string) S3Tool {
+	defaultDir := "/tmp"
+	if path != nil {
+		defaultDir = *path
+	}
+
 	return &S3DefaultTool{
-		session: s,
+		session:    s,
+		defaultDir: defaultDir,
 	}
 }
 
@@ -52,10 +60,18 @@ func (s *S3DefaultTool) PushFileToS3(localFile, bucket, key string) error {
 
 func (s *S3DefaultTool) TestS3Access(bucket, directory string) error {
 	d1 := []byte("content\n")
-	err := ioutil.WriteFile("/tmp/manifest.txt", d1, 0644)
+	err := ioutil.WriteFile(
+		fmt.Sprintf("%s/%s", s.defaultDir, "manifest.txt"),
+		d1,
+		0644,
+	)
 	if err != nil {
 		return err
 	}
-	err = s.PushFileToS3("/tmp/manifest.txt", bucket, fmt.Sprintf("%s/%s", directory, "/manifest.txt"))
+	err = s.PushFileToS3(
+		fmt.Sprintf("%s/%s", s.defaultDir, "manifest.txt"),
+		bucket,
+		fmt.Sprintf("%s/%s", directory, "manifest.txt"),
+	)
 	return err
 }
