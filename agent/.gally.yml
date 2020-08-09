@@ -4,7 +4,7 @@ strategies:
     branch: master
   previous-commit:
     only: master
-build: pwd && ls -al ../.ci/build.sh
+build: pwd && ../.ci/build.sh
 tag: false
 env:
   - name: TAG
