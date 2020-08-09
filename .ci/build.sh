@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/bin/sh
 
 cd $GALLY_PROJECT_ROOT
 docker build -t $TAG:$GALLY_PROJECT_VERSION .
