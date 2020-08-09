@@ -32,8 +32,9 @@ import (
 // StoreReconciler reconciles a Store object
 type StoreReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log         logr.Logger
+	Scheme      *runtime.Scheme
+	BackupStore helpers.StoreInitializer
 }
 
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=stores,verbs=get;list;watch;create;update;patch;delete
@@ -60,14 +61,13 @@ func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if store.Status.Status == "Pending" {
 		if store.Spec.Backend == nil || *store.Spec.Backend == "s3" {
 
-			s, err := helpers.NewS3ToolFromConfig(store.Spec.S3Backup.AWSConfig, nil)
+			s, err := r.BackupStore.New(store.Spec.S3Backup.AWSConfig)
 			if err != nil {
 				store.Status.Status = "Error"
 				if err := r.Status().Update(ctx, &store); err != nil {
 					log.Error(err, "unable to update store status")
 					return ctrl.Result{}, err
 				}
-				return ctrl.Result{Requeue: false}, nil
 			}
 			err = s.TestS3Access("test", "/validation")
 			if err != nil {
@@ -76,8 +76,14 @@ func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 					log.Error(err, "unable to update store status")
 					return ctrl.Result{}, err
 				}
-				return ctrl.Result{Requeue: false}, nil
+				return ctrl.Result{}, err
 			}
+			store.Status.Status = "Success"
+			if err := r.Status().Update(ctx, &store); err != nil {
+				log.Error(err, "unable to update store status")
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{}, nil
 		}
 	}
 	return ctrl.Result{}, nil

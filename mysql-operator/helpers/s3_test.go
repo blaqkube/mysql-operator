@@ -39,7 +39,10 @@ func TestPushFileToS3(t *testing.T) {
 	assert.Equal(t, nil, err, "should succeed")
 
 	// Perform the 1st test
-	c := NewS3DefaultTool(s, nil)
+	c := &S3DefaultTool{
+		session:    s,
+		defaultDir: "/tmp",
+	}
 	err = c.PushFileToS3("s3.go", "bucket", "/greg/demo.txt")
 	assert.Equal(t, nil, err, "should succeed")
 
@@ -79,13 +82,15 @@ func TestS3Access(t *testing.T) {
 	assert.Equal(t, nil, err, "should succeed")
 
 	// Perform the 1st test
-	c := NewS3DefaultTool(s, nil)
+	c := &S3DefaultTool{
+		session:    s,
+		defaultDir: "/tmp",
+	}
 	err = c.TestS3Access("test", "/greg")
 	assert.Equal(t, nil, err, "should succeed")
 
 	// Perform the 2nd test
-	root := "/rooot"
-	c = NewS3DefaultTool(s, &root)
+	c.defaultDir = "/rooot"
 	err = c.TestS3Access("test", "/greg")
 	assert.Error(t, err, "should succeed")
 

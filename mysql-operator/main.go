@@ -29,6 +29,7 @@ import (
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
 	"github.com/blaqkube/mysql-operator/mysql-operator/controllers"
+	"github.com/blaqkube/mysql-operator/mysql-operator/helpers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -84,9 +85,10 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.StoreReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Store"),
-		Scheme: mgr.GetScheme(),
+		Client:      mgr.GetClient(),
+		Log:         ctrl.Log.WithName("controllers").WithName("Store"),
+		Scheme:      mgr.GetScheme(),
+		BackupStore: helpers.NewStoreDefaultInitialize(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Store")
 		os.Exit(1)

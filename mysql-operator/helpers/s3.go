@@ -26,28 +26,23 @@ type S3Tool interface {
 	TestS3Access(bucket, directory string) error
 }
 
+type StoreInitializer interface {
+	New(*AWSConfig) (S3Tool, error)
+}
+
+type StoreDefaultInitialize struct{}
+
+func NewStoreDefaultInitialize() StoreInitializer {
+	return &StoreDefaultInitialize{}
+}
+
 type S3DefaultTool struct {
 	session    *session.Session
 	defaultDir string
 }
 
-func NewS3DefaultTool(s *session.Session, path *string) S3Tool {
+func (i *StoreDefaultInitialize) New(c *AWSConfig) (S3Tool, error) {
 	defaultDir := "/tmp"
-	if path != nil {
-		defaultDir = *path
-	}
-
-	return &S3DefaultTool{
-		session:    s,
-		defaultDir: defaultDir,
-	}
-}
-
-func NewS3ToolFromConfig(c *AWSConfig, path *string) (S3Tool, error) {
-	defaultDir := "/tmp"
-	if path != nil {
-		defaultDir = *path
-	}
 	a := &aws.Config{
 		Region:      aws.String(c.Region),
 		Credentials: credentials.NewStaticCredentials(c.AccessKey, c.SecretKey, ""),

@@ -20,6 +20,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/blaqkube/mysql-operator/mysql-operator/helpers"
 	"github.com/go-logr/zapr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -33,7 +34,7 @@ import (
 )
 
 var _ = Describe("Store Controller", func() {
-	It("store requests", func() {
+	It("New Store and S3 Okay", func() {
 		ctx := context.Background()
 		store := mysqlv1alpha1.Store{
 			ObjectMeta: metav1.ObjectMeta{
@@ -52,14 +53,21 @@ var _ = Describe("Store Controller", func() {
 		name := types.NamespacedName{Namespace: store.Namespace, Name: store.Name}
 
 		zapLog, _ := zap.NewDevelopment()
-		Expect((&StoreReconciler{
-			Client: k8sClient,
-			Log:    zapr.NewLogger(zapLog),
-			Scheme: scheme.Scheme,
-		}).Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true}))
+		reconcile := &StoreReconciler{
+			Client:      k8sClient,
+			Log:         zapr.NewLogger(zapLog),
+			Scheme:      scheme.Scheme,
+			BackupStore: helpers.NewStoreMockInitialize(),
+		}
+		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true}))
 
 		response := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
 		Expect(response.Status.Status).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
+
+		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
+		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
+		Expect(response.Status.Status).To(Equal("Success"), "Expected reconcile to change the status to Success")
+
 	})
 })
