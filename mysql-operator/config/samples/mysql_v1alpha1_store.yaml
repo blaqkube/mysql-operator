@@ -1,0 +1,7 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Store
+metadata:
+  name: store-sample
+spec:
+  # Add fields here
+  foo: bar

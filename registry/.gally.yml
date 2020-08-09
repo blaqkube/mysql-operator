@@ -1,0 +1,11 @@
+name: registry
+strategies:
+  compare-to:
+    branch: master
+  previous-commit:
+    only: master
+build: pwd && ../.ci/build.sh
+tag: false
+env:
+  - name: TAG
+    value: quay.io/blaqkube/operators-catalog
