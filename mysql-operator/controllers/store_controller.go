@@ -68,15 +68,16 @@ func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 					log.Error(err, "unable to update store status")
 					return ctrl.Result{}, err
 				}
+				return ctrl.Result{}, nil
 			}
-			err = s.TestS3Access("test", "/validation")
+			err = s.TestS3Access(store.Spec.S3Backup.Bucket, "/validation")
 			if err != nil {
 				store.Status.Status = "Error"
 				if err := r.Status().Update(ctx, &store); err != nil {
 					log.Error(err, "unable to update store status")
 					return ctrl.Result{}, err
 				}
-				return ctrl.Result{}, err
+				return ctrl.Result{}, nil
 			}
 			store.Status.Status = "Success"
 			if err := r.Status().Update(ctx, &store); err != nil {
