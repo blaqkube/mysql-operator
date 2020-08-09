@@ -1,0 +1,20 @@
+# permissions for end users to view instances.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: instance-viewer-role
+rules:
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
+  - instances
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
+  - instances/status
+  verbs:
+  - get

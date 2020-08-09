@@ -1,9 +1,0 @@
-apiVersion: mysql.blaqkube.io/v1alpha1
-kind: Instance
-metadata:
-  name: blue
-spec:
-  database: blue
-  restore:
-    store: docs
-    filePath: "/location/backup-20200526110950.sql"
