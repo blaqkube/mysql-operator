@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: docker:19.03
+      - image: quay.io/blaqkube/docker-gally:b5f01fa76c
     steps:
       - checkout
       - setup_remote_docker

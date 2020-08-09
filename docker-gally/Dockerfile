@@ -1,4 +1,4 @@
-FROM docker:19.06
+FROM docker:19.03
 
 ENV GALLY=0.0.37
 
