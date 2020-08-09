@@ -7,10 +7,19 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
+
+// AWSConfig is an AWS configuration that can be used to access a store
+type AWSConfig struct {
+	AccessKey string `json:"aws_access_key_id"`
+	SecretKey string `json:"aws_secret_access_key"`
+	Region    string `json:"region"`
+}
 
 type S3Tool interface {
 	PushFileToS3(localFile, bucket, key string) error
@@ -32,6 +41,27 @@ func NewS3DefaultTool(s *session.Session, path *string) S3Tool {
 		session:    s,
 		defaultDir: defaultDir,
 	}
+}
+
+func NewS3ToolFromConfig(c *AWSConfig, path *string) (S3Tool, error) {
+	defaultDir := "/tmp"
+	if path != nil {
+		defaultDir = *path
+	}
+	a := &aws.Config{
+		Region:      aws.String(c.Region),
+		Credentials: credentials.NewStaticCredentials(c.AccessKey, c.SecretKey, ""),
+	}
+
+	sess, err := session.NewSession(a)
+	if err != nil {
+		return nil, err
+	}
+
+	return &S3DefaultTool{
+		session:    sess,
+		defaultDir: defaultDir,
+	}, nil
 }
 
 func (s *S3DefaultTool) PushFileToS3(localFile, bucket, key string) error {

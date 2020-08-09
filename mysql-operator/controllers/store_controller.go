@@ -19,7 +19,9 @@ package controllers
 import (
 	"context"
 
+	"github.com/blaqkube/mysql-operator/mysql-operator/helpers"
 	"github.com/go-logr/logr"
+	"github.com/prometheus/common/log"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -38,11 +40,46 @@ type StoreReconciler struct {
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=stores/status,verbs=get;update;patch
 
 func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
+	ctx := context.Background()
 	_ = r.Log.WithValues("store", req.NamespacedName)
 
 	// your logic here
+	var store mysqlv1alpha1.Store
+	if err := r.Get(ctx, req.NamespacedName, &store); err != nil {
+		log.Error(err, "unable to fetch Store")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	if store.Status.Status == "" {
+		store.Status.Status = "Pending"
+		if err := r.Status().Update(ctx, &store); err != nil {
+			log.Error(err, "unable to update store status")
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{Requeue: true}, nil
+	}
+	if store.Status.Status == "Pending" {
+		if store.Spec.Backend == nil || *store.Spec.Backend == "s3" {
 
+			s, err := helpers.NewS3ToolFromConfig(store.Spec.S3Backup.AWSConfig, nil)
+			if err != nil {
+				store.Status.Status = "Error"
+				if err := r.Status().Update(ctx, &store); err != nil {
+					log.Error(err, "unable to update store status")
+					return ctrl.Result{}, err
+				}
+				return ctrl.Result{Requeue: false}, nil
+			}
+			err = s.TestS3Access("test", "/validation")
+			if err != nil {
+				store.Status.Status = "Error"
+				if err := r.Status().Update(ctx, &store); err != nil {
+					log.Error(err, "unable to update store status")
+					return ctrl.Result{}, err
+				}
+				return ctrl.Result{Requeue: false}, nil
+			}
+		}
+	}
 	return ctrl.Result{}, nil
 }
 

@@ -16,25 +16,20 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/blaqkube/mysql-operator/mysql-operator/helpers"
 	"github.com/operator-framework/operator-lib/status"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// AWSConfig is an AWS configuration that can be used to access a store
-type AWSConfig struct {
-	AccessKey string `json:"aws_access_key_id"`
-	SecretKey string `json:"aws_secret_access_key"`
-	Region    string `json:"region"`
-}
-
-// BackupInfo defines
+// S3BackupInfo defines store informations for S3
 type S3BackupInfo struct {
-	Bucket    string     `json:"bucket"`
-	Path      string     `json:"path"`
-	AWSConfig *AWSConfig `json:"aws_config,omitempty"`
+	Bucket    string             `json:"bucket"`
+	Path      string             `json:"path"`
+	AWSConfig *helpers.AWSConfig `json:"aws_config,omitempty"`
 }
 
 // StoreSpec defines the desired state of Store
