@@ -19,6 +19,7 @@ jobs:
       - run:
           name: Build agent with docker
           command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASSWORD quay.io
             cd ~/mysql-operator
             gally build
   build:
