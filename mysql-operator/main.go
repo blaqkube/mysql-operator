@@ -45,6 +45,14 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
+func agentVersion() string {
+	agentVersion := os.Getenv("AGENT_VERSION")
+	if agentVersion == "" {
+		return DefaultAgentVersion
+	}
+	return agentVersion
+}
+
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
@@ -72,6 +80,10 @@ func main() {
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Instance"),
 		Scheme: mgr.GetScheme(),
+		Properties: controllers.StatefulSetProperties{
+			AgentVersion: agentVersion(),
+			MySQLVersion: DefaultMySQLVersion,
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Instance")
 		os.Exit(1)
