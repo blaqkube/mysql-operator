@@ -101,3 +101,29 @@ func TestS3Access(t *testing.T) {
 	resp, _ := s3Client.ListObjects(lparams)
 	assert.Equal(t, "greg/manifest.txt", *resp.Contents[0].Key, "should succeed")
 }
+
+func TestS3Default(t *testing.T) {
+	x := NewStoreDefaultInitialize()
+	assert.NotNil(t, x, "value should exist")
+	v, err := x.New(&AWSConfig{Region: "test"})
+	assert.NoError(t, err, "should fail")
+	assert.NotNil(t, &v, "should be empty")
+}
+
+func TestMockAccess(t *testing.T) {
+	x := NewStoreMockInitialize()
+	c, err := x.New(&AWSConfig{
+		Region: "fail",
+	})
+	assert.Error(t, err, "should fail")
+	c, err = x.New(nil)
+	assert.Equal(t, nil, err, "should succeed")
+	err = c.TestS3Access("test", "/greg")
+	assert.Equal(t, nil, err, "should succeed")
+	err = c.TestS3Access("fail", "/greg")
+	assert.Error(t, err, "should fail")
+	err = c.PushFileToS3("1", "2", "3")
+	assert.NoError(t, err, "should succeed")
+	err = c.PushFileToS3("1", "fail", "3")
+	assert.Error(t, err, "should fail")
+}
