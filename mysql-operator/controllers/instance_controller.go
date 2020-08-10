@@ -32,9 +32,9 @@ import (
 // InstanceReconciler reconciles a Instance object
 type InstanceReconciler struct {
 	client.Client
-	Log          logr.Logger
-	Scheme       *runtime.Scheme
-	AgentVersion string
+	Log        logr.Logger
+	Scheme     *runtime.Scheme
+	Properties StatefulSetProperties
 }
 
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=instances,verbs=get;list;watch;create;update;patch;delete
@@ -69,6 +69,7 @@ func (r *InstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			log.Error(err, "unable to update instance status")
 			return ctrl.Result{}, err
 		}
+		_ = r.Properties.NewStatefulSetForInstance(&instance, &store, instance.Spec.Restore.FilePath)
 		return ctrl.Result{}, nil
 	}
 	return ctrl.Result{}, nil

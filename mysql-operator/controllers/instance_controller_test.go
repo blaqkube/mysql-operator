@@ -54,10 +54,13 @@ var _ = Describe("Instance Controller", func() {
 
 		zapLog, _ := zap.NewDevelopment()
 		reconcile := &InstanceReconciler{
-			Client:       k8sClient,
-			Log:          zapr.NewLogger(zapLog),
-			Scheme:       scheme.Scheme,
-			AgentVersion: "",
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
+			Properties: StatefulSetProperties{
+				AgentVersion: "",
+				MySQLVersion: "",
+			},
 		}
 		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 
@@ -120,10 +123,13 @@ var _ = Describe("Instance Controller", func() {
 		name := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name}
 
 		instanceReconcile := &InstanceReconciler{
-			Client:       k8sClient,
-			Log:          zapr.NewLogger(zapLog),
-			Scheme:       scheme.Scheme,
-			AgentVersion: "",
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
+			Properties: StatefulSetProperties{
+				AgentVersion: "",
+				MySQLVersion: "",
+			},
 		}
 		Expect(instanceReconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 
@@ -153,10 +159,13 @@ var _ = Describe("Instance Controller", func() {
 
 		zapLog, _ := zap.NewDevelopment()
 		reconcile := &InstanceReconciler{
-			Client:       k8sClient,
-			Log:          zapr.NewLogger(zapLog),
-			Scheme:       scheme.Scheme,
-			AgentVersion: "",
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
+			Properties: StatefulSetProperties{
+				AgentVersion: "",
+				MySQLVersion: "",
+			},
 		}
 		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true, RequeueAfter: time.Duration(30 * time.Second)}))
 
