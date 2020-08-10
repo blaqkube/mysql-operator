@@ -17,7 +17,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go.uber.org/zap"
@@ -40,8 +39,8 @@ var _ = Describe("Instance Controller", func() {
 		ctx := context.Background()
 		instance := mysqlv1alpha1.Instance{
 			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "test-instance",
-				Namespace:    "default",
+				Name:      "test-mysql1",
+				Namespace: "default",
 			},
 			Spec: mysqlv1alpha1.InstanceSpec{
 				Database: "me",
@@ -58,23 +57,22 @@ var _ = Describe("Instance Controller", func() {
 			Log:    zapr.NewLogger(zapLog),
 			Scheme: scheme.Scheme,
 			Properties: StatefulSetProperties{
-				AgentVersion: "",
-				MySQLVersion: "",
+				AgentVersion: "latest",
+				MySQLVersion: "8.0.21",
 			},
 		}
 		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 
 		response := mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		fmt.Printf("%v\n", response)
-		Expect("Scheduling").To(Equal(response.Status.Status), "Expected reconcile to change the status to Scheduling")
+		Expect("Success").To(Equal(response.Status.Status), "Expected reconcile to change the status to Success")
 	})
 
 	It("Instance with existing Store", func() {
 		ctx := context.Background()
 		instance := mysqlv1alpha1.Instance{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-instance",
+				Name:      "test-mysql2",
 				Namespace: "default",
 			},
 			Spec: mysqlv1alpha1.InstanceSpec{
@@ -135,14 +133,14 @@ var _ = Describe("Instance Controller", func() {
 
 		instanceResponse := mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, name, &instanceResponse)).To(Succeed())
-		Expect("Scheduling").To(Equal(instanceResponse.Status.Status), "Expected reconcile to change the status to Scheduling")
+		Expect("Success").To(Equal(instanceResponse.Status.Status), "Expected reconcile to change the status to Scheduling")
 	})
 
 	It("Instance with Unexisting Store", func() {
 		ctx := context.Background()
 		instance := mysqlv1alpha1.Instance{
 			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "test-instance",
+				GenerateName: "test-mysql3",
 				Namespace:    "default",
 			},
 			Spec: mysqlv1alpha1.InstanceSpec{
@@ -171,7 +169,6 @@ var _ = Describe("Instance Controller", func() {
 
 		response := mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		fmt.Printf("%v\n", response)
 		Expect("Waiting for store").To(Equal(response.Status.Status), "Expected reconcile to change the status to Scheduling")
 	})
 })
