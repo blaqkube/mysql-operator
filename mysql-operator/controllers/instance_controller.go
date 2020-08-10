@@ -18,9 +18,11 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -30,19 +32,45 @@ import (
 // InstanceReconciler reconciles a Instance object
 type InstanceReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log          logr.Logger
+	Scheme       *runtime.Scheme
+	AgentVersion string
 }
 
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=instances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=instances/status,verbs=get;update;patch
 
 func (r *InstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
-	_ = r.Log.WithValues("instance", req.NamespacedName)
+	ctx := context.Background()
+	log := r.Log.WithValues("instance", req.NamespacedName)
 
 	// your logic here
-
+	var instance mysqlv1alpha1.Instance
+	if err := r.Get(ctx, req.NamespacedName, &instance); err != nil {
+		log.Error(err, "unable to fetch Store")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	var store mysqlv1alpha1.Store
+	NamespacedStore := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Spec.Restore.Store}
+	if instance.Status.Status == "" || instance.Status.Status == "Waiting for store" {
+		if instance.Spec.Restore.Store != "" {
+			if err := r.Get(ctx, NamespacedStore, &store); err != nil {
+				log.Error(err, "unable to fetch Store")
+				instance.Status.Status = "Waiting for store"
+				if err := r.Status().Update(ctx, &instance); err != nil {
+					log.Error(err, "unable to update instance status")
+					return ctrl.Result{}, err
+				}
+				return ctrl.Result{Requeue: true, RequeueAfter: time.Duration(30 * time.Second)}, nil
+			}
+		}
+		instance.Status.Status = "Scheduling"
+		if err := r.Status().Update(ctx, &instance); err != nil {
+			log.Error(err, "unable to update instance status")
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
+	}
 	return ctrl.Result{}, nil
 }
 
