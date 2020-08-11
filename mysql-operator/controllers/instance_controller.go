@@ -64,22 +64,7 @@ func (r *InstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 				return ctrl.Result{Requeue: true, RequeueAfter: time.Duration(30 * time.Second)}, nil
 			}
 		}
-		sts := r.Properties.NewStatefulSetForInstance(&instance, &store, instance.Spec.Restore.FilePath)
-		if err := r.Client.Create(ctx, sts); err != nil {
-			log.Error(err, "enable to create statefulset")
-			instance.Status.Status = "Statefulset error"
-			if err := r.Status().Update(ctx, &instance); err != nil {
-				log.Error(err, "unable to update instance status")
-				return ctrl.Result{}, err
-			}
-			return ctrl.Result{}, nil
-		}
-		instance.Status.Status = "Success"
-		if err := r.Status().Update(ctx, &instance); err != nil {
-			log.Error(err, "unable to update instance status")
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
+		return r.CreateOrUpdateStafefulSet(&instance, &store, instance.Spec.Restore.FilePath)
 	}
 	return ctrl.Result{}, nil
 }

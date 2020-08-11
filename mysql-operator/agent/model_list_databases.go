@@ -1,7 +1,7 @@
 /*
  * blaqkube MySQL agent
  *
- * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore 
+ * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore
  *
  * API version: 0.0.1
  * Contact: contact@blaqkube.io
@@ -9,8 +9,9 @@
  */
 
 package agent
+
 // ListDatabases struct for ListDatabases
 type ListDatabases struct {
-	Size int32 `json:"size,omitempty"`
+	Size  int32      `json:"size,omitempty"`
 	Items []Database `json:"items,omitempty"`
 }
