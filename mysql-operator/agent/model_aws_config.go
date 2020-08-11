@@ -1,7 +1,7 @@
 /*
  * blaqkube MySQL agent
  *
- * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore 
+ * Agent used by [blaqkube MySQL operator](http://github.com/blaqkube/mysql-operator) to manage MySQL backup/restore
  *
  * API version: 0.0.1
  * Contact: contact@blaqkube.io
@@ -9,9 +9,10 @@
  */
 
 package agent
+
 // AwsConfig struct for AwsConfig
 type AwsConfig struct {
-	AwsAccessKeyId string `json:"aws_access_key_id,omitempty"`
+	AwsAccessKeyId     string `json:"aws_access_key_id,omitempty"`
 	AwsSecretAccessKey string `json:"aws_secret_access_key,omitempty"`
-	Region string `json:"region,omitempty"`
+	Region             string `json:"region,omitempty"`
 }

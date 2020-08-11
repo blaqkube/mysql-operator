@@ -1,16 +1,88 @@
 package controllers
 
 import (
+	"context"
+
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 type StatefulSetProperties struct {
 	AgentVersion string
 	MySQLVersion string
+}
+
+func (r *InstanceReconciler) CreateOrUpdateStafefulSet(instance *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, filePath string) (ctrl.Result, error) {
+	ctx := context.Background()
+
+	secretName := types.NamespacedName{Name: instance.Name + "-exporter", Namespace: instance.Namespace}
+	secret := &corev1.Secret{}
+	err := r.Client.Get(ctx, secretName, secret)
+	if err != nil && !errors.IsNotFound(err) {
+		return ctrl.Result{}, err
+	}
+	if err != nil {
+		r.Log.Info("Creating a new Secret", "Secret.Namespace", instance.Namespace, "secret.Name", instance.Name+"-exporter")
+		newSecret := r.Properties.NewSecretForInstance(instance)
+		if err := controllerutil.SetControllerReference(instance, newSecret, r.Scheme); err != nil {
+			return ctrl.Result{}, err
+		}
+		if err := r.Client.Create(ctx, newSecret); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	sts := r.Properties.NewStatefulSetForInstance(instance, store, filePath)
+	// Check if this StatefulSet already exists
+	found := &appsv1.StatefulSet{}
+	err = r.Client.Get(ctx, types.NamespacedName{Name: sts.Name, Namespace: sts.Namespace}, found)
+	if err != nil && errors.IsNotFound(err) {
+		r.Log.Info("Creating a new StatefulSet", "StatefulSet.Namespace", sts.Namespace, "StatefulSet.Name", sts.Name)
+		if err := controllerutil.SetControllerReference(instance, sts, r.Scheme); err != nil {
+			return ctrl.Result{}, err
+		}
+		err = r.Client.Create(ctx, sts)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		// StatefulSet created successfully - don't requeue
+		instance.Status.Status = "Success"
+		if err := r.Status().Update(ctx, instance); err != nil {
+			r.Log.Error(err, "unable to update instance status")
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
+	} else if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// StatefulSet already exists - don't requeue
+	r.Log.Info("Skip reconcile: StatefulSet already exists", "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
+	return ctrl.Result{}, nil
+}
+
+func (s *StatefulSetProperties) NewSecretForInstance(instance *mysqlv1alpha1.Instance) *corev1.Secret {
+	labels := map[string]string{
+		"app": instance.Name,
+	}
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      instance.Name + "-exporter",
+			Namespace: instance.Namespace,
+			Labels:    labels,
+		},
+		Data: map[string][]byte{
+			".my.cnf": []byte("[client]\nuser=exporter\npassword=exporter\nhost=localhost\n"),
+		},
+	}
+	return secret
 }
 
 // NewStatefulSetForInstance returns a MySQL StatefulSet with the instance name/namespace
