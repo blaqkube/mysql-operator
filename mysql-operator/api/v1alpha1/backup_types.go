@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/operator-framework/operator-lib/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,14 +29,27 @@ type BackupSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Backup. Edit Backup_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Store    string `json:"store"`
+	Instance string `json:"instance"`
+}
+
+// BackupDetails defines the Backup Location and StartupTime
+type BackupDetails struct {
+	Location   string       `json:"location,omitempty"`
+	BackupTime *metav1.Time `json:"backupTime,omitempty"`
 }
 
 // BackupStatus defines the observed state of Backup
 type BackupStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Details *BackupDetails `json:"details,omitempty"`
+
+	// LastCondition provides informations about the current backup status
+	LastCondition string `json:"lastCondition,omitempty"`
+
+	// Conditions provides an history of conditions
+	Conditions []status.Conditions `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

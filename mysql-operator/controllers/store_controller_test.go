@@ -63,11 +63,11 @@ var _ = Describe("Store Controller", func() {
 
 		response := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Status).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
+		Expect(response.Status.LastCondition).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
 
 		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Status).To(Equal("Success"), "Expected reconcile to change the status to Success")
+		Expect(response.Status.LastCondition).To(Equal("Success"), "Expected reconcile to change the status to Success")
 
 	})
 
@@ -103,11 +103,11 @@ var _ = Describe("Store Controller", func() {
 
 		response := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Status).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
+		Expect(response.Status.LastCondition).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
 
 		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Status).To(Equal("Error"), "Expected reconcile to change the status to Error")
+		Expect(response.Status.LastCondition).To(Equal("Error"), "Expected reconcile to change the status to Error")
 	})
 
 	It("Write Store fails", func() {
@@ -140,10 +140,10 @@ var _ = Describe("Store Controller", func() {
 
 		response := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Status).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
+		Expect(response.Status.LastCondition).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
 
 		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Status).To(Equal("Error"), "Expected reconcile to change the status to Error")
+		Expect(response.Status.LastCondition).To(Equal("Error"), "Expected reconcile to change the status to Error")
 	})
 })

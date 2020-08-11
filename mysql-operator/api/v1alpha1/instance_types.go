@@ -49,8 +49,12 @@ type InstanceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	StatefulSet corev1.ObjectReference `json:"statefulset,omitempty"`
-	Status      string                 `json:"status,omitempty"`
-	Conditions  []status.Conditions    `json:"conditions,omitempty"`
+
+	// LastCondition provides informations about the current instance status
+	LastCondition string `json:"lastCondition,omitempty"`
+
+	// Conditions provides an history of conditions
+	Conditions []status.Conditions `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
