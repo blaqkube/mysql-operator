@@ -3,6 +3,7 @@ module github.com/blaqkube/mysql-operator/mysql-operator
 go 1.13
 
 require (
+	github.com/antihax/optional v1.0.0
 	github.com/aws/aws-sdk-go v1.34.0
 	github.com/go-logr/logr v0.1.0
 	github.com/go-logr/zapr v0.1.0
@@ -14,6 +15,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/stretchr/testify v1.5.1
 	go.uber.org/zap v1.10.0
+	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	k8s.io/api v0.18.6
 	k8s.io/apimachinery v0.18.6
 	k8s.io/client-go v0.18.6
