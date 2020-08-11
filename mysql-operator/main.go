@@ -38,6 +38,11 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
+const (
+	DefaultAgentVersion = "e81ddce"
+	DefaultMySQLVersion = "8.0.21"
+)
+
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
