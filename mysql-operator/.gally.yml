@@ -4,7 +4,8 @@ strategies:
     branch: master
   previous-commit:
     only: master
-build: ./.ci/build.sh
+#build: ./.ci/build.sh
+build: echo "no build"
 tag: false
 env:
   - name: TAG
