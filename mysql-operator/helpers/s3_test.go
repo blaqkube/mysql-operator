@@ -30,13 +30,15 @@ func TestPushFileToS3(t *testing.T) {
 	}
 
 	// Create session and bucket
-	s := session.New(s3Config)
+	s, err := session.NewSession(s3Config)
+	assert.NoError(t, err, "session should start")
+	//s := session.New(s3Config)
 	cparams := &s3.CreateBucketInput{
 		Bucket: aws.String("bucket"),
 	}
 	s3Client := s3.New(s)
-	_, err := s3Client.CreateBucket(cparams)
-	assert.Equal(t, nil, err, "should succeed")
+	_, err = s3Client.CreateBucket(cparams)
+	assert.NoError(t, err, "should succeed")
 
 	// Perform the 1st test
 	c := &S3DefaultTool{
@@ -73,12 +75,13 @@ func TestS3Access(t *testing.T) {
 	}
 
 	// Create session and bucket
-	s := session.New(s3Config)
+	s, err := session.NewSession(s3Config)
+	assert.NoError(t, err, "should succeed")
 	cparams := &s3.CreateBucketInput{
 		Bucket: aws.String("test"),
 	}
 	s3Client := s3.New(s)
-	_, err := s3Client.CreateBucket(cparams)
+	_, err = s3Client.CreateBucket(cparams)
 	assert.Equal(t, nil, err, "should succeed")
 
 	// Perform the 1st test
@@ -112,11 +115,11 @@ func TestS3Default(t *testing.T) {
 
 func TestMockAccess(t *testing.T) {
 	x := NewStoreMockInitialize()
-	c, err := x.New(&AWSConfig{
+	_, err := x.New(&AWSConfig{
 		Region: "fail",
 	})
 	assert.Error(t, err, "should fail")
-	c, err = x.New(nil)
+	c, err := x.New(nil)
 	assert.Equal(t, nil, err, "should succeed")
 	err = c.TestS3Access("test", "/greg")
 	assert.Equal(t, nil, err, "should succeed")
