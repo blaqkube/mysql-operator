@@ -4,12 +4,7 @@ strategies:
     branch: master
   previous-commit:
     only: master
-build: ./.ci/build.sh
-#build: echo "no build"
+#build: ./.ci/build.sh
+build: echo "no build"
 tag: false
-env:
-  - name: TAG
-    value: quay.io/blaqkube/mysql-controller
-  - name: OPTAG
-    value: quay.io/blaqkube/mysql-operator
 

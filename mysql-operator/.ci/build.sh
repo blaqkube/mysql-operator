@@ -10,6 +10,8 @@ export BUNDLE_IMG=quay.io/blaqkube/mysql-operator:$GALLY_PROJECT_VERSION
 make docker-build
 make docker-push
 make bundle
+git status -s
+git diff
 make bundle-build
 make bundle-push
 
