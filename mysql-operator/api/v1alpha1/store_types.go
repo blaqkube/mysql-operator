@@ -49,9 +49,10 @@ type StoreStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Status provides informations about the current store status
-	Status string `json:"status"`
-	// Conditions provides informations how the store has been tested
+	// LastCondition provides informations about the current store status
+	LastCondition string `json:"lastCondition,omitempty"`
+
+	// Conditions provides an history of conditions
 	Conditions []status.Conditions `json:"conditions,omitempty"`
 }
 

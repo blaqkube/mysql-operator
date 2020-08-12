@@ -52,11 +52,11 @@ func (r *InstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 	var store mysqlv1alpha1.Store
 	NamespacedStore := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Spec.Restore.Store}
-	if instance.Status.Status == "" || instance.Status.Status == "Waiting for store" {
+	if instance.Status.LastCondition == "" || instance.Status.LastCondition == "Waiting for store" {
 		if instance.Spec.Restore.Store != "" {
 			if err := r.Get(ctx, NamespacedStore, &store); err != nil {
 				log.Error(err, "unable to fetch Store")
-				instance.Status.Status = "Waiting for store"
+				instance.Status.LastCondition = "Waiting for store"
 				if err := r.Status().Update(ctx, &instance); err != nil {
 					log.Error(err, "unable to update instance status")
 					return ctrl.Result{}, err

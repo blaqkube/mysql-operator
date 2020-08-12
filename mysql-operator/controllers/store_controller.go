@@ -50,20 +50,20 @@ func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		log.Error(err, "unable to fetch Store")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	if store.Status.Status == "" {
-		store.Status.Status = "Pending"
+	if store.Status.LastCondition == "" {
+		store.Status.LastCondition = "Pending"
 		if err := r.Status().Update(ctx, &store); err != nil {
 			log.Error(err, "unable to update store status")
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{Requeue: true}, nil
 	}
-	if store.Status.Status == "Pending" {
+	if store.Status.LastCondition == "Pending" {
 		if store.Spec.Backend == nil || *store.Spec.Backend == "s3" {
 
 			s, err := r.BackupStore.New(store.Spec.S3Backup.AWSConfig)
 			if err != nil {
-				store.Status.Status = "Error"
+				store.Status.LastCondition = "Error"
 				if err := r.Status().Update(ctx, &store); err != nil {
 					log.Error(err, "unable to update store status")
 					return ctrl.Result{}, err
@@ -72,14 +72,14 @@ func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			}
 			err = s.TestS3Access(store.Spec.S3Backup.Bucket, "/validation")
 			if err != nil {
-				store.Status.Status = "Error"
+				store.Status.LastCondition = "Error"
 				if err := r.Status().Update(ctx, &store); err != nil {
 					log.Error(err, "unable to update store status")
 					return ctrl.Result{}, err
 				}
 				return ctrl.Result{}, nil
 			}
-			store.Status.Status = "Success"
+			store.Status.LastCondition = "Success"
 			if err := r.Status().Update(ctx, &store); err != nil {
 				log.Error(err, "unable to update store status")
 				return ctrl.Result{}, err

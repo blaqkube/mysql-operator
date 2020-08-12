@@ -53,7 +53,7 @@ func (r *InstanceReconciler) CreateOrUpdateStafefulSet(instance *mysqlv1alpha1.I
 			return ctrl.Result{}, err
 		}
 		// StatefulSet created successfully - don't requeue
-		instance.Status.Status = "Success"
+		instance.Status.LastCondition = "Success"
 		if err := r.Status().Update(ctx, instance); err != nil {
 			r.Log.Error(err, "unable to update instance status")
 			return ctrl.Result{}, err

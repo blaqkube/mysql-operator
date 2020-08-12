@@ -52,6 +52,7 @@ spec:
           description: InstanceStatus defines the observed state of Instance
           properties:
             conditions:
+              description: Conditions provides an history of conditions
               items:
                 description: Conditions is a set of Condition instances.
                 items:
@@ -93,6 +94,10 @@ spec:
                   type: object
                 type: array
               type: array
+            lastCondition:
+              description: LastCondition provides informations about the current instance
+                status
+              type: string
             statefulset:
               description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                 of cluster Important: Run "make" to regenerate code after modifying
@@ -131,8 +136,6 @@ spec:
                   description: 'UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids'
                   type: string
               type: object
-            status:
-              type: string
           type: object
       type: object
   version: v1alpha1

@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/operator-framework/operator-lib/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,14 +29,19 @@ type DatabaseSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Database. Edit Database_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Name     string `json:"name"`
+	Instance string `json:"instance"`
 }
 
 // DatabaseStatus defines the observed state of Database
 type DatabaseStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	// LastCondition provides informations about the current database status
+	LastCondition string `json:"lastCondition,omitempty"`
+
+	// Conditions provides an history of conditions
+	Conditions []status.Conditions `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

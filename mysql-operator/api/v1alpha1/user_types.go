@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/operator-framework/operator-lib/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,14 +29,26 @@ type UserSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of User. Edit User_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Instance string      `json:"instance"`
+	Username string      `json:"username"`
+	Password string      `json:"password"`
+	Grants   []GrantSpec `json:"grants,omitempty"`
+}
+
+type GrantSpec struct {
+	AccessMode string `json:"accessMode,omitempty"`
+	Database   string `json:"database"`
 }
 
 // UserStatus defines the observed state of User
 type UserStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	// LastCondition provides informations about the current instance status
+	LastCondition string `json:"lastCondition,omitempty"`
+
+	// Conditions provides an history of conditions
+	Conditions []status.Conditions `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

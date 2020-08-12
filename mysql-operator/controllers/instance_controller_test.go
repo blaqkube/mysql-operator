@@ -65,7 +65,7 @@ var _ = Describe("Instance Controller", func() {
 
 		response := mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect("Success").To(Equal(response.Status.Status), "Expected reconcile to change the status to Success")
+		Expect("Success").To(Equal(response.Status.LastCondition), "Expected reconcile to change the status to Success")
 	})
 
 	It("Instance with existing Store", func() {
@@ -110,11 +110,11 @@ var _ = Describe("Instance Controller", func() {
 
 		storeResponse := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
-		Expect(storeResponse.Status.Status).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
+		Expect(storeResponse.Status.LastCondition).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
 
 		Expect(storeReconcile.Reconcile(ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
-		Expect(storeResponse.Status.Status).To(Equal("Success"), "Expected reconcile to change the status to Success")
+		Expect(storeResponse.Status.LastCondition).To(Equal("Success"), "Expected reconcile to change the status to Success")
 
 		Expect(k8sClient.Create(ctx, &instance)).To(Succeed())
 
@@ -133,7 +133,7 @@ var _ = Describe("Instance Controller", func() {
 
 		instanceResponse := mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, name, &instanceResponse)).To(Succeed())
-		Expect("Success").To(Equal(instanceResponse.Status.Status), "Expected reconcile to change the status to Scheduling")
+		Expect("Success").To(Equal(instanceResponse.Status.LastCondition), "Expected reconcile to change the status to Scheduling")
 	})
 
 	It("Instance with Unexisting Store", func() {
@@ -169,6 +169,6 @@ var _ = Describe("Instance Controller", func() {
 
 		response := mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect("Waiting for store").To(Equal(response.Status.Status), "Expected reconcile to change the status to Scheduling")
+		Expect("Waiting for store").To(Equal(response.Status.LastCondition), "Expected reconcile to change the status to Scheduling")
 	})
 })

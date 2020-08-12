@@ -72,8 +72,7 @@ spec:
           description: StoreStatus defines the observed state of Store
           properties:
             conditions:
-              description: Conditions provides informations how the store has been
-                tested
+              description: Conditions provides an history of conditions
               items:
                 description: Conditions is a set of Condition instances.
                 items:
@@ -115,11 +114,10 @@ spec:
                   type: object
                 type: array
               type: array
-            status:
-              description: Status provides informations about the current store status
+            lastCondition:
+              description: LastCondition provides informations about the current store
+                status
               type: string
-          required:
-          - status
           type: object
       type: object
   version: v1alpha1
