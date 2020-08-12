@@ -13,3 +13,5 @@ RUN apk add  --no-cache git curl make && \
   rm -f gally_${GALLY}_linux_x86_64.tar.gz && \
   chmod +x gally
 
+ENV PATH="/usr/local/go/bin:${PATH}"
+
