@@ -70,7 +70,7 @@ generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 # Build the docker image
-docker-build: test
+docker-build:
 	docker build . -t ${IMG}
 
 # Push the docker image
@@ -119,5 +119,9 @@ bundle: manifests
 
 # Build the bundle image.
 .PHONY: bundle-build
-bundle-build:
+bundle-build: bundle
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+PHONY: bundle-push
+bundle-push:
+	docker push $(BUNDLE_IMG)

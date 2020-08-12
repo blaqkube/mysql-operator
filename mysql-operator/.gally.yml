@@ -8,5 +8,7 @@ build: ./.ci/build.sh
 tag: false
 env:
   - name: TAG
+    value: quay.io/blaqkube/mysql-controller
+  - name: OPTAG
     value: quay.io/blaqkube/mysql-operator
 

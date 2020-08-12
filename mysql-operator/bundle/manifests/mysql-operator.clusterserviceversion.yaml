@@ -1,0 +1,288 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "mysql.blaqkube.io/v1alpha1",
+          "kind": "Backup",
+          "metadata": {
+            "name": "backup-sample"
+          },
+          "spec": {
+            "foo": "bar"
+          }
+        },
+        {
+          "apiVersion": "mysql.blaqkube.io/v1alpha1",
+          "kind": "Database",
+          "metadata": {
+            "name": "database-sample"
+          },
+          "spec": {
+            "foo": "bar"
+          }
+        },
+        {
+          "apiVersion": "mysql.blaqkube.io/v1alpha1",
+          "kind": "Instance",
+          "metadata": {
+            "name": "instance-sample"
+          },
+          "spec": {
+            "foo": "bar"
+          }
+        },
+        {
+          "apiVersion": "mysql.blaqkube.io/v1alpha1",
+          "kind": "Store",
+          "metadata": {
+            "name": "store-sample"
+          },
+          "spec": {
+            "foo": "bar"
+          }
+        },
+        {
+          "apiVersion": "mysql.blaqkube.io/v1alpha1",
+          "kind": "User",
+          "metadata": {
+            "name": "user-sample"
+          },
+          "spec": {
+            "foo": "bar"
+          }
+        }
+      ]
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v1.0.0+git
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
+  name: mysql-operator.v0.0.1
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: Backup is the Schema for the backups API
+      displayName: Backup
+      kind: Backup
+      name: backups.mysql.blaqkube.io
+      version: v1alpha1
+    - description: Database is the Schema for the databases API
+      displayName: Database
+      kind: Database
+      name: databases.mysql.blaqkube.io
+      version: v1alpha1
+    - description: Instance is the Schema for the instances API
+      displayName: Instance
+      kind: Instance
+      name: instances.mysql.blaqkube.io
+      version: v1alpha1
+    - description: Store is the Schema for the stores API
+      displayName: Store
+      kind: Store
+      name: stores.mysql.blaqkube.io
+      version: v1alpha1
+    - description: User is the Schema for the users API
+      displayName: User
+      kind: User
+      name: users.mysql.blaqkube.io
+      version: v1alpha1
+  description: a mysql operator to manage instance, user, backups and databases
+  displayName: blaqkube mysql-operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - backups
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - backups/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - instances
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - instances/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - stores
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - stores/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - users
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - users/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - authentication.k8s.io
+          resources:
+          - tokenreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
+          verbs:
+          - create
+        serviceAccountName: default
+      deployments:
+      - name: mysql-operator-controller-manager
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              control-plane: controller-manager
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                control-plane: controller-manager
+            spec:
+              containers:
+              - args:
+                - --secure-listen-address=0.0.0.0:8443
+                - --upstream=http://127.0.0.1:8080/
+                - --logtostderr=true
+                - --v=10
+                image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
+                name: kube-rbac-proxy
+                ports:
+                - containerPort: 8443
+                  name: https
+                resources: {}
+              - args:
+                - --metrics-addr=127.0.0.1:8080
+                - --enable-leader-election
+                command:
+                - /manager
+                image: controller:latest
+                name: manager
+                resources:
+                  limits:
+                    cpu: 100m
+                    memory: 30Mi
+                  requests:
+                    cpu: 100m
+                    memory: 20Mi
+              terminationGracePeriodSeconds: 10
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps/status
+          verbs:
+          - get
+          - update
+          - patch
+        - apiGroups:
+          - ""
+          resources:
+          - events
+          verbs:
+          - create
+          - patch
+        serviceAccountName: default
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - mysql
+  - operator
+  - kubernetes
+  links:
+  - name: Mysql Operator
+    url: https://mysql-operator.domain
+  maintainers:
+  - email: 64150653+blaqkube@users.noreply.github.com
+    name: blaqkube
+  maturity: alpha
+  provider:
+    name: blaqkube
+    url: https://blaqkube.io
+  version: 0.0.1
