@@ -69,7 +69,6 @@ func (s *S3DefaultTool) PushFileToS3(localFile, bucket, key string) error {
 	fileInfo, _ := file.Stat()
 	var size int64 = fileInfo.Size()
 	buffer := make([]byte, size)
-	file.Read(buffer)
 
 	_, err = s3.New(s.session).PutObject(&s3.PutObjectInput{
 		Bucket:             aws.String(bucket),

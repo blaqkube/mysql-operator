@@ -49,7 +49,7 @@ type BackupStatus struct {
 	LastCondition string `json:"lastCondition,omitempty"`
 
 	// Conditions provides an history of conditions
-	Conditions []status.Conditions `json:"conditions,omitempty"`
+	Conditions status.Conditions `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

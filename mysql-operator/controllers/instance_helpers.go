@@ -101,33 +101,33 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 					Name:  "restore",
 					Image: "quay.io/blaqkube/mysql-agent:" + s.AgentVersion,
 					Env: []corev1.EnvVar{
-						corev1.EnvVar{
+						{
 							Name:  "AWS_REGION",
 							Value: store.Spec.S3Backup.AWSConfig.Region,
 						},
-						corev1.EnvVar{
+						{
 							Name:  "AWS_ACCESS_KEY_ID",
 							Value: store.Spec.S3Backup.AWSConfig.AccessKey,
 						},
-						corev1.EnvVar{
+						{
 							Name:  "AWS_SECRET_ACCESS_KEY",
 							Value: store.Spec.S3Backup.AWSConfig.SecretKey,
 						},
-						corev1.EnvVar{
+						{
 							Name:  "AGT_BUCKET",
 							Value: store.Spec.S3Backup.Bucket,
 						},
-						corev1.EnvVar{
+						{
 							Name:  "AGT_PATH",
 							Value: filePath,
 						},
-						corev1.EnvVar{
+						{
 							Name:  "AGT_FILENAME",
 							Value: "/docker-entrypoint-initdb.d/init-script.sql",
 						},
 					},
 					VolumeMounts: []corev1.VolumeMount{
-						corev1.VolumeMount{
+						{
 							Name:      instance.Name + "-init",
 							MountPath: "/docker-entrypoint-initdb.d",
 						},
@@ -163,13 +163,13 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 							Name:  "mysql",
 							Image: "mysql:" + s.MySQLVersion,
 							Env: []corev1.EnvVar{
-								corev1.EnvVar{
+								{
 									Name:  "MYSQL_ALLOW_EMPTY_PASSWORD",
 									Value: "1",
 								},
 							},
 							Ports: []corev1.ContainerPort{
-								corev1.ContainerPort{
+								{
 									Name:          "mysql",
 									ContainerPort: 3306,
 								},
@@ -195,11 +195,11 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 								PeriodSeconds:       int32(10),
 							},
 							VolumeMounts: []corev1.VolumeMount{
-								corev1.VolumeMount{
+								{
 									Name:      instance.Name + "-data",
 									MountPath: "/var/lib/mysql",
 								},
-								corev1.VolumeMount{
+								{
 									Name:      instance.Name + "-init",
 									MountPath: "/docker-entrypoint-initdb.d",
 								},
@@ -209,7 +209,7 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 							Name:  "agent",
 							Image: "quay.io/blaqkube/mysql-agent:" + s.AgentVersion,
 							VolumeMounts: []corev1.VolumeMount{
-								corev1.VolumeMount{
+								{
 									Name:      instance.Name + "-data",
 									MountPath: "/var/lib/mysql",
 								},
@@ -219,13 +219,13 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 							Name:  "exporter",
 							Image: "prom/mysqld-exporter:v0.12.1",
 							Ports: []corev1.ContainerPort{
-								corev1.ContainerPort{
+								{
 									Name:          "prom-mysql",
 									ContainerPort: 9104,
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
-								corev1.VolumeMount{
+								{
 									Name:      instance.Name + "-exporter",
 									MountPath: "/home",
 								},
@@ -233,13 +233,13 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 						},
 					},
 					Volumes: []corev1.Volume{
-						corev1.Volume{
+						{
 							Name: instance.Name + "-exporter",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
 									SecretName: instance.Name + "-exporter",
 									Items: []corev1.KeyToPath{
-										corev1.KeyToPath{
+										{
 											Key:  ".my.cnf",
 											Path: ".my.cnf",
 										},
@@ -251,7 +251,7 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 				},
 			},
 			VolumeClaimTemplates: []corev1.PersistentVolumeClaim{
-				corev1.PersistentVolumeClaim{
+				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: instance.Name + "-data",
 					},
@@ -266,7 +266,7 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 						},
 					},
 				},
-				corev1.PersistentVolumeClaim{
+				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: instance.Name + "-init",
 					},
