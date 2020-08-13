@@ -21,6 +21,10 @@ RUN cd /usr/local/bin && \
   rm -f gally_${GALLY}_linux_x86_64.tar.gz && \
   chmod +x gally
 
+RUN cd /usr/local/bin && \
+  curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v1.0.0/operator-sdk-v1.0.0-x86_64-linux-gnu && \
+  chmod +x operator-sdk
+
 ENV PATH="/usr/local/go/bin:${PATH}"
 
 COPY --from=golang:1.15.0 /usr/local/go/ /usr/local/go/
