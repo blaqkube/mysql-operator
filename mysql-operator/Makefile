@@ -13,6 +13,8 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
+# Image Agent Version for the Bundle
+AGENT_VERSION ?= ffffffff
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -71,7 +73,7 @@ generate: controller-gen
 
 # Build the docker image
 docker-build:
-	docker build . -t ${IMG}
+	docker build --build-arg agent_version=${AGENT_VERSION} . -t ${IMG}
 
 # Push the docker image
 docker-push:
@@ -121,7 +123,3 @@ bundle: manifests
 .PHONY: bundle-build
 bundle-build: bundle
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
-
-PHONY: bundle-push
-bundle-push:
-	docker push $(BUNDLE_IMG)

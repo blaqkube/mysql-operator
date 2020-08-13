@@ -4,10 +4,6 @@ set -e
 
 cd $GALLY_PROJECT_ROOT
 export AGENT_VERSION=$(gally list -p agent | grep GALLY_PROJECT_VERSION | cut -d'"' -f4)
-export IMG=quay.io/blaqkube/mysql-controller:$VERSION
-export BUNDLE_IMG=quay.io/blaqkube/mysql-operator:$VERSION
-make docker-build
-make docker-push
-make bundle
-git status -s | cat
-make bundle-build
+docker build --build-arg agent_version=$AGENT_VERSION -t $TAG:$GALLY_PROJECT_VERSION .
+docker push $TAG:$GALLY_PROJECT_VERSION
+cd $GALLY_ROOT
