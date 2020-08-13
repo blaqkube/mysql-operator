@@ -6,4 +6,6 @@ strategies:
     only: master
 build: ./.ci/build.sh
 tag: false
-
+env:
+  - name: BUNDLE_VERSION
+    value: "0.1.0"
