@@ -4,7 +4,7 @@ strategies:
     branch: master
   previous-commit:
     only: master
-build: ../.ci/build.sh
+build: echo ../.ci/build.sh
 tag: false
 env:
   - name: TAG

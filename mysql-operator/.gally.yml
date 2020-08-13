@@ -4,6 +4,6 @@ strategies:
     branch: master
   previous-commit:
     only: master
-build: echo ./.ci/build.sh
+build: ./.ci/build.sh
 tag: false
 
