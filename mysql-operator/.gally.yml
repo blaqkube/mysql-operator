@@ -7,5 +7,5 @@ strategies:
 build: ./.ci/build.sh
 tag: false
 env:
-  - name: BUNDLE_VERSION
+  - name: VERSION
     value: "0.1.0"
