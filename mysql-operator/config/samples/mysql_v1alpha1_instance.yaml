@@ -3,5 +3,7 @@ kind: Instance
 metadata:
   name: instance-sample
 spec:
-  # Add fields here
-  foo: bar
+  database: blue
+  restore:
+    filePath: /backup/2020-08-15/blue-backup.dmp
+    store: store-sample

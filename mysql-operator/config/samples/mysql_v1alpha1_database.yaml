@@ -1,7 +1,7 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Database
 metadata:
-  name: database-sample
+  name: instance-sample-mydb
 spec:
-  # Add fields here
-  foo: bar
+  name: mydb
+  instance: instance-sample

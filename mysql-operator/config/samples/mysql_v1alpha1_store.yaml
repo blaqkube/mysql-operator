@@ -3,5 +3,11 @@ kind: Store
 metadata:
   name: store-sample
 spec:
-  # Add fields here
-  foo: bar
+  backend: s3
+  s3_backup:
+    bucket: bucket-sample
+    path: /backup/instance-sample    
+    aws_config:
+      aws_access_key_id: AKIAXXX
+      aws_secret_access_key: aSzx...
+      region: eu-west-1

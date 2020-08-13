@@ -63,7 +63,7 @@ spec:
   - name: Mysql Operator
     url: https://mysql-operator.domain
   maintainers:
-  - email: 64150653+blaqkube@users.noreply.github.com
+  - email: contact@blaqkube.io
     name: blaqkube
   maturity: alpha
   provider:

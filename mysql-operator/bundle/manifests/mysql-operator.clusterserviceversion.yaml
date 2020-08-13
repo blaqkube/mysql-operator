@@ -11,17 +11,19 @@ metadata:
             "name": "backup-sample"
           },
           "spec": {
-            "foo": "bar"
+            "instance": "instance-sample",
+            "store": "store-sample"
           }
         },
         {
           "apiVersion": "mysql.blaqkube.io/v1alpha1",
           "kind": "Database",
           "metadata": {
-            "name": "database-sample"
+            "name": "instance-sample-mydb"
           },
           "spec": {
-            "foo": "bar"
+            "instance": "instance-sample",
+            "name": "mydb"
           }
         },
         {
@@ -31,7 +33,11 @@ metadata:
             "name": "instance-sample"
           },
           "spec": {
-            "foo": "bar"
+            "database": "blue",
+            "restore": {
+              "filePath": "/backup/2020-08-15/blue-backup.dmp",
+              "store": "store-sample"
+            }
           }
         },
         {
@@ -41,7 +47,16 @@ metadata:
             "name": "store-sample"
           },
           "spec": {
-            "foo": "bar"
+            "backend": "s3",
+            "s3_backup": {
+              "aws_config": {
+                "aws_access_key_id": "AKIAXXX",
+                "aws_secret_access_key": "aSzx...",
+                "region": "eu-west-1"
+              },
+              "bucket": "bucket-sample",
+              "path": "/backup/instance-sample"
+            }
           }
         },
         {
@@ -51,14 +66,22 @@ metadata:
             "name": "user-sample"
           },
           "spec": {
-            "foo": "bar"
+            "grants": [
+              {
+                "accessmode": "readwrite",
+                "database": "mydb"
+              }
+            ],
+            "instance": "instance-sample",
+            "password": "changeme",
+            "username": "demo"
           }
         }
       ]
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.0.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
-  name: mysql-operator.v0.0.1
+  name: mysql-operator.v0.0.10
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -279,10 +302,10 @@ spec:
   - name: Mysql Operator
     url: https://mysql-operator.domain
   maintainers:
-  - email: 64150653+blaqkube@users.noreply.github.com
+  - email: contact@blaqkube.io
     name: blaqkube
   maturity: alpha
   provider:
     name: blaqkube
     url: https://blaqkube.io
-  version: 0.0.1
+  version: 0.0.10
