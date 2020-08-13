@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: quay.io/blaqkube/docker-gally:2f3eae6
+      - image: quay.io/blaqkube/docker-gally:f127083
     steps:
       - add_ssh_keys:
           fingerprints:

@@ -1,0 +1,72 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v1.0.0+git
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
+  name: mysql-operator.vX.Y.Z
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: Backup is the Schema for the backups API
+      displayName: Backup
+      kind: Backup
+      name: backups.mysql.blaqkube.io
+      version: v1alpha1
+    - description: User is the Schema for the users API
+      displayName: User
+      kind: User
+      name: users.mysql.blaqkube.io
+      version: v1alpha1
+    - description: Instance is the Schema for the instances API
+      displayName: Instance
+      kind: Instance
+      name: instances.mysql.blaqkube.io
+      version: v1alpha1
+    - description: Database is the Schema for the databases API
+      displayName: Database
+      kind: Database
+      name: databases.mysql.blaqkube.io
+      version: v1alpha1
+    - description: Store is the Schema for the stores API
+      displayName: Store
+      kind: Store
+      name: stores.mysql.blaqkube.io
+      version: v1alpha1
+  description: a mysql operator to manage instance, user, backups and databases
+  displayName: blaqkube mysql-operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - mysql
+  - operator
+  - kubernetes
+  links:
+  - name: Mysql Operator
+    url: https://mysql-operator.domain
+  maintainers:
+  - email: 64150653+blaqkube@users.noreply.github.com
+    name: blaqkube
+  maturity: alpha
+  provider:
+    name: blaqkube
+    url: https://blaqkube.io
+  version: 0.0.0

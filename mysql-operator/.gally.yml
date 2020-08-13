@@ -5,8 +5,11 @@ strategies:
   previous-commit:
     only: master
 build: ./.ci/build.sh
+scripts:
+  bundle: ./.ci/bundle.sh
 tag: false
 env:
+  - name: VERSION
+    value: "0.1.0"
   - name: TAG
-    value: quay.io/blaqkube/mysql-operator
-
+    value: quay.io/blaqkube/mysql-controller
