@@ -1,6 +1,4 @@
----
-title: Welcome Contributors
----
+# Welcome Contributors
 
 Thank you for considering contributing to `blaqkube/mysql-operator`! This
 section is written to help you. 
