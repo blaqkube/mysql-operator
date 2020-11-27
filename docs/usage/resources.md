@@ -1,6 +1,4 @@
----
-title: Resources
----
+# Resources
 
 `blaqkube/mysql-operator` comes with a number of resources to manage your
 mysql instances. Resources available are:

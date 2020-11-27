@@ -1,6 +1,4 @@
----
-title: Testing the operator locally
----
+# Testing the operator locally
 
 Testing the operator is key to develop successfully. To do so, you need to
 access a Kubernetes cluster. Using Kind is usually a good way to work. Once

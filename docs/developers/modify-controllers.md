@@ -1,6 +1,4 @@
----
-title: Modify Controllers
----
+# Modify Controllers
 
 Controllers are programs that manages resources created via the API. 
 

@@ -1,6 +1,4 @@
----
-title: Releasing the operator
----
+# Releasing the operator
 
 There are 4 components to release as part of the Operator:
 

@@ -1,6 +1,4 @@
----
-title: Modify APIs
----
+# Modify APIs
 
 The mysql-operator API is defines by Custom Resource Definitions or CRDs.
 

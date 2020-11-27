@@ -1,6 +1,4 @@
----
-title: Modify the mysql-agent
----
+# Modify mysql-agent
 
 blaqkube `mysql-agent` is an OpenAPI 3.0 API that is used by the MySQL operator
 to interact with the MySQL database. It is attached to each instances as a

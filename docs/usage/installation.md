@@ -1,6 +1,4 @@
----
-title: Installation
----
+# Installation
 
 To install the MySQL operator from blaqkube, you can perform a manual
 installation from the repository or you can rely on the Operator Lifecycle
@@ -99,7 +97,7 @@ EOF
 > properties.
 
 Once done with the installation, you can create the resources as described in
-[next section](/use/resources) of the documentation
+[next section](resources) of the documentation
 
 ## Manual Installation
 
@@ -141,5 +139,5 @@ kubectl apply -f operator.yaml
 ```
 
 Once done with the installation, you can create the resources as described in
-[next section](/use/resources) of the documentation
+[next section](resources) of the documentation
 
