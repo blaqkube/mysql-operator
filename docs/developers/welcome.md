@@ -1,7 +1,9 @@
-# Welcome Contributors
+# Welcome
 
-Thank you for considering contributing to `blaqkube/mysql-operator`! This
-section is written to help you. 
+Thank you for using and considering contributing to the
+`blaqkube/mysql-operator`! This section is written to help developers
+starting with the project. Leave an issue on
+[Github Project](https://github.com/blaqkube/mysql-operator/issues) if needed.
 
 ## Overview
 
@@ -21,28 +23,12 @@ MySQL instances.
 - `registry` contains the registry for the application
 - `docs` contains the documentation
 
-## Tools
+## Before you start
 
 In order to develop, you would need a number of tools, including `go`,
-`operator-sdk`, `kubectl` and a Kubernetes cluster. What follows provide
+`operator-sdk`, `kubectl`, `gcc`, `make` and a Kubernetes cluster. What follows provide
 some hints about those.
 
-### Go
-
-The operator is written in Go, you can get it from the
-[downloads](https://golang.org/dl/) page. Install it as well as some
-tools to help with it, like a code editor and git.
-
-### operator-sdk
-
-This operator relies on
-[operator-framework/operator-sdk](https://github.com/operator-framework/operator-sdk).
-You will very likely need it. Installing `operator-sdk` is usually as simple as:
-
-- downloading the executable from the
-  [release page](https://github.com/operator-framework/operator-sdk/releases);
-- making sure you can execute the file
-- adding the file to your `PATH`
 
 To use `operator-sdk`, you might need to set `GOROOT` to workaround
 [Issue #1480](https://github.com/operator-framework/operator-sdk/issues/1480)
