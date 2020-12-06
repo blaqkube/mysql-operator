@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM debian:bullseye
 
 RUN apt update && apt upgrade -y && \
     apt install -y git curl make gcc apt-transport-https ca-certificates gnupg-agent software-properties-common
