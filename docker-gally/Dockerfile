@@ -1,7 +1,7 @@
 FROM debian:buster
 
-RUN apt-get update && \
-    apt-get install -y git curl make gcc apt-transport-https ca-certificates gnupg-agent software-properties-common
+RUN apt update && apt upgrade -y \
+    apt install -y git curl make gcc apt-transport-https ca-certificates gnupg-agent software-properties-common
   
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && \
     apt-key fingerprint 0EBFCD88 && \

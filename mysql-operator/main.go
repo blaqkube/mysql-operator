@@ -39,8 +39,8 @@ var (
 )
 
 const (
-	DefaultAgentVersion = "e81ddce"
-	DefaultMySQLVersion = "8.0.21"
+	DefaultAgentVersion = "bdce79b"
+	DefaultMySQLVersion = "8.0.22"
 )
 
 func init() {
