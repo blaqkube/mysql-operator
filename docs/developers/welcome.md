@@ -65,7 +65,4 @@ kubectl get pod blue-0
 
 ## Clean the configuration
 
-To clean the environment, stop the operator by stopping the operator with a
-`Ctrl+C` command. You can remove the instance with
-`kubectl delete instance blue` and it will remove the statefulset, replicaset
-and pod.
+To clean the environment, stop the operator with a `Ctrl+C`. You can remove the instance with `kubectl delete instance blue`. It will remove the statefulset, replicaset and pod.
