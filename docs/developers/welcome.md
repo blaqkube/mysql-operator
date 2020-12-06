@@ -36,12 +36,15 @@ run `kubectl` and you can manage the cluster.
 
 The operator relies on the
 [Golang version of operator-sdk](https://sdk.operatorframework.io/docs/building-operators/golang/).
-To run it from outside of the cluster:
+To run it from outside of the cluster, for development purpose:
 
 - Clone the project with `git clone https://github.com/blaqkube/mysql-operator`
 - Go into the operator subdirectory `cd mysql-operator/mysql-operator`
 - Install the CRDs to your default namespace `make install`
 - Run controllers outside of your cluster `make run ENABLE_WEBHOOKS=false`
+
+The operator should start. Once done, you can create a MySQL instance with the
+command below:
 
 ```shell
 cat <<EOF | kubectl apply -f -
@@ -52,3 +55,17 @@ metadata:
 spec:
   database: blue
 ```
+
+A statefulset named `blue` should be created as seen below:
+
+```shell
+kubectl get sts blue
+kubectl get pod blue-0
+```
+
+## Clean the configuration
+
+To clean the environment, stop the operator by stopping the operator with a
+`Ctrl+C` command. You can remove the instance with
+`kubectl delete instance blue` and it will remove the statefulset, replicaset
+and pod.

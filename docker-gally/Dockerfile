@@ -1,6 +1,6 @@
 FROM debian:bullseye
 
-RUN apt update && apt upgrade -y && \
+RUN apt update && \
     apt install -y git curl make gcc apt-transport-https ca-certificates gnupg-agent software-properties-common
   
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && \
