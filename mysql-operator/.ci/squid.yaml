@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: squid
+spec:
+  containers:
+  - name: squid
+    image: b4tman/squid
+    ports:
+      - name: squid
+        containerPort: 3128
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+      - name: nginx
+        containerPort: 80
+---
