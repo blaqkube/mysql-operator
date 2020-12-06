@@ -214,6 +214,10 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 									MountPath: "/var/lib/mysql",
 								},
 							},
+							Command: []string{
+								"./mysql-agent",
+								"serve",
+							},
 						},
 						{
 							Name:  "exporter",
