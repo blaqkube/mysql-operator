@@ -7,7 +7,7 @@ ENV CGO_ENABLED=0
 RUN go build -a -installsuffix cgo -o mysql-agent .
 
 FROM mysql:8.0.22
-RUN apt update && \
+RUN apt update && apt upgrade -y && \
     apt install -y ca-certificates
 COPY --from=build /project/agent/mysql-agent ./
 EXPOSE 8080/tcp
