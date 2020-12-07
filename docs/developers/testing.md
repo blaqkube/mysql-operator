@@ -1,23 +1,22 @@
 # Testing the operator locally
 
-Being able to build and test the operator is key to develop. It assumes you
+Testing the operator is key to develop successfully. You can run the operator
+outside of kubernetes the procedure provided as part of the
+[welcome](./welcome.md) section of this documentation.
 
-Testing the operator is key to develop successfully. To do so, you need to
-access a Kubernetes cluster. Using Kind is usually a good way to work. Once
-you have access to the cluster, you can:
+There is actually more... The project comes with `envtest` tests. `envtest` is
+a controlplane/etc simulator that can emulate Kubernetes and is built as part
+of the controller-runtimer project. To know more about `envtest`, read the
+[envtest documentation](https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/envtest).
 
-## Install the CRDs
-
-```shell
-cd deploy/crds
-kubectl apply -f mysql.blaqkube.io_backups_crd.yaml
-kubectl apply -f mysql.blaqkube.io_stores_crd.yaml
-kubectl apply -f mysql.blaqkube.io_instances_crd.yaml
-```
-
-## Run the controllers
+The procedure to install `envtest` is part of the operator `Makefile`. To those
+tests, execute the following command:
 
 ```shell
-operator-sdk run --local
+cd $(git rev-parse --show-toplevel)
+cd mysql-operator
+make test
 ```
 
+The procedure creates a directory named `testbin` in `mysql-operator`; this
+directory includes a set of binaries to simulate kubernetes controlplane.
