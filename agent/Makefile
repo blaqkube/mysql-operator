@@ -1,4 +1,4 @@
-SHELL := /bin/bash
+SHELL := bash
 
 .DEFAULT_GOAL=build
 
@@ -24,3 +24,5 @@ api:
 	  -i mysql-agent.yaml -g go-server -o . \
 	  --git-user-id blaqkube \
 	  --git-repo-id mysql-operator/agent
+	go fmt go/*.go
+	cd $$(git rev-parse --show-toplevel) && cd mysql-operator/agent && make api
