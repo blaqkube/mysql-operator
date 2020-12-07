@@ -11,15 +11,14 @@ interface for the agent. To modify the agent, modify the API and regenerate
 the Go code with [openapi-generator](https://openapi-generator.tech/). Once
 done, you can modify the go code accordingly to your needs.
 
-A typical use of openapi-generator, assuming you've installed it with `npm`,
-looks like the command below:
+A typical use of openapi-generator, assuming you've installed `npx` looks
+like the command below:
 
 ```shell
 cd $(git rev-parse --show-toplevel)
 cd agent
-npx @openapitools/openapi-generator-cli generate \
-  -i mysql-agent.yaml -g go-server -o . \
-  --git-user-id blaqkube \
-  --git-repo-id mysql-operator/agent
-go fmt go/*.go
+make api
 ```
+
+> **Note**: the command actually run a `make api` in the
+> `mysql-operator/agent` directory to implement the agent client too.
