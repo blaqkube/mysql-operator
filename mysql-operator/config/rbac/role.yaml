@@ -29,6 +29,26 @@ rules:
 - apiGroups:
   - mysql.blaqkube.io
   resources:
+  - databases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
+  - databases/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
   - instances
   verbs:
   - create

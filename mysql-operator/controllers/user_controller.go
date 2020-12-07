@@ -37,6 +37,7 @@ type UserReconciler struct {
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users/status,verbs=get;update;patch
 
+// Reconcile implement the reconciliation loop for users
 func (r *UserReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	_ = r.Log.WithValues("user", req.NamespacedName)
@@ -138,6 +139,7 @@ func (r *ReconcileUser) Reconcile(request reconcile.Request) (reconcile.Result, 
 }
 */
 
+// SetupWithManager configure type of events the manager should watch
 func (r *UserReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&mysqlv1alpha1.User{}).
