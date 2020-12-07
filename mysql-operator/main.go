@@ -23,7 +23,7 @@ var (
 )
 
 const (
-	DefaultAgentVersion = "796cb84a094eeb7d"
+	DefaultAgentVersion = "dbcacde5ab44d5a8"
 	DefaultMySQLVersion = "8.0.22"
 )
 
