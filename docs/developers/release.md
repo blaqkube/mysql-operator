@@ -1,10 +1,10 @@
 # Releasing the operator
 
-There are 4 components to release as part of the Operator:
+There are 4 components to release as part of the operator:
 
-- The mysql-agent is located in the agent directory. It is started as a sidecar
-  of the database StatefulSet and provide advanced features like backup and
-  restore. It is released as a container image
+- The `mysql-agent` is located in the agent directory. It is started as a
+  sidecar of the database StatefulSet and provide advanced features like backup
+  and restore. It is released as a container image
 - `Controllers` are logic that interact with Kubernetes from changes in the
   configuration. It is released as a container image
 - The `Operator` reference the controller and includes the manifests including
@@ -57,4 +57,3 @@ kubectl get sub -n mysql -o yaml
 > with OLM previous than 0.15.0 that prevents `clusterServiceVersionNames` to
 > be set correctly and prevent the upgrade of the operator. Make sure you use
 > OLM 0.15.0+
-
