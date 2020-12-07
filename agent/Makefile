@@ -2,7 +2,11 @@ SHELL := /bin/bash
 
 .DEFAULT_GOAL=build
 
-SHA := $(shell git log -1 --format='%h' .)
+SHA := $(shell git log -1 --format='%H' . | cut -c1-16)
+
+.PHONY: sha
+sha:
+	@echo $(SHA)
 
 .PHONY: build
 build:
@@ -16,5 +20,7 @@ docker:
 
 .PHONY: api
 api:
-	npx openapi-generator generate -i mysql-agent.yaml -g go-server -o . \
-	   --git-user-id blaqkube --git-repo-id mysql-operator/agent
+	npx @openapitools/openapi-generator-cli generate \
+	  -i mysql-agent.yaml -g go-server -o . \
+	  --git-user-id blaqkube \
+	  --git-repo-id mysql-operator/agent
