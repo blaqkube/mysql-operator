@@ -5,5 +5,5 @@ metadata:
 spec:
   database: blue
   restore:
-    filePath: /backup/2020-08-15/blue-backup.dmp
+    filePath: /backup/2020-12-08/blue-backup.dmp
     store: store-sample

@@ -14,11 +14,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+// StatefulSetProperties defines an interface with the default agent/mysql versions
 type StatefulSetProperties struct {
 	AgentVersion string
 	MySQLVersion string
 }
 
+// CreateOrUpdateStafefulSet creates a secret for the instance
 func (r *InstanceReconciler) CreateOrUpdateStafefulSet(instance *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, filePath string) (ctrl.Result, error) {
 	ctx := context.Background()
 
@@ -68,6 +70,7 @@ func (r *InstanceReconciler) CreateOrUpdateStafefulSet(instance *mysqlv1alpha1.I
 	return ctrl.Result{}, nil
 }
 
+// NewSecretForInstance returns a secret that stores the mysql configuration file
 func (s *StatefulSetProperties) NewSecretForInstance(instance *mysqlv1alpha1.Instance) *corev1.Secret {
 	labels := map[string]string{
 		"app": instance.Name,

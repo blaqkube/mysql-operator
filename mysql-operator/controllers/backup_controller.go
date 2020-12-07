@@ -37,6 +37,7 @@ type BackupReconciler struct {
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=backups,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=backups/status,verbs=get;update;patch
 
+// Reconcile implement the reconciliation loop for backups
 func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	_ = r.Log.WithValues("backup", req.NamespacedName)
@@ -211,6 +212,7 @@ func (r *ReconcileBackup) MonitorBackup(n types.NamespacedName, a *agent.MysqlAp
 }
 */
 
+// SetupWithManager configure type of events the manager should watch
 func (r *BackupReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&mysqlv1alpha1.Backup{}).

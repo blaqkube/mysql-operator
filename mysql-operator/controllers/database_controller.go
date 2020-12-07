@@ -39,6 +39,7 @@ type DatabaseReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+// GetPod figures out the pod IP to access the agent
 func (r *DatabaseReconciler) GetPod(database *mysqlv1alpha1.Database) (string, error) {
 	ctx := context.Background()
 	pod := &corev1.Pod{}
@@ -73,6 +74,7 @@ func (r *DatabaseReconciler) GetPod(database *mysqlv1alpha1.Database) (string, e
 	return url, err
 }
 
+// CreateDatabase is the script that creates a database
 func (r *DatabaseReconciler) CreateDatabase(database *mysqlv1alpha1.Database, url string) error {
 	ctx := context.Background()
 
@@ -106,6 +108,8 @@ func (r *DatabaseReconciler) CreateDatabase(database *mysqlv1alpha1.Database, ur
 
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=databases,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=databases/status,verbs=get;update;patch
+
+// Reconcile implement the reconciliation loop for databases
 func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("database", req.NamespacedName)
@@ -130,6 +134,7 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 }
 
+// SetupWithManager configure type of events the manager should watch
 func (r *DatabaseReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&mysqlv1alpha1.Database{}).
