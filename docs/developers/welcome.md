@@ -28,9 +28,12 @@ MySQL instances.
 ## Development environment
 
 You need a number of tools to develop. They include `go`, `operator-sdk`,
-`kubectl`, `gcc`, `make` and a Kubernetes cluster, like `kind` or `minikube`.
-We will assume you have setup and configured all those tools so that you can
-run `kubectl` and you can manage the cluster.
+`kubectl`, `gcc`, `make`, `bash` 4+, GNU `sed` and a Kubernetes cluster, like
+`kind` or `minikube`. We will assume you have setup and configured all those
+tools so that you can run `kubectl` and you can manage the cluster.
+
+> **Note**: If you use a Mac, pay attention to install bash 4+ and GNU sed and
+> make sure they are first in your PATH.
 
 Controllers must access the MySQL Pod to perform some maintenance tasks like
 create a database. In order to do it, it communicates with an instance sidecar
@@ -59,11 +62,12 @@ To run it from outside of the cluster, for development purpose:
   section
 - Run controllers outside of your cluster `make run ENABLE_WEBHOOKS=false`
 
-The operator should start. Once done, you can create a MySQL instance with the
-command below:
+The operator should start. Once done, you can create a MySQL instance with a
+manifest like the one below; run `kubectl apply -f blue-instance.yaml` to
+install it:
 
-```shell
-cat <<EOF | kubectl apply -f -
+```yaml
+# file blue-instance.yaml
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Instance
 metadata:
