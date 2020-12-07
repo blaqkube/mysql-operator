@@ -32,6 +32,20 @@ You need a number of tools to develop. They include `go`, `operator-sdk`,
 We will assume you have setup and configured all those tools so that you can
 run `kubectl` and you can manage the cluster.
 
+Controllers must access the MySQL Pod to perform some maintenance tasks like
+create a database. In order to do it, it communicates with an instance sidecar
+running the operator MySQL agent. It does that via OpenAPI. To run them
+outside the cluster, you should install a proxy server and establish a
+local connection to it. The `.ci/squid.yaml` file create a simple pod manifest
+to grant access to the cluster network. Before you run the controllers, run
+the command below:
+
+```shell
+kubectl apply -f .ci/squid.yaml
+kubectl port-forward squid 3128
+export HTTP_PROXY=http://localhost:3128
+```
+
 ## Running the operator manually
 
 The operator relies on the
@@ -41,6 +55,8 @@ To run it from outside of the cluster, for development purpose:
 - Clone the project with `git clone https://github.com/blaqkube/mysql-operator`
 - Go into the operator subdirectory `cd mysql-operator/mysql-operator`
 - Install the CRDs to your default namespace `make install`
+- Make sure you have installed an HTTP proxy as described in the previous
+  section
 - Run controllers outside of your cluster `make run ENABLE_WEBHOOKS=false`
 
 The operator should start. Once done, you can create a MySQL instance with the
