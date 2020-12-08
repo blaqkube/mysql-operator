@@ -283,6 +283,7 @@ github.com/onsi/gomega v1.10.1 h1:o0+MgICZLuZ7xjH7Vx6zS/zcu93/BEp1VwkIW1mEXCE=
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/operator-framework/operator-lib v0.1.0 h1:7Qy6v2ZccvCeFLWEkrGnN+U+DkaeIWp0gAZaBM9T3DI=
 github.com/operator-framework/operator-lib v0.1.0/go.mod h1:HLw61JTIEeq0YLeVf4dwYx/zt4DmLGZUVWI1y3Lf5Hg=
+github.com/operator-framework/operator-lib v0.2.0 h1:yrSA8LL3y43/+3AMpuDl8c1jIAw1um+EvQWzwFH1lyc=
 github.com/pborman/uuid v1.2.0/go.mod h1:X/NO0urCmaxf9VXbdlT7C2Yzkj2IKimNn4k+gtPdI/k=
 github.com/pelletier/go-toml v1.2.0 h1:T5zMGML61Wp+FlcbWjRDT7yAxhJNAiPPLOFECq181zc=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
