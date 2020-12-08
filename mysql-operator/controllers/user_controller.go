@@ -1,29 +1,21 @@
-/*
-
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-logr/logr"
+	"github.com/operator-framework/operator-lib/status"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	"github.com/blaqkube/mysql-operator/mysql-operator/agent"
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
 )
 
@@ -39,53 +31,47 @@ type UserReconciler struct {
 
 // Reconcile implement the reconciliation loop for users
 func (r *UserReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
-	_ = r.Log.WithValues("user", req.NamespacedName)
+	ctx := context.Background()
+	log := r.Log.WithValues("user", req.NamespacedName)
 
-	// your logic here
-
-	return ctrl.Result{}, nil
-}
-
-/*
-func (r *ReconcileUser) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling User")
+	log.Info("Reconciling User")
 
 	// Fetch the User instance
-	instance := &mysqlv1alpha1.User{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
+	user := &mysqlv1alpha1.User{}
+	err := r.Client.Get(ctx, req.NamespacedName, user)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			return reconcile.Result{}, nil
+			return ctrl.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
+		return ctrl.Result{}, err
 	}
 
 	// Check if this Pod already exists
 	pod := &corev1.Pod{}
-	err = r.client.Get(
+	err = r.Client.Get(
 		context.TODO(),
 		types.NamespacedName{
-			Name:      instance.Spec.Instance + "-0",
-			Namespace: instance.Namespace,
+			Name:      user.Spec.Instance + "-0",
+			Namespace: user.Namespace,
 		},
 		pod,
 	)
 	if err != nil {
-		time := metav1.Now()
-		condition := mysqlv1alpha1.ConditionStatus{
-			LastProbeTime: &time,
-			Status:        "Failed",
-			Message:       fmt.Sprintf("Cannot find pod %s-0; error: %v", instance.Spec.Instance, err),
+		t := metav1.Now()
+		condition := status.Condition{
+			Type:               status.ConditionType("podmonitor"),
+			Status:             corev1.ConditionTrue,
+			Reason:             status.ConditionReason("Failed"),
+			Message:            fmt.Sprintf("Cannot find pod %s-0; error: %v", user.Spec.Instance, err),
+			LastTransitionTime: t,
 		}
-		instance.Status.LastCondition = "Failed"
-		instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
-		err = r.client.Status().Update(context.TODO(), instance)
+		user.Status.LastCondition = "Failed"
+		user.Status.Conditions = append(user.Status.Conditions, condition)
+		err = r.Client.Status().Update(context.TODO(), user)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -93,51 +79,52 @@ func (r *ReconcileUser) Reconcile(request reconcile.Request) (reconcile.Result, 
 	}
 	cfg := agent.NewConfiguration()
 	cfg.BasePath = "http://" + pod.Status.PodIP + ":8080"
-	// cfg.BasePath = "http://localhost:8080"
 	api := agent.NewAPIClient(cfg)
-	user := agent.User{
-		Username: instance.Spec.Username,
-		Password: instance.Spec.Password,
+	u := agent.User{
+		Username: user.Spec.Username,
+		Password: user.Spec.Password,
 		Grants:   []agent.Grant{},
 	}
-	for _, v := range instance.Spec.Grants {
-		user.Grants = append(user.Grants, agent.Grant{
+	for _, v := range user.Spec.Grants {
+		u.Grants = append(u.Grants, agent.Grant{
 			Database:   v.Database,
 			AccessMode: v.AccessMode,
 		})
 	}
-	_, _, err = api.MysqlApi.CreateUser(context.TODO(), user, nil)
+	_, _, err = api.MysqlApi.CreateUser(ctx, u, nil)
 	if err != nil {
-		time := metav1.Now()
-		condition := mysqlv1alpha1.ConditionStatus{
-			LastProbeTime: &time,
-			Status:        "Failed",
-			Message:       fmt.Sprintf("Error accessing api: %v", err),
+		t := metav1.Now()
+		condition := status.Condition{
+			Type:               status.ConditionType("user"),
+			Status:             corev1.ConditionTrue,
+			Reason:             status.ConditionReason("Failed"),
+			Message:            fmt.Sprintf("Cannot create user %s, error: %v", u.Username, err),
+			LastTransitionTime: t,
 		}
-		instance.Status.LastCondition = "Failed"
-		instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
-		err = r.client.Status().Update(context.TODO(), instance)
+		user.Status.LastCondition = "Failed"
+		user.Status.Conditions = append(user.Status.Conditions, condition)
+		err = r.Client.Status().Update(ctx, user)
 		if err != nil {
-			return reconcile.Result{}, err
+			return ctrl.Result{}, err
 		}
-		return reconcile.Result{}, nil
+		return ctrl.Result{}, nil
 	}
 	t := metav1.Now()
-	condition := mysqlv1alpha1.ConditionStatus{
-		LastProbeTime: &t,
-		Status:        "Succeeded",
-		Message:       "User " + instance.Spec.Username + " created",
+	condition := status.Condition{
+		Type:               status.ConditionType("user"),
+		Status:             corev1.ConditionTrue,
+		Reason:             status.ConditionReason("Succeeded"),
+		Message:            fmt.Sprintf("User %s created", u.Username),
+		LastTransitionTime: t,
 	}
-	instance.Status.LastCondition = "Succeeded"
-	instance.Status.Conditions = []mysqlv1alpha1.ConditionStatus{condition}
-	err = r.client.Status().Update(context.TODO(), instance)
+	user.Status.LastCondition = "Failed"
+	user.Status.Conditions = append(user.Status.Conditions, condition)
+	err = r.Client.Status().Update(ctx, user)
 	if err != nil {
-		return reconcile.Result{}, err
+		return ctrl.Result{}, err
 	}
-
-	return reconcile.Result{}, nil
+	return ctrl.Result{}, nil
 }
-*/
 
 // SetupWithManager configure type of events the manager should watch
 func (r *UserReconciler) SetupWithManager(mgr ctrl.Manager) error {
