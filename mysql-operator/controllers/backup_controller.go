@@ -95,8 +95,8 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	api := agent.NewAPIClient(cfg)
 	payload := agent.Backup{
 		S3access: agent.S3Info{
-			Bucket: store.Spec.S3Backup.Bucket,
-			Path:   store.Spec.S3Backup.Path,
+			Bucket: store.Spec.S3.Bucket,
+			Path:   store.Spec.S3.Path,
 			AwsConfig: agent.AwsConfig{
 				AwsAccessKeyId:     store.Spec.S3Backup.AWSConfig.AccessKey,
 				AwsSecretAccessKey: store.Spec.S3Backup.AWSConfig.SecretKey,
