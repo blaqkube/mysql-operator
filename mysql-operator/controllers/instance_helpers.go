@@ -98,11 +98,11 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 	var replicas int32 = 1
 	initContainers := []corev1.Container{}
 	if store != nil {
-		if store.Spec.S3 != nil && store.Spec.S3.Env != nil {
-			env := store.Spec.S3.Env
+		if store.Spec.Env != nil {
+			env := store.Spec.Env
 			env = append(env, corev1.EnvVar{
 				Name:  "AGT_BUCKET",
-				Value: store.Spec.S3.Bucket,
+				Value: store.Spec.Bucket,
 			})
 			env = append(env, corev1.EnvVar{
 				Name:  "AGT_PATH",

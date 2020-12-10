@@ -33,13 +33,6 @@ type EnvVarSource struct {
 	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty" protobuf:"bytes,4,opt,name=secretKeyRef"`
 }
 
-// S3Info defines store informations for S3
-type S3Info struct {
-	Bucket string          `json:"bucket"`
-	Path   string          `json:"path"`
-	Env    []corev1.EnvVar `json:"env,omitempty"`
-}
-
 // StoreSpec defines the desired state of Store
 type StoreSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -48,8 +41,16 @@ type StoreSpec struct {
 	// +kubebuilder:validation:Enum=s3
 	Backend *string `json:"backend,omitempty"`
 
-	// S3 provides the information to backup databases on S3
-	S3 *S3Info `json:"s3,omitempty"`
+	// Bucket defines the store bucket
+	Bucket string `json:"bucket"`
+
+	// Path defines the path that will prefix files in the bucket
+	// +optional
+	Prefix string `json:"prefix,omitempty"`
+
+	// Env defines environment variables to connect to the store
+	// +optional
+	Env []corev1.EnvVar `json:"env,omitempty"`
 }
 
 // StoreStatus defines the observed state of Store

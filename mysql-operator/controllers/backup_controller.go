@@ -105,8 +105,8 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	api := agent.NewAPIClient(cfg)
 	payload := agent.Backup{
 		S3access: agent.S3Info{
-			Bucket: store.Spec.S3.Bucket,
-			Path:   store.Spec.S3.Path,
+			Bucket: store.Spec.Bucket,
+			Path:   store.Spec.Prefix,
 			AwsConfig: agent.AwsConfig{
 				AwsAccessKeyId:     accessKey,
 				AwsSecretAccessKey: secretKey,
@@ -229,7 +229,7 @@ func (r *BackupReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.S
 	output := map[string]string{}
 	configMaps := map[string]corev1.ConfigMap{}
 	secrets := map[string]corev1.Secret{}
-	for _, envVar := range store.Spec.S3.Env {
+	for _, envVar := range store.Spec.Env {
 		if envVar.Name == "" {
 			return nil, errors.New("MissingVariable")
 		}

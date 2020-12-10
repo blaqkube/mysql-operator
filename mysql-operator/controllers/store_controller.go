@@ -41,15 +41,15 @@ func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	if store.Status.Reason == "" {
-		store.Status.Reason = "Initializing"
+		store.Status.Reason = "Check"
 		if err := r.Status().Update(ctx, &store); err != nil {
-			log.Error(err, "Unable to update store status to Initializing")
+			log.Error(err, "Unable to update store status to Check")
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{Requeue: true}, nil
 	}
-	if store.Status.Reason == "Initializing" {
-		if (store.Spec.Backend == nil || *store.Spec.Backend == "s3") && store.Spec.S3 != nil {
+	if store.Status.Reason == "Check" {
+		if store.Spec.Backend == nil || *store.Spec.Backend == "s3" {
 
 			keys, err := r.GetEnvVars(ctx, store)
 			if err != nil {
@@ -71,7 +71,7 @@ func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 				region, ok = keys["AWS_REGION"]
 			}
 			s, err := r.BackupStore.New(&helpers.AWSConfig{AccessKey: accessKey, SecretKey: secretKey, Region: region})
-			err = s.TestS3Access(store.Spec.S3.Bucket, "/validation")
+			err = s.TestS3Access(store.Spec.Bucket, "/validation")
 			if err != nil {
 				store.Status.Reason = "AccessDenied"
 				log.Error(err, "Unable to access store, setting to AccessDenied")
@@ -81,10 +81,10 @@ func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 				}
 				return ctrl.Result{}, nil
 			}
-			store.Status.Reason = "Succeeded"
+			store.Status.Reason = "Success"
 			log.Error(err, "Access to store Succeeded")
 			if err := r.Status().Update(ctx, &store); err != nil {
-				log.Error(err, "Unable to update store status to Succeeded")
+				log.Error(err, "Unable to update store status to Success")
 				return ctrl.Result{}, err
 			}
 			return ctrl.Result{}, nil
@@ -105,7 +105,7 @@ func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.St
 	output := map[string]string{}
 	configMaps := map[string]corev1.ConfigMap{}
 	secrets := map[string]corev1.Secret{}
-	for _, envVar := range store.Spec.S3.Env {
+	for _, envVar := range store.Spec.Env {
 		if envVar.Name == "" {
 			return nil, errors.New("MissingVariable")
 		}

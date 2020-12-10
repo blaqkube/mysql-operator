@@ -74,9 +74,7 @@ var _ = Describe("Instance Controller", func() {
 				Namespace: "default",
 			},
 			Spec: mysqlv1alpha1.StoreSpec{
-				S3: &mysqlv1alpha1.S3Info{
-					Bucket: "pong",
-				},
+				Bucket: "pong",
 			},
 		}
 
@@ -95,7 +93,7 @@ var _ = Describe("Instance Controller", func() {
 
 		storeResponse := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
-		Expect(storeResponse.Status.Reason).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
+		Expect(storeResponse.Status.Reason).To(Equal("Check"), "Expected reconcile to change the status to Check")
 
 		Expect(storeReconcile.Reconcile(ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
