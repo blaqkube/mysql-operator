@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/zapr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -27,7 +28,7 @@ var _ = Describe("Store Controller", func() {
 				Namespace:    "default",
 			},
 			Spec: mysqlv1alpha1.StoreSpec{
-				S3Backup: &mysqlv1alpha1.S3BackupInfo{
+				S3: &mysqlv1alpha1.S3Info{
 					Bucket: "pong",
 				},
 			},
@@ -48,11 +49,11 @@ var _ = Describe("Store Controller", func() {
 
 		response := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.LastCondition).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
+		Expect(response.Status.Reason).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
 
 		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.LastCondition).To(Equal("Success"), "Expected reconcile to change the status to Success")
+		Expect(response.Status.Reason).To(Equal("Success"), "Expected reconcile to change the status to Success")
 
 	})
 
@@ -64,11 +65,9 @@ var _ = Describe("Store Controller", func() {
 				Namespace:    "default",
 			},
 			Spec: mysqlv1alpha1.StoreSpec{
-				S3Backup: &mysqlv1alpha1.S3BackupInfo{
+				S3: &mysqlv1alpha1.S3Info{
 					Bucket: "yes",
-					AWSConfig: &helpers.AWSConfig{
-						Region: "fail",
-					},
+					Env:    []corev1.EnvVar{},
 				},
 			},
 		}
@@ -88,11 +87,11 @@ var _ = Describe("Store Controller", func() {
 
 		response := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.LastCondition).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
+		Expect(response.Status.Reason).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
 
 		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.LastCondition).To(Equal("Error"), "Expected reconcile to change the status to Error")
+		Expect(response.Status.Reason).To(Equal("Error"), "Expected reconcile to change the status to Error")
 	})
 
 	It("Write Store fails", func() {
@@ -103,9 +102,9 @@ var _ = Describe("Store Controller", func() {
 				Namespace:    "default",
 			},
 			Spec: mysqlv1alpha1.StoreSpec{
-				S3Backup: &mysqlv1alpha1.S3BackupInfo{
-					Bucket:    "fail",
-					AWSConfig: &helpers.AWSConfig{},
+				S3: &mysqlv1alpha1.S3Info{
+					Bucket: "fail",
+					Env:    []corev1.EnvVar{},
 				},
 			},
 		}
@@ -125,10 +124,10 @@ var _ = Describe("Store Controller", func() {
 
 		response := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.LastCondition).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
+		Expect(response.Status.Reason).To(Equal("Pending"), "Expected reconcile to change the status to Pending")
 
 		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.LastCondition).To(Equal("Error"), "Expected reconcile to change the status to Error")
+		Expect(response.Status.Reason).To(Equal("Error"), "Expected reconcile to change the status to Error")
 	})
 })

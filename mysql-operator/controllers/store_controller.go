@@ -2,16 +2,17 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
 	"github.com/blaqkube/mysql-operator/mysql-operator/helpers"
 	"github.com/go-logr/logr"
 	"github.com/prometheus/common/log"
-	"k8s.io/apimachinery/pkg/api/errors"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -48,18 +49,28 @@ func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{Requeue: true}, nil
 	}
 	if store.Status.Reason == "Initializing" {
-		if store.Spec.Backend == nil || *store.Spec.Backend == "s3" {
+		if (store.Spec.Backend == nil || *store.Spec.Backend == "s3") && store.Spec.S3 != nil {
 
-			s, err := r.BackupStore.New(store.Spec.S3.Env)
+			keys, err := r.GetEnvVars(ctx, store)
 			if err != nil {
 				store.Status.Reason = "Error"
-				log.Error(err, "Unable to Initialize store, setting to Error")
+				if err.Error() == "MissingVariable" {
+					store.Status.Reason = "MissingVariable"
+				}
+				log.Errorf("Error reading environment variable: %v", err)
 				if err := r.Status().Update(ctx, &store); err != nil {
-					log.Error(err, "Unable to update store status to Error")
+					log.Errorf("Unable to update store status: %s", err)
 					return ctrl.Result{}, err
 				}
 				return ctrl.Result{}, nil
 			}
+			accessKey, _ := keys["AWS_ACCESS_KEY_ID"]
+			secretKey, _ := keys["AWS_SECRET_ACCESS_KEY"]
+			region, ok := keys["AWS_DEFAULT_REGION"]
+			if !ok {
+				region, ok = keys["AWS_REGION"]
+			}
+			s, err := r.BackupStore.New(&helpers.AWSConfig{AccessKey: accessKey, SecretKey: secretKey, Region: region})
 			err = s.TestS3Access(store.Spec.S3.Bucket, "/validation")
 			if err != nil {
 				store.Status.Reason = "AccessDenied"
@@ -90,75 +101,77 @@ func (r *StoreReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 // GetEnvVars returns the environment variables for the store
-func (r *StoreReconciler) GetEnvVars(ctx context.Context, name types.NamespacedName, Env []mysqlv1alpha1.EnvVar) (map[string]string, error) {
+func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.Store) (map[string]string, error) {
 	output := map[string]string{}
-	for _, envVar := range Env {
+	configMaps := map[string]corev1.ConfigMap{}
+	secrets := map[string]corev1.Secret{}
+	for _, envVar := range store.Spec.S3.Env {
 		if envVar.Name == "" {
-			continue
+			return nil, errors.New("MissingVariable")
 		}
 		if envVar.Value != "" {
 			output[envVar.Name] = envVar.Value
 			continue
 		}
 		if envVar.ValueFrom != nil {
+			value := ""
 			switch {
 			case envVar.ValueFrom.ConfigMapKeyRef != nil:
 				cm := envVar.ValueFrom.ConfigMapKeyRef
+				namespace := store.Namespace
 				name := cm.Name
 				key := cm.Key
 				optional := cm.Optional != nil && *cm.Optional
 				configMap, ok := configMaps[name]
 				if !ok {
-					if kl.kubeClient == nil {
-						return result, fmt.Errorf("couldn't get configMap %v/%v, no kubeClient defined", pod.Namespace, name)
-					}
-					configMap, err = kl.configMapManager.GetConfigMap(pod.Namespace, name)
-					if err != nil {
-						if errors.IsNotFound(err) && optional {
-							// ignore error when marked optional
-							continue
+					configMap := corev1.ConfigMap{}
+					if err := r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &configMap); err != nil {
+						if !optional {
+							return nil, err
 						}
-						return result, err
+					} else {
+						configMaps[name] = configMap
+						ok = true
 					}
-					configMaps[name] = configMap
 				}
-				runtimeVal, ok = configMap.Data[key]
-				if !ok {
-					if optional {
-						continue
+				if ok {
+					value, ok = configMap.Data[key]
+					if !ok && !optional {
+						return nil, errors.New("MissingVariable")
 					}
-					return result, fmt.Errorf("couldn't find key %v in ConfigMap %v/%v", key, pod.Namespace, name)
 				}
 			case envVar.ValueFrom.SecretKeyRef != nil:
 				s := envVar.ValueFrom.SecretKeyRef
+				namespace := store.Namespace
 				name := s.Name
 				key := s.Key
 				optional := s.Optional != nil && *s.Optional
 				secret, ok := secrets[name]
 				if !ok {
-					if kl.kubeClient == nil {
-						return result, fmt.Errorf("couldn't get secret %v/%v, no kubeClient defined", pod.Namespace, name)
-					}
-					secret, err = kl.secretManager.GetSecret(pod.Namespace, name)
-					if err != nil {
-						if errors.IsNotFound(err) && optional {
-							// ignore error when marked optional
-							continue
+					secret := corev1.Secret{}
+					if err := r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &secret); err != nil {
+						if !optional {
+							return nil, err
 						}
-						return result, err
+					} else {
+						secrets[name] = secret
+						ok = true
 					}
-					secrets[name] = secret
 				}
-				runtimeValBytes, ok := secret.Data[key]
-				if !ok {
-					if optional {
-						continue
+				if ok {
+					valueBytes, ok := secret.Data[key]
+					if !ok && !optional {
+						return nil, errors.New("MissingVariable")
 					}
-					return result, fmt.Errorf("couldn't find key %v in Secret %v/%v", key, pod.Namespace, name)
+					if ok {
+						value = string(valueBytes)
+					}
 				}
-				runtimeVal = string(runtimeValBytes)
 			}
+			output[envVar.Name] = value
+			continue
 		}
+		return nil, errors.New("MissingVariable")
 	}
 	return output, nil
 }

@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/operator-framework/operator-lib/status"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -27,6 +28,8 @@ type BackupReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=backups,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=backups/status,verbs=get;update;patch
 
@@ -39,7 +42,7 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	backup := &mysqlv1alpha1.Backup{}
 	err := r.Client.Get(ctx, req.NamespacedName, backup)
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
@@ -91,6 +94,13 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return reconcile.Result{}, nil
 	}
 	cfg := agent.NewConfiguration()
+	keys, err := r.GetEnvVars(ctx, *store)
+	accessKey, _ := keys["AWS_ACCESS_KEY_ID"]
+	secretKey, _ := keys["AWS_SECRET_ACCESS_KEY"]
+	region, ok := keys["AWS_DEFAULT_REGION"]
+	if !ok {
+		region, ok = keys["AWS_REGION"]
+	}
 	cfg.BasePath = "http://" + pod.Status.PodIP + ":8080"
 	api := agent.NewAPIClient(cfg)
 	payload := agent.Backup{
@@ -98,9 +108,9 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			Bucket: store.Spec.S3.Bucket,
 			Path:   store.Spec.S3.Path,
 			AwsConfig: agent.AwsConfig{
-				AwsAccessKeyId:     store.Spec.S3Backup.AWSConfig.AccessKey,
-				AwsSecretAccessKey: store.Spec.S3Backup.AWSConfig.SecretKey,
-				Region:             store.Spec.S3Backup.AWSConfig.Region,
+				AwsAccessKeyId:     accessKey,
+				AwsSecretAccessKey: secretKey,
+				Region:             region,
 			},
 		},
 	}
@@ -212,4 +222,80 @@ func (r *BackupReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&mysqlv1alpha1.Backup{}).
 		Complete(r)
+}
+
+// GetEnvVars returns the environment variables for the store
+func (r *BackupReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.Store) (map[string]string, error) {
+	output := map[string]string{}
+	configMaps := map[string]corev1.ConfigMap{}
+	secrets := map[string]corev1.Secret{}
+	for _, envVar := range store.Spec.S3.Env {
+		if envVar.Name == "" {
+			return nil, errors.New("MissingVariable")
+		}
+		if envVar.Value != "" {
+			output[envVar.Name] = envVar.Value
+			continue
+		}
+		if envVar.ValueFrom != nil {
+			value := ""
+			switch {
+			case envVar.ValueFrom.ConfigMapKeyRef != nil:
+				cm := envVar.ValueFrom.ConfigMapKeyRef
+				namespace := store.Namespace
+				name := cm.Name
+				key := cm.Key
+				optional := cm.Optional != nil && *cm.Optional
+				configMap, ok := configMaps[name]
+				if !ok {
+					configMap := corev1.ConfigMap{}
+					if err := r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &configMap); err != nil {
+						if !optional {
+							return nil, err
+						}
+					} else {
+						configMaps[name] = configMap
+						ok = true
+					}
+				}
+				if ok {
+					value, ok = configMap.Data[key]
+					if !ok && !optional {
+						return nil, errors.New("MissingVariable")
+					}
+				}
+			case envVar.ValueFrom.SecretKeyRef != nil:
+				s := envVar.ValueFrom.SecretKeyRef
+				namespace := store.Namespace
+				name := s.Name
+				key := s.Key
+				optional := s.Optional != nil && *s.Optional
+				secret, ok := secrets[name]
+				if !ok {
+					secret := corev1.Secret{}
+					if err := r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &secret); err != nil {
+						if !optional {
+							return nil, err
+						}
+					} else {
+						secrets[name] = secret
+						ok = true
+					}
+				}
+				if ok {
+					valueBytes, ok := secret.Data[key]
+					if !ok && !optional {
+						return nil, errors.New("MissingVariable")
+					}
+					if ok {
+						value = string(valueBytes)
+					}
+				}
+			}
+			output[envVar.Name] = value
+			continue
+		}
+		return nil, errors.New("MissingVariable")
+	}
+	return output, nil
 }
