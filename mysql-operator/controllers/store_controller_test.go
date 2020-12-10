@@ -63,7 +63,7 @@ var _ = Describe("Store Controller", func() {
 				Namespace:    "default",
 			},
 			Spec: mysqlv1alpha1.StoreSpec{
-				Bucket: "yes",
+				Bucket: "fail",
 				Env:    []corev1.EnvVar{},
 			},
 		}
@@ -87,7 +87,7 @@ var _ = Describe("Store Controller", func() {
 
 		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Reason).To(Equal("Success"), "Expected reconcile to change the status to Success")
+		Expect(response.Status.Reason).To(Equal("AccessDenied"), "Expected reconcile to change the status to AccessDenied")
 	})
 
 	It("Write Store fails", func() {
