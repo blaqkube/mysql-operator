@@ -98,37 +98,25 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 	var replicas int32 = 1
 	initContainers := []corev1.Container{}
 	if store != nil {
-		if store.Spec.S3Backup != nil && store.Spec.S3Backup.AWSConfig != nil {
+		if store.Spec.Env != nil {
+			env := store.Spec.Env
+			env = append(env, corev1.EnvVar{
+				Name:  "AGT_BUCKET",
+				Value: store.Spec.Bucket,
+			})
+			env = append(env, corev1.EnvVar{
+				Name:  "AGT_PATH",
+				Value: filePath,
+			})
+			env = append(env, corev1.EnvVar{
+				Name:  "AGT_FILENAME",
+				Value: "/docker-entrypoint-initdb.d/init-script.sql",
+			})
 			initContainers = []corev1.Container{
 				{
 					Name:  "restore",
 					Image: "quay.io/blaqkube/mysql-agent:" + s.AgentVersion,
-					Env: []corev1.EnvVar{
-						{
-							Name:  "AWS_REGION",
-							Value: store.Spec.S3Backup.AWSConfig.Region,
-						},
-						{
-							Name:  "AWS_ACCESS_KEY_ID",
-							Value: store.Spec.S3Backup.AWSConfig.AccessKey,
-						},
-						{
-							Name:  "AWS_SECRET_ACCESS_KEY",
-							Value: store.Spec.S3Backup.AWSConfig.SecretKey,
-						},
-						{
-							Name:  "AGT_BUCKET",
-							Value: store.Spec.S3Backup.Bucket,
-						},
-						{
-							Name:  "AGT_PATH",
-							Value: filePath,
-						},
-						{
-							Name:  "AGT_FILENAME",
-							Value: "/docker-entrypoint-initdb.d/init-script.sql",
-						},
-					},
+					Env:   env,
 					VolumeMounts: []corev1.VolumeMount{
 						{
 							Name:      instance.Name + "-init",

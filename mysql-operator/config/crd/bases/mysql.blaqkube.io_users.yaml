@@ -38,6 +38,7 @@ spec:
           properties:
             grants:
               items:
+                description: GrantSpec defines granst for a user
                 properties:
                   accessMode:
                     type: string
