@@ -22,6 +22,35 @@ tags:
   name: mysql
 paths:
   /backup:
+    get:
+      description: Returns a backup list
+      operationId: getBackups
+      parameters:
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackupList'
+          description: successful operation
+        "400":
+          content: {}
+          description: Invalid Backup supplied
+        "404":
+          content: {}
+          description: Backup not found
+      security:
+      - api_key: []
+      summary: Get backup properties
+      tags:
+      - mysql
     post:
       operationId: createBackup
       parameters:
@@ -52,74 +81,6 @@ paths:
       security:
       - api_key: []
       summary: create an on-demand backup
-      tags:
-      - mysql
-  /backup/{backup}:
-    delete:
-      operationId: deleteBackup
-      parameters:
-      - explode: false
-        in: header
-        name: api_key
-        required: false
-        schema:
-          type: string
-        style: simple
-      - description: Backup to delete
-        explode: false
-        in: path
-        name: backup
-        required: true
-        schema:
-          type: string
-        style: simple
-      responses:
-        "400":
-          content: {}
-          description: Invalid ID supplied
-        "404":
-          content: {}
-          description: Backup not found
-      security:
-      - api_key: []
-      summary: Deletes a backup
-      tags:
-      - mysql
-    get:
-      description: Returns a single backup set of properties
-      operationId: getBackupByName
-      parameters:
-      - explode: false
-        in: header
-        name: api_key
-        required: false
-        schema:
-          type: string
-        style: simple
-      - description: Name of the backup to return
-        explode: false
-        in: path
-        name: backup
-        required: true
-        schema:
-          type: string
-        style: simple
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Backup'
-          description: successful operation
-        "400":
-          content: {}
-          description: Invalid Backup supplied
-        "404":
-          content: {}
-          description: Backup not found
-      security:
-      - api_key: []
-      summary: Get backup properties
       tags:
       - mysql
   /database:
@@ -168,7 +129,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Database'
-          description: Backup Created
+          description: Database Created
       security:
       - api_key: []
       summary: create an on-demand database
@@ -364,28 +325,35 @@ paths:
       - mysql
 components:
   schemas:
-    AWSConfig:
+    EnvVar:
       properties:
-        aws_access_key_id:
+        name:
           type: string
-        aws_secret_access_key:
+        value:
           type: string
-        region:
-          type: string
+      required:
+      - name
+      - value
       type: object
     Backup:
       example:
-        s3access:
-          bucket: backup.blaqkube.io
-          path: /blue
+        bucket: backup.blaqkube.io
+        location: /blue/mybackup.dmp
+        env:
+        - name: AWS_REGION
+          value: eu-west-1
       properties:
+        bucket:
+          type: string
         location:
           type: string
+        env:
+          items:
+            $ref: '#/components/schemas/EnvVar'
+          type: array
         timestamp:
           format: date-time
           type: string
-        s3access:
-          $ref: '#/components/schemas/S3Info'
         status:
           description: backup status
           enum:
@@ -396,9 +364,25 @@ components:
           type: string
         message:
           description: keep message in case of an error
+          nullable: true
           type: string
       required:
-      - s3access
+      - bucket
+      - path
+      type: object
+    BackupList:
+      example:
+        size: 1
+        items:
+        - bucket: backup.blaqkube.io
+          location: /blue/mybackup.dmp
+      properties:
+        size:
+          type: integer
+        items:
+          items:
+            $ref: '#/components/schemas/Backup'
+          type: array
       type: object
     Database:
       example:
@@ -420,21 +404,6 @@ components:
           type: string
       required:
       - database
-      type: object
-    listBackups:
-      example:
-        size: 1
-        items:
-        - s3access:
-            bucket: backup.blaqkube.io
-            path: /blue
-      properties:
-        size:
-          type: integer
-        items:
-          items:
-            $ref: '#/components/schemas/Backup'
-          type: array
       type: object
     listDatabases:
       example:
@@ -474,17 +443,6 @@ components:
           type: string
       required:
       - code
-      type: object
-    S3Info:
-      properties:
-        bucket:
-          type: string
-        path:
-          type: string
-        awsConfig:
-          $ref: '#/components/schemas/AWSConfig'
-      required:
-      - bucket
       type: object
     User:
       example:

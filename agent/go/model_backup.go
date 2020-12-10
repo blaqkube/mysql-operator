@@ -15,15 +15,17 @@ import (
 )
 
 type Backup struct {
+	Bucket string `json:"bucket"`
+
 	Location string `json:"location,omitempty"`
 
-	Timestamp time.Time `json:"timestamp,omitempty"`
+	Env []EnvVar `json:"env,omitempty"`
 
-	S3access S3Info `json:"s3access"`
+	Timestamp time.Time `json:"timestamp,omitempty"`
 
 	// backup status
 	Status string `json:"status,omitempty"`
 
 	// keep message in case of an error
-	Message string `json:"message,omitempty"`
+	Message *string `json:"message,omitempty"`
 }

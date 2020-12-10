@@ -324,94 +324,6 @@ func (a *MysqlApiService) CreateUser(ctx _context.Context, user User, localVarOp
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-// DeleteBackupOpts Optional parameters for the method 'DeleteBackup'
-type DeleteBackupOpts struct {
-	ApiKey optional.String
-}
-
-/*
-DeleteBackup Deletes a backup
- * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param backup Backup to delete
- * @param optional nil or *DeleteBackupOpts - Optional Parameters:
- * @param "ApiKey" (optional.String) -
-*/
-func (a *MysqlApiService) DeleteBackup(ctx _context.Context, backup string, localVarOptionals *DeleteBackupOpts) (*_nethttp.Response, error) {
-	var (
-		localVarHTTPMethod   = _nethttp.MethodDelete
-		localVarPostBody     interface{}
-		localVarFormFileName string
-		localVarFileName     string
-		localVarFileBytes    []byte
-	)
-
-	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/backup/{backup}"
-	localVarPath = strings.Replace(localVarPath, "{"+"backup"+"}", _neturl.QueryEscape(parameterToString(backup, "")), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := _neturl.Values{}
-	localVarFormParams := _neturl.Values{}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	if localVarOptionals != nil && localVarOptionals.ApiKey.IsSet() {
-		localVarHeaderParams["api_key"] = parameterToString(localVarOptionals.ApiKey.Value(), "")
-	}
-	if ctx != nil {
-		// API Key Authentication
-		if auth, ok := ctx.Value(ContextAPIKey).(APIKey); ok {
-			var key string
-			if auth.Prefix != "" {
-				key = auth.Prefix + " " + auth.Key
-			} else {
-				key = auth.Key
-			}
-			localVarHeaderParams["api_key"] = key
-		}
-	}
-	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(r)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarHTTPResponse, err
-	}
-
-	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	if err != nil {
-		return localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		return localVarHTTPResponse, newErr
-	}
-
-	return localVarHTTPResponse, nil
-}
-
 // DeleteDatabaseOpts Optional parameters for the method 'DeleteDatabase'
 type DeleteDatabaseOpts struct {
 	ApiKey optional.String
@@ -588,34 +500,31 @@ func (a *MysqlApiService) DeleteUser(ctx _context.Context, user string, localVar
 	return localVarHTTPResponse, nil
 }
 
-// GetBackupByNameOpts Optional parameters for the method 'GetBackupByName'
-type GetBackupByNameOpts struct {
+// GetBackupsOpts Optional parameters for the method 'GetBackups'
+type GetBackupsOpts struct {
 	ApiKey optional.String
 }
 
 /*
-GetBackupByName Get backup properties
-Returns a single backup set of properties
+GetBackups Get backup properties
+Returns a backup list
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param backup Name of the backup to return
- * @param optional nil or *GetBackupByNameOpts - Optional Parameters:
+ * @param optional nil or *GetBackupsOpts - Optional Parameters:
  * @param "ApiKey" (optional.String) -
-@return Backup
+@return BackupList
 */
-func (a *MysqlApiService) GetBackupByName(ctx _context.Context, backup string, localVarOptionals *GetBackupByNameOpts) (Backup, *_nethttp.Response, error) {
+func (a *MysqlApiService) GetBackups(ctx _context.Context, localVarOptionals *GetBackupsOpts) (BackupList, *_nethttp.Response, error) {
 	var (
 		localVarHTTPMethod   = _nethttp.MethodGet
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  Backup
+		localVarReturnValue  BackupList
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/backup/{backup}"
-	localVarPath = strings.Replace(localVarPath, "{"+"backup"+"}", _neturl.QueryEscape(parameterToString(backup, "")), -1)
-
+	localVarPath := a.client.cfg.BasePath + "/backup"
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
