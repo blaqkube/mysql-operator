@@ -10,9 +10,8 @@
 
 package agent
 
-// S3Info struct for S3Info
-type S3Info struct {
-	Bucket    string    `json:"bucket"`
-	Path      string    `json:"path,omitempty"`
-	AwsConfig AwsConfig `json:"awsConfig,omitempty"`
+// EnvVar struct for EnvVar
+type EnvVar struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }

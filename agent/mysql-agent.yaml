@@ -14,7 +14,7 @@ info:
   version: 0.0.1
 externalDocs:
   description: Find out more about blaqkube MySQL operator
-  url: https://blaqkube.io/docs
+  url: https://docs.blaqkube.io
 servers:
 - url: /
 tags:
@@ -36,8 +36,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Backup'
-        description: Create a manual backup
+              $ref: '#/components/schemas/BackupRequest'
+        description: Create a backup
         required: true
       responses:
         "201":
@@ -54,53 +54,14 @@ paths:
       summary: create an on-demand backup
       tags:
       - mysql
-  /backup/{backup}:
-    delete:
-      operationId: deleteBackup
-      parameters:
-      - explode: false
-        in: header
-        name: api_key
-        required: false
-        schema:
-          type: string
-        style: simple
-      - description: Backup to delete
-        explode: false
-        in: path
-        name: backup
-        required: true
-        schema:
-          type: string
-        style: simple
-      responses:
-        "400":
-          content: {}
-          description: Invalid ID supplied
-        "404":
-          content: {}
-          description: Backup not found
-      security:
-      - api_key: []
-      summary: Deletes a backup
-      tags:
-      - mysql
     get:
-      description: Returns a single backup set of properties
-      operationId: getBackupByName
+      description: Returns a backup list
+      operationId: getBackups
       parameters:
       - explode: false
         in: header
         name: api_key
         required: false
-        schema:
-          type: string
-        style: simple
-      - description: Name of the backup to return
-        explode: false
-        in: path
-        name: backup
-        required: true
         schema:
           type: string
         style: simple
@@ -109,7 +70,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Backup'
+                $ref: '#/components/schemas/BackupList'
           description: successful operation
         "400":
           content: {}
@@ -168,7 +129,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Database'
-          description: Backup Created
+          description: Database Created
       security:
       - api_key: []
       summary: create an on-demand database
@@ -364,41 +325,84 @@ paths:
       - mysql
 components:
   schemas:
-    AWSConfig:
+    EnvVar:
       properties:
-        aws_access_key_id:
+        name:
           type: string
-        aws_secret_access_key:
+        value:
           type: string
-        region:
-          type: string
+      required:
+      - name
+      - value
       type: object
     Backup:
+      description: output for a backup request
       example:
-        s3access:
-          bucket: backup.blaqkube.io
-          path: /blue
+        bucket: backup.blaqkube.io
+        location: /blue/mybackup.dmp
+        id: abc
       properties:
+        identifier:
+          type: string
+        bucket:
+          type: string
         location:
           type: string
-        timestamp:
+        start_time:
           format: date-time
           type: string
-        s3access:
-          $ref: '#/components/schemas/S3Info'
+        end_time:
+          format: date-time
+          type: string
+          nullable: true
         status:
           description: backup status
           enum:
-          - Available
+          - Succeeded
           - Failed
-          - Pending
           - Running
-          type: string
-        message:
-          description: keep message in case of an error
+          - Waiting
           type: string
       required:
-      - s3access
+      - bucket
+      - location
+      - identifier
+      - start_time
+      type: object
+    BackupRequest:
+      example:
+        bucket: backup.blaqkube.io
+        location: /blue/mybackup.dmp
+        env:
+          - name: AWS_REGION
+            value: eu-west-1
+      properties:
+        bucket:
+          type: string
+        location:
+          type: string
+        envs:
+          items:
+            $ref: '#/components/schemas/EnvVar'
+          type: array
+      required:
+      - bucket
+      - path
+      type: object
+    BackupList:
+      example:
+        size: 1
+        items:
+        - bucket: backup.blaqkube.io
+          location: /blue/mybackup.dmp
+          id: abc
+      properties:
+        size:
+          type: integer
+        items:
+          items:
+            $ref: '#/components/schemas/Backup'
+          type: array
       type: object
     Database:
       example:
@@ -420,21 +424,6 @@ components:
           type: string
       required:
       - database
-      type: object
-    listBackups:
-      example:
-        size: 1
-        items:
-        - s3access:
-            bucket: backup.blaqkube.io
-            path: /blue
-      properties:
-        size:
-          type: integer
-        items:
-          items:
-            $ref: '#/components/schemas/Backup'
-          type: array
       type: object
     listDatabases:
       example:
@@ -474,17 +463,6 @@ components:
           type: string
       required:
       - code
-      type: object
-    S3Info:
-      properties:
-        bucket:
-          type: string
-        path:
-          type: string
-        awsConfig:
-          $ref: '#/components/schemas/AWSConfig'
-      required:
-      - bucket
       type: object
     User:
       example:

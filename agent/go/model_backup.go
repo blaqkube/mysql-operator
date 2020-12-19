@@ -14,16 +14,18 @@ import (
 	"time"
 )
 
+// Backup - output for a backup request
 type Backup struct {
-	Location string `json:"location,omitempty"`
+	Identifier string `json:"identifier"`
 
-	Timestamp time.Time `json:"timestamp,omitempty"`
+	Bucket string `json:"bucket"`
 
-	S3access S3Info `json:"s3access"`
+	Location string `json:"location"`
+
+	StartTime time.Time `json:"start_time"`
+
+	EndTime *time.Time `json:"end_time,omitempty"`
 
 	// backup status
 	Status string `json:"status,omitempty"`
-
-	// keep message in case of an error
-	Message string `json:"message,omitempty"`
 }
