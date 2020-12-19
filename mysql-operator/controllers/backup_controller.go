@@ -19,6 +19,7 @@ import (
 
 	"github.com/blaqkube/mysql-operator/mysql-operator/agent"
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
+	uuid "github.com/hashicorp/go-uuid"
 )
 
 // BackupReconciler reconciles a Backup object
@@ -95,24 +96,19 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 	cfg := agent.NewConfiguration()
 	keys, err := r.GetEnvVars(ctx, *store)
-	accessKey, _ := keys["AWS_ACCESS_KEY_ID"]
-	secretKey, _ := keys["AWS_SECRET_ACCESS_KEY"]
-	region, ok := keys["AWS_DEFAULT_REGION"]
-	if !ok {
-		region, ok = keys["AWS_REGION"]
+	envs := []agent.EnvVar{}
+	for i := range keys {
+		env := agent.EnvVar{Name: i, Value: keys[i]}
+		envs = append(envs, env)
 	}
 	cfg.BasePath = "http://" + pod.Status.PodIP + ":8080"
 	api := agent.NewAPIClient(cfg)
-	payload := agent.Backup{
-		S3access: agent.S3Info{
-			Bucket: store.Spec.Bucket,
-			Path:   store.Spec.Prefix,
-			AwsConfig: agent.AwsConfig{
-				AwsAccessKeyId:     accessKey,
-				AwsSecretAccessKey: secretKey,
-				Region:             region,
-			},
-		},
+	id, _ := uuid.GenerateUUID()
+	location := fmt.Sprintf("%s/%s.dmp", store.Spec.Prefix, id)
+	payload := agent.BackupRequest{
+		Bucket:   store.Spec.Bucket,
+		Location: location,
+		Envs:     envs,
 	}
 	b, _, err := api.MysqlApi.CreateBackup(context.TODO(), payload, nil)
 	if err != nil {
@@ -135,13 +131,12 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	t := metav1.Now()
 	details := mysqlv1alpha1.BackupDetails{
 		Location:   b.Location,
-		BackupTime: &metav1.Time{Time: b.Timestamp},
+		BackupTime: &metav1.Time{Time: b.StartTime},
 	}
 	condition := status.Condition{
 		Type:               status.ConditionType("backup"),
 		Status:             corev1.ConditionTrue,
 		Reason:             status.ConditionReason(b.Status),
-		Message:            b.Message,
 		LastTransitionTime: t,
 	}
 
@@ -152,7 +147,7 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	go r.MonitorBackup(req.NamespacedName, api.MysqlApi, b.Timestamp.Format(time.RFC3339))
+	go r.MonitorBackup(req.NamespacedName, api.MysqlApi, b.StartTime.Format(time.RFC3339))
 	return reconcile.Result{}, nil
 }
 
@@ -170,20 +165,19 @@ func (r *BackupReconciler) MonitorBackup(n types.NamespacedName, a *agent.MysqlA
 	log.Info(fmt.Sprintf("Starting to check for backup, current status %s", backup.Status.LastCondition))
 	for time.Now().Before(endTime) && !succeeded {
 		log.Info(fmt.Sprintf("Loop..."))
-		b, _, err := a.GetBackupByName(context.TODO(), backupName, nil)
+		b, _, err := a.GetBackups(context.TODO(), nil)
 		if err != nil {
 			time.Sleep(2 * time.Second)
 			continue
 		}
 		lastCondition := backup.Status.LastCondition
-		if b.Status != lastCondition {
+		if b.Items[0].Status != lastCondition {
 			t := metav1.Now()
-			backup.Status.LastCondition = b.Status
+			backup.Status.LastCondition = b.Items[0].Status
 			condition := status.Condition{
 				Type:               status.ConditionType("backup"),
 				Status:             corev1.ConditionTrue,
-				Reason:             status.ConditionReason(b.Status),
-				Message:            b.Message,
+				Reason:             status.ConditionReason(b.Items[0].Status),
 				LastTransitionTime: t,
 			}
 			backup.Status.Conditions = append(backup.Status.Conditions, condition)

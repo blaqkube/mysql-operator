@@ -13,39 +13,39 @@ package service
 import (
 	"database/sql"
 
+	// "github.com/blaqkube/mysql-operator/agent/backend/mysql"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
-	"github.com/blaqkube/mysql-operator/agent/mysql"
-	"github.com/blaqkube/mysql-operator/agent/service/backup"
+	// "github.com/blaqkube/mysql-operator/agent/service/backup"
 	"github.com/blaqkube/mysql-operator/agent/service/database"
 	"github.com/blaqkube/mysql-operator/agent/service/user"
 )
 
-// A MysqlApiController binds http requests to an api service and writes the service results to the http response
-type MysqlApiController struct {
-	backup   backup.MysqlBackupRouter
+// A MysqlAPIController binds http requests to an api service and writes the service results to the http response
+type MysqlAPIController struct {
+	// backup   backup.MysqlBackupRouter
 	database database.MysqlDatabaseRouter
 	user     user.MysqlUserRouter
 }
 
-// NewMysqlApiController creates a default api controller
-func NewMysqlApiController(
+// NewMysqlAPIController creates a default api controller
+func NewMysqlAPIController(
 	db *sql.DB,
-	bck mysql.S3MysqlBackup,
+	// bck mysql.S3MysqlBackup,
 ) MysqlApiRouter {
-	b := backup.NewMysqlBackupService(bck)
+	// b := backup.NewMysqlBackupService(bck)
 	d := database.NewMysqlDatabaseService(db)
 	u := user.NewMysqlUserService(db)
-	return &MysqlApiController{
-		backup:   backup.NewMysqlBackupController(b),
+	return &MysqlAPIController{
+		// backup:   backup.NewMysqlBackupController(b),
 		database: database.NewMysqlDatabaseController(d),
 		user:     user.NewMysqlUserController(u),
 	}
 }
 
 // Routes returns all of the api route for the MysqlApiController
-func (c *MysqlApiController) Routes() openapi.Routes {
+func (c *MysqlAPIController) Routes() openapi.Routes {
 	routes := openapi.Routes{}
-	routes = append(routes, c.backup.Routes()...)
+	// routes = append(routes, c.backup.Routes()...)
 	routes = append(routes, c.database.Routes()...)
 	routes = append(routes, c.user.Routes()...)
 	return routes

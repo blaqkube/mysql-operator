@@ -18,8 +18,8 @@ docker:
 	docker push quay.io/blaqkube/mysql-agent:$(SHA)
 	sed -i "s/tag\s:=\s\"[^\"]*\"/tag := \"$(SHA)\"/g" ../mysql-operator/pkg/controller/instance/instance_controller.go
 
-.PHONY: api
-api:
+.PHONY: generate
+generate:
 	npx @openapitools/openapi-generator-cli generate \
 	  -i mysql-agent.yaml -g go-server -o . \
 	  --git-user-id blaqkube \

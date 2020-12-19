@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
-	"github.com/blaqkube/mysql-operator/agent/mysql"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -26,33 +27,36 @@ var initCmd = &cobra.Command{
 		}
 
 		log.Printf("Restore database...")
-		filename, err := cmd.Flags().GetString("filename")
-		if err != nil || filename == "" {
-			filename = viper.GetString("filename")
+		location, err := cmd.Flags().GetString("location")
+		if err != nil || location == "" {
+			location = viper.GetString("location")
 		}
 		bucket, err := cmd.Flags().GetString("bucket")
 		if err != nil || bucket == "" {
 			bucket = viper.GetString("bucket")
 		}
-		filePath, err := cmd.Flags().GetString("path")
-		if err != nil || filePath == "" {
-			filePath = viper.GetString("path")
-		}
-		if filePath == "" || bucket == "" || filename == "" {
-			fmt.Println("Missing parameter, check FILENAME, BUCKET and FILEPATH are set")
+		if bucket == "" || location == "" {
+			fmt.Println("Missing parameter, check LOCATION and BUCKET are set")
 			os.Exit(1)
 		}
-		my := mysql.NewS3MysqlBackup()
-		b := &openapi.Backup{
-			Location: filePath,
-			S3access: openapi.S3Info{
-				Bucket: bucket,
-				Path:   filePath,
-			},
+		fpath := strings.Split(location, string(os.PathSeparator))
+		localfile := fpath[len(fpath)-1]
+		_, err = os.Stat(localfile)
+		if err == nil {
+			log.Printf("file %s already loaded", localfile)
+			os.Exit(0)
 		}
-		err = my.PullS3File(b, filePath, filename)
+		if !os.IsNotExist(err) {
+			log.Printf("file %s stat error: %v", localfile, err)
+			os.Exit(1)
+		}
+		payload := &openapi.Backup{
+			Bucket:   bucket,
+			Location: location,
+		}
+		err = resources.Storage.Pull(payload, localfile)
 		if err != nil {
-			fmt.Printf("Error while reading s3://%s%s: %v\n", bucket, filePath, err)
+			log.Printf("error pulling %s: %v", localfile, err)
 			os.Exit(1)
 		}
 		return
@@ -64,5 +68,4 @@ func init() {
 	initCmd.Flags().BoolP("restore", "r", false, "restore a dump file")
 	initCmd.Flags().StringP("filename", "f", "", "dump file name")
 	initCmd.Flags().StringP("bucket", "b", "", "dump file bucket")
-	initCmd.Flags().StringP("path", "p", "", "dump file remote path")
 }

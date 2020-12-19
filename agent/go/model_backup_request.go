@@ -10,22 +10,10 @@
 
 package openapi
 
-import (
-	"time"
-)
-
-// Backup - output for a backup request
-type Backup struct {
-	Identifier string `json:"identifier"`
-
+type BackupRequest struct {
 	Bucket string `json:"bucket"`
 
-	Location string `json:"location"`
+	Location string `json:"location,omitempty"`
 
-	StartTime time.Time `json:"start_time"`
-
-	EndTime *time.Time `json:"end_time,omitempty"`
-
-	// backup status
-	Status string `json:"status,omitempty"`
+	Envs []EnvVar `json:"envs,omitempty"`
 }

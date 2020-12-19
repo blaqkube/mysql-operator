@@ -35,12 +35,12 @@ type CreateBackupOpts struct {
 /*
 CreateBackup create an on-demand backup
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param backup Create a manual backup
+ * @param backupRequest Create a backup
  * @param optional nil or *CreateBackupOpts - Optional Parameters:
  * @param "ApiKey" (optional.String) -
 @return Backup
 */
-func (a *MysqlApiService) CreateBackup(ctx _context.Context, backup Backup, localVarOptionals *CreateBackupOpts) (Backup, *_nethttp.Response, error) {
+func (a *MysqlApiService) CreateBackup(ctx _context.Context, backupRequest BackupRequest, localVarOptionals *CreateBackupOpts) (Backup, *_nethttp.Response, error) {
 	var (
 		localVarHTTPMethod   = _nethttp.MethodPost
 		localVarPostBody     interface{}
@@ -77,7 +77,7 @@ func (a *MysqlApiService) CreateBackup(ctx _context.Context, backup Backup, loca
 		localVarHeaderParams["api_key"] = parameterToString(localVarOptionals.ApiKey.Value(), "")
 	}
 	// body params
-	localVarPostBody = &backup
+	localVarPostBody = &backupRequest
 	if ctx != nil {
 		// API Key Authentication
 		if auth, ok := ctx.Value(ContextAPIKey).(APIKey); ok {

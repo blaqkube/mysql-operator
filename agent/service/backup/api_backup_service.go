@@ -1,61 +1,109 @@
 package backup
 
 import (
+	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
+	"github.com/blaqkube/mysql-operator/agent/backend"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
-	"github.com/blaqkube/mysql-operator/agent/mysql"
+	uuid "github.com/hashicorp/go-uuid"
 )
 
-// MysqlBackupService is a service that implents the logic for the MysqlBackupServicer
+const (
+	// StatusWaiting defines the status when there is no backup running
+	StatusWaiting = "Waiting"
+
+	// StatusUnknown defines an unknown status
+	StatusUnknown = "Unknown"
+
+	// StatusRunning defines the status of a backup that is running
+	StatusRunning = "Running"
+
+	// StatusFailed defines the status of a backup that has failed
+	StatusFailed = "Failed"
+
+	// StatusSucceeded defines the status of a backup that has succeeded
+	StatusSucceeded = "Succeeded"
+)
+
+// Service is a service that implements the logic for the MysqlBackupServicer
 // This service should implement the business logic for every endpoint for the MysqlBackup API.
 // Include any external packages or services that will be required by this service.
-type MysqlBackupService struct {
-	S3Backup mysql.S3MysqlBackup
+type Service struct {
+	Backup    backend.Backup
+	CurrState *string
+	LastState *string
+	M         sync.Mutex
+	States    map[string]openapi.Backup
+	Status    string
+	Storage   backend.Storage
 }
 
-// NewMysqlBackupService creates a MySQL backup service
-func NewMysqlBackupService(
-	s3 mysql.S3MysqlBackup,
-) MysqlBackupServicer {
-	return &MysqlBackupService{
-		S3Backup: s3,
+// NewService creates a backup service
+func NewService(backup backend.Backup, storage backend.Storage) *Service {
+	return &Service{
+		Backup:  backup,
+		Status:  StatusWaiting,
+		States:  map[string]openapi.Backup{},
+		Storage: storage,
 	}
 }
 
 // CreateBackup - create an on-demand backup
-func (s *MysqlBackupService) CreateBackup(backup openapi.Backup, apiKey string) (interface{}, error) {
-	// TODO - update CreateBackup with the required logic for this service method.
-	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	// mysqldump --all-databases --single-transaction -h 127.0.0.1 > mysql.backup.sql
-	b, err := s.S3Backup.InitializeBackup(backup)
+func (s *Service) CreateBackup(request openapi.BackupRequest, apiKey string) (interface{}, error) {
+	s.M.Lock()
+	defer s.M.Unlock()
+	if s.Status != StatusWaiting {
+		return nil, fmt.Errorf("State %s", s.Status)
+	}
+	id, err := uuid.GenerateUUID()
 	if err != nil {
 		return nil, err
 	}
-	go s.S3Backup.ExecuteBackup(*b)
-	return b, nil
+	s.LastState = s.CurrState
+	s.States[id] = openapi.Backup{
+		Identifier: id,
+		Bucket:     request.Bucket,
+		Location:   request.Location,
+		Status:     StatusWaiting,
+		StartTime:  time.Now(),
+	}
+	go runBackup(s, s.States[id])
+	s.CurrState = &id
+	s.Status = StatusRunning
+	return &id, nil
 }
 
-// DeleteBackup - Deletes a backup
-func (s *MysqlBackupService) DeleteBackup(backup string, apiKey string) (interface{}, error) {
-	// TODO - update DeleteBackup with the required logic for this service method.
-	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	b := openapi.Message{Code: int32(http.StatusNotImplemented), Message: "Not Implemented"}
-	return b, nil
+// GetBackups - Get backup properties
+func (s *Service) GetBackups(apiKey string) (interface{}, int, error) {
+	s.M.Lock()
+	defer s.M.Unlock()
+	backups := []openapi.Backup{}
+	size := int32(0)
+	if s.CurrState != nil {
+		size++
+		backups = append(backups, s.States[*s.CurrState])
+	}
+	if s.LastState != nil {
+		size++
+		backups = append(backups, s.States[*s.LastState])
+	}
+	return &openapi.BackupList{Size: size, Items: backups}, http.StatusOK, nil
 }
 
-// GetBackupByName - Get backup properties
-func (s *MysqlBackupService) GetBackupByName(backup string, apiKey string) (interface{}, int, error) {
-	// TODO - update GetBackupByName with the required logic for this service method.
-	// Add api_mysql_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-	t, err := time.Parse(time.RFC3339, backup)
-	if err != nil {
-		return nil, http.StatusBadRequest, err
-	}
-	b, err := s.S3Backup.GetBackup(t)
-	if err != nil {
-		return nil, http.StatusNotFound, nil
-	}
-	return b, http.StatusOK, nil
+// runBackup is the routine that runs the backup
+func runBackup(b *Service, backup openapi.Backup) {
+	b.Backup.Run(fmt.Sprintf("%s.dmp", backup.Identifier))
+	b.Storage.Push(&backup, fmt.Sprintf("%s.dmp", backup.Identifier))
+
+	b.M.Lock()
+	defer b.M.Unlock()
+	b.Status = StatusWaiting
+	s := b.States[backup.Identifier]
+	s.Status = StatusSucceeded
+	t := time.Now()
+	s.EndTime = &t
+	b.States[backup.Identifier] = s
 }

@@ -12,26 +12,26 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type Suite struct {
+type InstanceSuite struct {
 	suite.Suite
 	db          *sql.DB
 	mock        sqlmock.Sqlmock
-	testService DBTools
+	testService *Instance
 }
 
-func (s *Suite) SetupSuite() {
+func (s *InstanceSuite) SetupSuite() {
 	var err error
 	s.db, s.mock, err = sqlmock.New()
 	require.NoError(s.T(), err)
-	s.testService = NewDBTools(s.db)
+	s.testService = NewInstance(s.db)
 }
 
-func (s *Suite) Test_CheckDB() {
-	err := s.testService.CheckDB(1)
+func (s *InstanceSuite) Test_Check() {
+	err := s.testService.Check(1)
 	require.NoError(s.T(), err)
 }
 
-func (s *Suite) Test_CreateExporter() {
+func (s *InstanceSuite) Test_Initialize() {
 	s.mock.ExpectExec(regexp.QuoteMeta(
 		"create user if not exists 'exporter'@'localhost' identified by 'exporter' WITH MAX_USER_CONNECTIONS 3",
 	)).
@@ -52,11 +52,10 @@ func (s *Suite) Test_CreateExporter() {
 	)).
 		WithArgs().
 		WillReturnResult(sqlmock.NewResult(0, 1))
-	err := s.testService.CreateExporter()
+	err := s.testService.Initialize()
 	require.NoError(s.T(), err)
 }
 
-func TestSuite(t *testing.T) {
-	suite.Run(t, &Suite{})
-	suite.Run(t, &DumpSuite{})
+func TestInstanceSuite(t *testing.T) {
+	suite.Run(t, &InstanceSuite{})
 }

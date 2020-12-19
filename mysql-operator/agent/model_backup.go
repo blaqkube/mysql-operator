@@ -14,14 +14,13 @@ import (
 	"time"
 )
 
-// Backup struct for Backup
+// Backup output for a backup request
 type Backup struct {
-	Bucket    string    `json:"bucket"`
-	Location  string    `json:"location,omitempty"`
-	Env       []EnvVar  `json:"env,omitempty"`
-	Timestamp time.Time `json:"timestamp,omitempty"`
+	Identifier string     `json:"identifier"`
+	Bucket     string     `json:"bucket"`
+	Location   string     `json:"location"`
+	StartTime  time.Time  `json:"start_time"`
+	EndTime    *time.Time `json:"end_time,omitempty"`
 	// backup status
 	Status string `json:"status,omitempty"`
-	// keep message in case of an error
-	Message *string `json:"message,omitempty"`
 }
