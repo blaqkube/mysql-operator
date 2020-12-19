@@ -5,9 +5,13 @@ metadata:
 spec:
   backend: s3
   s3_backup:
-    bucket: bucket-sample
-    path: /backup/instance-sample    
-    aws_config:
-      aws_access_key_id: AKIAXXX
-      aws_secret_access_key: aSzx...
-      region: eu-west-1
+  bucket: bucket-sample
+  location: /backup/instance-sample/backup-123.dmp    
+  envs:
+  - name: AWS_ACCESS_KEY_ID
+    value: AKIAXXX
+  - name: AWS_SECRET_ACCESS_KEY
+    value: aSzx...
+  - name: AWS_REGION
+    value: eu-west-1
+

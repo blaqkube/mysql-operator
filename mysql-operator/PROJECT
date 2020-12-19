@@ -1,23 +1,29 @@
 domain: blaqkube.io
-layout: go.kubebuilder.io/v2
+layout: go.kubebuilder.io/v3
 projectName: mysql-operator
 repo: github.com/blaqkube/mysql-operator/mysql-operator
 resources:
-- group: mysql
-  kind: Instance
-  version: v1alpha1
-- group: mysql
-  kind: Database
-  version: v1alpha1
-- group: mysql
-  kind: Store
-  version: v1alpha1
-- group: mysql
+- crdVersion: v1
+  group: mysql
   kind: Backup
   version: v1alpha1
-- group: mysql
+- crdVersion: v1
+  group: mysql
+  kind: Database
+  version: v1alpha1
+- crdVersion: v1
+  group: mysql
+  kind: Instance
+  version: v1alpha1
+- crdVersion: v1
+  group: mysql
+  kind: Store
+  version: v1alpha1
+- crdVersion: v1
+  group: mysql
   kind: User
   version: v1alpha1
 version: 3-alpha
 plugins:
-  go.sdk.operatorframework.io/v2-alpha: {}
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}

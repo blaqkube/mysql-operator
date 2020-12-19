@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-lib/status"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -24,34 +24,34 @@ type DatabaseReconciler struct {
 }
 
 // GetPod figures out the pod IP to access the agent
-func (r *DatabaseReconciler) GetPod(database *mysqlv1alpha1.Database) (string, error) {
-	ctx := context.Background()
+func (r *DatabaseReconciler) GetPod(ctx context.Context, database *mysqlv1alpha1.Database) (string, error) {
 	pod := &corev1.Pod{}
 	named := types.NamespacedName{
 		Name:      database.Spec.Instance + "-0",
 		Namespace: database.Namespace,
 	}
 
-	condition := status.Condition{
-		Type:    status.ConditionType("mysql-agent"),
-		Status:  corev1.ConditionTrue,
-		Reason:  status.ConditionReason("pod not found"),
+	condition := metav1.Condition{
+		Type:    "mysql-agent",
+		Status:  metav1.ConditionTrue,
+		Reason:  "pod not found",
 		Message: "could not get pod for the backup instance",
 	}
 	database.Status.LastCondition = "mysql-agent unreachable"
 	url := ""
 	err := r.Client.Get(ctx, named, pod)
 	if err == nil {
-		condition = status.Condition{
-			Type:    status.ConditionType("mysql-agent"),
-			Status:  corev1.ConditionTrue,
-			Reason:  status.ConditionReason("pod found"),
+		condition = metav1.Condition{
+			Type:    "mysql-agent",
+			Status:  metav1.ConditionTrue,
+			Reason:  "pod found",
 			Message: "agent URL found",
 		}
 		database.Status.LastCondition = "mysql-agent found"
 		url = "http://" + pod.Status.PodIP + ":8080"
 	}
-	(&database.Status.Conditions).SetCondition(condition)
+	conditions := append(database.Status.Conditions, condition)
+	database.Status.Conditions = conditions
 	if err := r.Client.Status().Update(ctx, database); err != nil {
 		return "", err
 	}
@@ -59,8 +59,7 @@ func (r *DatabaseReconciler) GetPod(database *mysqlv1alpha1.Database) (string, e
 }
 
 // CreateDatabase is the script that creates a database
-func (r *DatabaseReconciler) CreateDatabase(database *mysqlv1alpha1.Database, url string) error {
-	ctx := context.Background()
+func (r *DatabaseReconciler) CreateDatabase(ctx context.Context, database *mysqlv1alpha1.Database, url string) error {
 
 	cfg := agent.NewConfiguration()
 	cfg.BasePath = url
@@ -69,33 +68,34 @@ func (r *DatabaseReconciler) CreateDatabase(database *mysqlv1alpha1.Database, ur
 	}
 	api := agent.NewAPIClient(cfg)
 
-	condition := status.Condition{
-		Type:    status.ConditionType("database"),
-		Status:  corev1.ConditionTrue,
-		Reason:  status.ConditionReason("creation failed"),
+	condition := metav1.Condition{
+		Type:    "database",
+		Status:  metav1.ConditionTrue,
+		Reason:  "creation failed",
 		Message: "could not create the database",
 	}
 	database.Status.LastCondition = "database creation failed"
 	_, _, err := api.MysqlApi.CreateDatabase(ctx, payload, nil)
 	if err == nil {
-		condition = status.Condition{
-			Type:    status.ConditionType("database"),
-			Status:  corev1.ConditionTrue,
-			Reason:  status.ConditionReason("creation succeeded"),
+		condition = metav1.Condition{
+			Type:    "database",
+			Status:  metav1.ConditionTrue,
+			Reason:  "creation succeeded",
 			Message: "database creation has succeeded",
 		}
 		database.Status.LastCondition = "database creation succeeded"
 	}
-	(&database.Status.Conditions).SetCondition(condition)
+	conditions := append(database.Status.Conditions, condition)
+	database.Status.Conditions = conditions
 	return r.Client.Status().Update(ctx, database)
 }
 
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=databases,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=databases/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=databases/finalizers,verbs=update
 
 // Reconcile implement the reconciliation loop for databases
-func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("database", req.NamespacedName)
 
 	// your logic here
@@ -109,11 +109,11 @@ func (r *DatabaseReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// Check if this Pod already exists
-	url, err := r.GetPod(database)
+	url, err := r.GetPod(ctx, database)
 	if err != nil {
 		return ctrl.Result{}, nil
 	}
-	r.CreateDatabase(database, url)
+	r.CreateDatabase(ctx, database, url)
 	return ctrl.Result{}, nil
 
 }

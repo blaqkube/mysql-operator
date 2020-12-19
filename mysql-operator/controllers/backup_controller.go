@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-lib/status"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,18 +24,19 @@ import (
 // BackupReconciler reconciles a Backup object
 type BackupReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log        logr.Logger
+	Scheme     *runtime.Scheme
+	Properties StatefulSetProperties
 }
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=backups,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=backups/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=backups/finalizers,verbs=update
 
 // Reconcile implement the reconciliation loop for backups
-func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("backup", req.NamespacedName)
 	log.Info("Reconciling Backup")
 	// your logic here
@@ -60,10 +60,10 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	err = r.Client.Get(ctx, types.NamespacedName{Name: backup.Spec.Instance + "-0", Namespace: backup.Namespace}, pod)
 	if err != nil {
 		t := metav1.Now()
-		condition := status.Condition{
-			Type:               status.ConditionType("podmonitor"),
-			Status:             corev1.ConditionTrue,
-			Reason:             status.ConditionReason("Failed"),
+		condition := metav1.Condition{
+			Type:               "podmonitor",
+			Status:             metav1.ConditionTrue,
+			Reason:             "Failed",
 			Message:            fmt.Sprintf("Cannot find pod %s-0; error: %v", backup.Spec.Instance, err),
 			LastTransitionTime: t,
 		}
@@ -79,10 +79,10 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	err = r.Client.Get(ctx, types.NamespacedName{Name: backup.Spec.Store, Namespace: backup.Namespace}, store)
 	if err != nil {
 		t := metav1.Now()
-		condition := status.Condition{
-			Type:               status.ConditionType("store"),
-			Status:             corev1.ConditionTrue,
-			Reason:             status.ConditionReason("Failed"),
+		condition := metav1.Condition{
+			Type:               "store",
+			Status:             metav1.ConditionTrue,
+			Reason:             "Failed",
 			Message:            fmt.Sprintf("Error accessing store %s: %v", backup.Spec.Store, err),
 			LastTransitionTime: t,
 		}
@@ -113,10 +113,10 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	b, _, err := api.MysqlApi.CreateBackup(context.TODO(), payload, nil)
 	if err != nil {
 		t := metav1.Now()
-		condition := status.Condition{
-			Type:               status.ConditionType("backup"),
-			Status:             corev1.ConditionTrue,
-			Reason:             status.ConditionReason("Failed"),
+		condition := metav1.Condition{
+			Type:               "backup",
+			Status:             metav1.ConditionTrue,
+			Reason:             "Failed",
 			Message:            fmt.Sprintf("Error accessing api: %v", err),
 			LastTransitionTime: t,
 		}
@@ -133,10 +133,10 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		Location:   b.Location,
 		BackupTime: &metav1.Time{Time: b.StartTime},
 	}
-	condition := status.Condition{
-		Type:               status.ConditionType("backup"),
-		Status:             corev1.ConditionTrue,
-		Reason:             status.ConditionReason(b.Status),
+	condition := metav1.Condition{
+		Type:               "backup",
+		Status:             metav1.ConditionTrue,
+		Reason:             b.Status,
 		LastTransitionTime: t,
 	}
 
@@ -148,7 +148,7 @@ func (r *BackupReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return reconcile.Result{}, err
 	}
 	go r.MonitorBackup(req.NamespacedName, api.MysqlApi, b.StartTime.Format(time.RFC3339))
-	return reconcile.Result{}, nil
+	return ctrl.Result{}, nil
 }
 
 // MonitorBackup watch backup progress and update results
@@ -174,10 +174,10 @@ func (r *BackupReconciler) MonitorBackup(n types.NamespacedName, a *agent.MysqlA
 		if b.Items[0].Status != lastCondition {
 			t := metav1.Now()
 			backup.Status.LastCondition = b.Items[0].Status
-			condition := status.Condition{
-				Type:               status.ConditionType("backup"),
-				Status:             corev1.ConditionTrue,
-				Reason:             status.ConditionReason(b.Items[0].Status),
+			condition := metav1.Condition{
+				Type:               "backup",
+				Status:             metav1.ConditionTrue,
+				Reason:             b.Items[0].Status,
 				LastTransitionTime: t,
 			}
 			backup.Status.Conditions = append(backup.Status.Conditions, condition)
@@ -195,10 +195,10 @@ func (r *BackupReconciler) MonitorBackup(n types.NamespacedName, a *agent.MysqlA
 	if !succeeded {
 		t := metav1.Now()
 		backup.Status.LastCondition = "Failed"
-		condition := status.Condition{
-			Type:               status.ConditionType("backup"),
-			Status:             corev1.ConditionTrue,
-			Reason:             status.ConditionReason("Failed"),
+		condition := metav1.Condition{
+			Type:               "backup",
+			Status:             metav1.ConditionTrue,
+			Reason:             "Failed",
 			Message:            "Backup did not finish in the expected time",
 			LastTransitionTime: t,
 		}

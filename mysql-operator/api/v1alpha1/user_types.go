@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	"github.com/operator-framework/operator-lib/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -32,8 +31,8 @@ type UserStatus struct {
 	// LastCondition provides informations about the current instance status
 	LastCondition string `json:"lastCondition,omitempty"`
 
-	// Conditions provides an history of conditions
-	Conditions status.Conditions `json:"conditions,omitempty"`
+	// Conditions provides informations about the the last conditions
+	Conditions []metav1.Condition `json:"Conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

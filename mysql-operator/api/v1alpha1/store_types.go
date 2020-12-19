@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"github.com/operator-framework/operator-lib/status"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -21,6 +19,9 @@ type EnvVar struct {
 	// Source for the environment variable's value. Cannot be used if value is not empty.
 	// +optional
 	ValueFrom *EnvVarSource `json:"valueFrom,omitempty" protobuf:"bytes,3,opt,name=valueFrom"`
+
+	// Conditions provides informations about the the last conditions
+	Conditions []metav1.Condition `json:"Conditions,omitempty"`
 }
 
 // EnvVarSource represents a source for the value of an EnvVar.
@@ -61,9 +62,6 @@ type StoreStatus struct {
 
 	// A human readable message indicating details about why the store is in this condition.
 	Message string `json:"message,omitempty"`
-
-	// Conditions that provides an history of the store conditions
-	Conditions []status.Conditions `json:"store_conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

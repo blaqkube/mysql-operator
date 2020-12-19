@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
-	"github.com/blaqkube/mysql-operator/mysql-operator/helpers"
 	"github.com/go-logr/logr"
 	"github.com/prometheus/common/log"
 	corev1 "k8s.io/api/core/v1"
@@ -19,19 +18,18 @@ import (
 // StoreReconciler reconciles a Store object
 type StoreReconciler struct {
 	client.Client
-	Log         logr.Logger
-	Scheme      *runtime.Scheme
-	BackupStore helpers.StoreInitializer
+	Log    logr.Logger
+	Scheme *runtime.Scheme
 }
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=stores,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=stores/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=stores/finalizers,verbs=update
 
 // Reconcile implement the reconciliation loop for stores
-func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("store", req.NamespacedName)
 
 	// your logic here
@@ -51,38 +49,22 @@ func (r *StoreReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if store.Status.Reason == "Check" {
 		if store.Spec.Backend == nil || *store.Spec.Backend == "s3" {
 
-			keys, err := r.GetEnvVars(ctx, store)
-			if err != nil {
-				store.Status.Reason = "Error"
-				if err.Error() == "MissingVariable" {
-					store.Status.Reason = "MissingVariable"
-				}
-				log.Errorf("Error reading environment variable: %v", err)
-				if err := r.Status().Update(ctx, &store); err != nil {
-					log.Errorf("Unable to update store status: %s", err)
-					return ctrl.Result{}, err
-				}
-				return ctrl.Result{}, nil
-			}
-			accessKey, _ := keys["AWS_ACCESS_KEY_ID"]
-			secretKey, _ := keys["AWS_SECRET_ACCESS_KEY"]
-			region, ok := keys["AWS_DEFAULT_REGION"]
-			if !ok {
-				region, ok = keys["AWS_REGION"]
-			}
-			s, err := r.BackupStore.New(&helpers.AWSConfig{AccessKey: accessKey, SecretKey: secretKey, Region: region})
-			err = s.TestS3Access(store.Spec.Bucket, "/validation")
-			if err != nil {
-				store.Status.Reason = "AccessDenied"
-				log.Error(err, "Unable to access store, setting to AccessDenied")
-				if err := r.Status().Update(ctx, &store); err != nil {
-					log.Error(err, "Unable to update store status to AccessDenied")
-					return ctrl.Result{}, err
-				}
-				return ctrl.Result{}, nil
-			}
+			// keys, err := r.GetEnvVars(ctx, store)
+			// if err != nil {
+			// 	store.Status.Reason = "Error"
+			// 	if err.Error() == "MissingVariable" {
+			// 		store.Status.Reason = "MissingVariable"
+			// 	}
+			// 	log.Errorf("Error reading environment variable: %v", err)
+			// 	if err := r.Status().Update(ctx, &store); err != nil {
+			// 		log.Errorf("Unable to update store status: %s", err)
+			// 		return ctrl.Result{}, err
+			// 	}
+			// 	return ctrl.Result{}, nil
+			// }
+			//TODO: test the backup store can be accessed
 			store.Status.Reason = "Success"
-			log.Error(err, "Access to store Succeeded")
+			// log.Error(err, "Access to store Succeeded")
 			if err := r.Status().Update(ctx, &store); err != nil {
 				log.Error(err, "Unable to update store status to Success")
 				return ctrl.Result{}, err
