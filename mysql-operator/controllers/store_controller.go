@@ -49,28 +49,22 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	if store.Status.Reason == "Check" {
 		if store.Spec.Backend == nil || *store.Spec.Backend == "s3" {
 
-			keys, err := r.GetEnvVars(ctx, store)
-			if err != nil {
-				store.Status.Reason = "Error"
-				if err.Error() == "MissingVariable" {
-					store.Status.Reason = "MissingVariable"
-				}
-				log.Errorf("Error reading environment variable: %v", err)
-				if err := r.Status().Update(ctx, &store); err != nil {
-					log.Errorf("Unable to update store status: %s", err)
-					return ctrl.Result{}, err
-				}
-				return ctrl.Result{}, nil
-			}
-			accessKey, _ := keys["AWS_ACCESS_KEY_ID"]
-			secretKey, _ := keys["AWS_SECRET_ACCESS_KEY"]
-			region, ok := keys["AWS_DEFAULT_REGION"]
-			if !ok {
-				region, ok = keys["AWS_REGION"]
-			}
+			// keys, err := r.GetEnvVars(ctx, store)
+			// if err != nil {
+			// 	store.Status.Reason = "Error"
+			// 	if err.Error() == "MissingVariable" {
+			// 		store.Status.Reason = "MissingVariable"
+			// 	}
+			// 	log.Errorf("Error reading environment variable: %v", err)
+			// 	if err := r.Status().Update(ctx, &store); err != nil {
+			// 		log.Errorf("Unable to update store status: %s", err)
+			// 		return ctrl.Result{}, err
+			// 	}
+			// 	return ctrl.Result{}, nil
+			// }
 			//TODO: test the backup store can be accessed
 			store.Status.Reason = "Success"
-			log.Error(err, "Access to store Succeeded")
+			// log.Error(err, "Access to store Succeeded")
 			if err := r.Status().Update(ctx, &store); err != nil {
 				log.Error(err, "Unable to update store status to Success")
 				return ctrl.Result{}, err

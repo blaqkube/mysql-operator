@@ -30,8 +30,7 @@ type UserReconciler struct {
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users/finalizers,verbs=update
 
 // Reconcile implement the reconciliation loop for users
-func (r *UserReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("user", req.NamespacedName)
 
 	log.Info("Reconciling User")
@@ -62,10 +61,10 @@ func (r *UserReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	)
 	if err != nil {
 		t := metav1.Now()
-		condition := status.Condition{
-			Type:               status.ConditionType("podmonitor"),
-			Status:             corev1.ConditionTrue,
-			Reason:             status.ConditionReason("Failed"),
+		condition := metav1.Condition{
+			Type:               "podmonitor",
+			Status:             metav1.ConditionTrue,
+			Reason:             "Failed",
 			Message:            fmt.Sprintf("Cannot find pod %s-0; error: %v", user.Spec.Instance, err),
 			LastTransitionTime: t,
 		}
@@ -94,10 +93,10 @@ func (r *UserReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_, _, err = api.MysqlApi.CreateUser(ctx, u, nil)
 	if err != nil {
 		t := metav1.Now()
-		condition := status.Condition{
-			Type:               status.ConditionType("user"),
-			Status:             corev1.ConditionTrue,
-			Reason:             status.ConditionReason("Failed"),
+		condition := metav1.Condition{
+			Type:               "user",
+			Status:             metav1.ConditionTrue,
+			Reason:             "Failed",
 			Message:            fmt.Sprintf("Cannot create user %s, error: %v", u.Username, err),
 			LastTransitionTime: t,
 		}
@@ -110,10 +109,10 @@ func (r *UserReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, nil
 	}
 	t := metav1.Now()
-	condition := status.Condition{
-		Type:               status.ConditionType("user"),
-		Status:             corev1.ConditionTrue,
-		Reason:             status.ConditionReason("Succeeded"),
+	condition := metav1.Condition{
+		Type:               "user",
+		Status:             metav1.ConditionTrue,
+		Reason:             "Succeeded",
 		Message:            fmt.Sprintf("User %s created", u.Username),
 		LastTransitionTime: t,
 	}

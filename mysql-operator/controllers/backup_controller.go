@@ -24,8 +24,9 @@ import (
 // BackupReconciler reconciles a Backup object
 type BackupReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log        logr.Logger
+	Scheme     *runtime.Scheme
+	Properties StatefulSetProperties
 }
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
