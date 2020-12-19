@@ -37,6 +37,12 @@ rules:
 - apiGroups:
   - mysql.blaqkube.io
   resources:
+  - backups/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
   - backups/status
   verbs:
   - get
@@ -54,6 +60,12 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
+  - databases/finalizers
+  verbs:
+  - update
 - apiGroups:
   - mysql.blaqkube.io
   resources:
@@ -77,6 +89,12 @@ rules:
 - apiGroups:
   - mysql.blaqkube.io
   resources:
+  - instances/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
   - instances/status
   verbs:
   - get
@@ -97,6 +115,12 @@ rules:
 - apiGroups:
   - mysql.blaqkube.io
   resources:
+  - stores/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
   - stores/status
   verbs:
   - get
@@ -114,6 +138,12 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
+  - users/finalizers
+  verbs:
+  - update
 - apiGroups:
   - mysql.blaqkube.io
   resources:

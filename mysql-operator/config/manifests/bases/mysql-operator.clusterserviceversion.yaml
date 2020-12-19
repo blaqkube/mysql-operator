@@ -4,9 +4,7 @@ metadata:
   annotations:
     alm-examples: '[]'
     capabilities: Basic Install
-    operators.operatorframework.io/builder: operator-sdk-v1.0.0+git
-    operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
-  name: mysql-operator.vX.Y.Z
+  name: mysql-operator.v0.0.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -17,25 +15,25 @@ spec:
       kind: Backup
       name: backups.mysql.blaqkube.io
       version: v1alpha1
-    - description: User is the Schema for the users API
-      displayName: User
-      kind: User
-      name: users.mysql.blaqkube.io
+    - description: Database is the Schema for the databases API
+      displayName: Database
+      kind: Database
+      name: databases.mysql.blaqkube.io
       version: v1alpha1
     - description: Instance is the Schema for the instances API
       displayName: Instance
       kind: Instance
       name: instances.mysql.blaqkube.io
       version: v1alpha1
-    - description: Database is the Schema for the databases API
-      displayName: Database
-      kind: Database
-      name: databases.mysql.blaqkube.io
-      version: v1alpha1
     - description: Store is the Schema for the stores API
       displayName: Store
       kind: Store
       name: stores.mysql.blaqkube.io
+      version: v1alpha1
+    - description: User is the Schema for the users API
+      displayName: User
+      kind: User
+      name: users.mysql.blaqkube.io
       version: v1alpha1
   description: a mysql operator to manage instance, user, backups and databases
   displayName: blaqkube mysql-operator
@@ -47,9 +45,9 @@ spec:
       deployments: null
     strategy: ""
   installModes:
-  - supported: true
+  - supported: false
     type: OwnNamespace
-  - supported: true
+  - supported: false
     type: SingleNamespace
   - supported: false
     type: MultiNamespace
@@ -58,13 +56,9 @@ spec:
   keywords:
   - mysql
   - operator
-  - kubernetes
   links:
   - name: Mysql Operator
     url: https://mysql-operator.domain
-  maintainers:
-  - email: contact@blaqkube.io
-    name: blaqkube
   maturity: alpha
   provider:
     name: blaqkube

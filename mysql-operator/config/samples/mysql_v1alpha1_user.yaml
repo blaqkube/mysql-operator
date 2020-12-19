@@ -9,4 +9,3 @@ spec:
   grants:
     - database: mydb
       accessmode: readwrite
-

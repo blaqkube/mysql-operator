@@ -15,7 +15,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
-	"github.com/blaqkube/mysql-operator/mysql-operator/helpers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -46,7 +45,7 @@ var _ = Describe("Instance Controller", func() {
 				MySQLVersion: "8.0.21",
 			},
 		}
-		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 
 		response := mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
@@ -84,18 +83,17 @@ var _ = Describe("Instance Controller", func() {
 
 		zapLog, _ := zap.NewDevelopment()
 		storeReconcile := &StoreReconciler{
-			Client:      k8sClient,
-			Log:         zapr.NewLogger(zapLog),
-			Scheme:      scheme.Scheme,
-			BackupStore: helpers.NewStoreMockInitialize(),
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
 		}
-		Expect(storeReconcile.Reconcile(ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: true}))
+		Expect(storeReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: true}))
 
 		storeResponse := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
 		Expect(storeResponse.Status.Reason).To(Equal("Check"), "Expected reconcile to change the status to Check")
 
-		Expect(storeReconcile.Reconcile(ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{}))
+		Expect(storeReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
 		Expect(storeResponse.Status.Reason).To(Equal("Success"), "Expected reconcile to change the status to Success")
 
@@ -112,7 +110,7 @@ var _ = Describe("Instance Controller", func() {
 				MySQLVersion: "",
 			},
 		}
-		Expect(instanceReconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
+		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 
 		instanceResponse := mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, name, &instanceResponse)).To(Succeed())
@@ -148,7 +146,7 @@ var _ = Describe("Instance Controller", func() {
 				MySQLVersion: "",
 			},
 		}
-		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true, RequeueAfter: time.Duration(30 * time.Second)}))
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true, RequeueAfter: time.Duration(30 * time.Second)}))
 
 		response := mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())

@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-lib/status"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,6 +27,7 @@ type UserReconciler struct {
 
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users/finalizers,verbs=update
 
 // Reconcile implement the reconciliation loop for users
 func (r *UserReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {

@@ -5,7 +5,6 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/blaqkube/mysql-operator/mysql-operator/helpers"
 	"github.com/go-logr/zapr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -38,18 +37,17 @@ var _ = Describe("Store Controller", func() {
 
 		zapLog, _ := zap.NewDevelopment()
 		reconcile := &StoreReconciler{
-			Client:      k8sClient,
-			Log:         zapr.NewLogger(zapLog),
-			Scheme:      scheme.Scheme,
-			BackupStore: helpers.NewStoreMockInitialize(),
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
 		}
-		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true}))
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true}))
 
 		response := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
 		Expect(response.Status.Reason).To(Equal("Check"), "Expected reconcile to change the status to Check")
 
-		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
 		Expect(response.Status.Reason).To(Equal("Success"), "Expected reconcile to change the status to Success")
 
@@ -74,18 +72,17 @@ var _ = Describe("Store Controller", func() {
 
 		zapLog, _ := zap.NewDevelopment()
 		reconcile := &StoreReconciler{
-			Client:      k8sClient,
-			Log:         zapr.NewLogger(zapLog),
-			Scheme:      scheme.Scheme,
-			BackupStore: helpers.NewStoreMockInitialize(),
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
 		}
-		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true}))
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true}))
 
 		response := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
 		Expect(response.Status.Reason).To(Equal("Check"), "Expected reconcile to change the status to Check")
 
-		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
 		Expect(response.Status.Reason).To(Equal("AccessDenied"), "Expected reconcile to change the status to AccessDenied")
 	})
@@ -109,18 +106,17 @@ var _ = Describe("Store Controller", func() {
 
 		zapLog, _ := zap.NewDevelopment()
 		reconcile := &StoreReconciler{
-			Client:      k8sClient,
-			Log:         zapr.NewLogger(zapLog),
-			Scheme:      scheme.Scheme,
-			BackupStore: helpers.NewStoreMockInitialize(),
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
 		}
-		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true}))
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true}))
 
 		response := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
 		Expect(response.Status.Reason).To(Equal("Check"), "Expected reconcile to change the status to Check")
 
-		Expect(reconcile.Reconcile(ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
 		Expect(response.Status.Reason).To(Equal("AccessDenied"), "Expected reconcile to change the status to AccessDenied")
 	})

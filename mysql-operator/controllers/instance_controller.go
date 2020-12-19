@@ -23,10 +23,10 @@ type InstanceReconciler struct {
 
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=instances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=instances/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=instances/finalizers,verbs=update
 
 // Reconcile implement the reconciliation loop for instances
-func (r *InstanceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("instance", req.NamespacedName)
 
 	// your logic here
