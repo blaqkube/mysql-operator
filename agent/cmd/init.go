@@ -50,7 +50,7 @@ var initCmd = &cobra.Command{
 			log.Printf("file %s stat error: %v", localfile, err)
 			os.Exit(1)
 		}
-		payload := &openapi.Backup{
+		payload := &openapi.BackupRequest{
 			Bucket:   bucket,
 			Location: location,
 		}

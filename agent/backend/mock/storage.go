@@ -16,16 +16,16 @@ type Storage struct {
 }
 
 // Push pushes a file
-func (s *Storage) Push(backup *openapi.Backup, filename string) error {
+func (s *Storage) Push(backup *openapi.BackupRequest, filename string) error {
 	return nil
 }
 
 // Pull pull a file from S3, using a different location if necessary
-func (s *Storage) Pull(backup *openapi.Backup, filename string) error {
+func (s *Storage) Pull(backup *openapi.BackupRequest, filename string) error {
 	return nil
 }
 
 // Delete deletes a file from S3
-func (s *Storage) Delete(backup *openapi.Backup) error {
+func (s *Storage) Delete(backup *openapi.BackupRequest) error {
 	return nil
 }

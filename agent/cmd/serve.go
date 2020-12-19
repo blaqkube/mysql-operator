@@ -20,29 +20,12 @@ var serveCmd = &cobra.Command{
 		if err != nil {
 			port = 8080
 		}
-		// tool := mysql.NewDBTools(db)
-		// if err != nil {
-		// 	log.Panic(err)
-		// }
+		// TODO: recreate the exporter user
 
-		// log.Printf("Create exporter user")
-		// err = tool.CheckDB(20)
-		// if err != nil {
-		// 	fmt.Printf("Error checking database: %v\n", err)
-		// 	os.Exit(1)
-		// }
-		// err = tool.CreateExporter()
-		// if err != nil {
-		// 	fmt.Printf("Error create user: %v\n", err)
-		// 	os.Exit(1)
-		// }
-
-		// log.Printf("Server started")
-		// my := mysql.NewS3MysqlBackup()
 		log.Fatal(
 			http.ListenAndServe(
 				fmt.Sprintf(":%d", port),
-				openapi.NewRouter(service.NewMysqlAPIController(resources.DB)),
+				openapi.NewRouter(service.NewMysqlAPIController(resources.DB, resources.Backup, resources.Storage)),
 			),
 		)
 	},

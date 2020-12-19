@@ -17,7 +17,7 @@ type Instance interface {
 
 // Storage defines an interface to externalize stores
 type Storage interface {
-	Pull(backup *openapi.Backup, filename string) error
-	Push(backup *openapi.Backup, filename string) error
-	Delete(backup *openapi.Backup) error
+	Pull(backup *openapi.BackupRequest, filename string) error
+	Push(backup *openapi.BackupRequest, filename string) error
+	Delete(backup *openapi.BackupRequest) error
 }

@@ -22,8 +22,8 @@ type Storage struct {
 }
 
 // Push pushes a file to S3
-func (s *Storage) Push(backup *openapi.Backup, filename string) error {
-	for _, v := range backup.Envs {
+func (s *Storage) Push(request *openapi.BackupRequest, filename string) error {
+	for _, v := range request.Envs {
 		os.Setenv(v.Name, v.Value)
 	}
 	sess, err := session.NewSession()
@@ -42,8 +42,8 @@ func (s *Storage) Push(backup *openapi.Backup, filename string) error {
 	file.Read(buffer)
 
 	_, err = s3.New(sess).PutObject(&s3.PutObjectInput{
-		Bucket:             aws.String(backup.Bucket),
-		Key:                aws.String(backup.Location),
+		Bucket:             aws.String(request.Bucket),
+		Key:                aws.String(request.Location),
 		ACL:                aws.String("private"),
 		Body:               bytes.NewReader(buffer),
 		ContentLength:      aws.Int64(size),
@@ -54,8 +54,8 @@ func (s *Storage) Push(backup *openapi.Backup, filename string) error {
 }
 
 // Pull pull a file from S3, using a different location if necessary
-func (s *Storage) Pull(backup *openapi.Backup, filename string) error {
-	for _, v := range backup.Envs {
+func (s *Storage) Pull(request *openapi.BackupRequest, filename string) error {
+	for _, v := range request.Envs {
 		os.Setenv(v.Name, v.Value)
 	}
 	sess, err := session.NewSession()
@@ -68,18 +68,18 @@ func (s *Storage) Pull(backup *openapi.Backup, filename string) error {
 	if err != nil {
 		return err
 	}
-	l := backup.Location
+	l := request.Location
 	_, err = downloader.Download(file,
 		&s3.GetObjectInput{
-			Bucket: aws.String(backup.Bucket),
+			Bucket: aws.String(request.Bucket),
 			Key:    aws.String(l),
 		})
 	return err
 }
 
 // Delete deletes a file from S3
-func (s *Storage) Delete(backup *openapi.Backup) error {
-	for _, v := range backup.Envs {
+func (s *Storage) Delete(request *openapi.BackupRequest) error {
+	for _, v := range request.Envs {
 		os.Setenv(v.Name, v.Value)
 	}
 	sess, err := session.NewSession()
@@ -87,11 +87,11 @@ func (s *Storage) Delete(backup *openapi.Backup) error {
 		return err
 	}
 	objectsToDelete := []*s3.ObjectIdentifier{
-		{Key: aws.String(backup.Location)},
+		{Key: aws.String(request.Location)},
 	}
 	deleteArray := s3.Delete{Objects: objectsToDelete}
 	_, err = s3.New(sess).DeleteObjects(&s3.DeleteObjectsInput{
-		Bucket: aws.String(backup.Bucket),
+		Bucket: aws.String(request.Bucket),
 		Delete: &deleteArray,
 	})
 	return err

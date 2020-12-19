@@ -70,7 +70,7 @@ func (s *Service) CreateBackup(request openapi.BackupRequest, apiKey string) (in
 		Status:     StatusWaiting,
 		StartTime:  time.Now(),
 	}
-	go runBackup(s, s.States[id])
+	go runBackup(s, request, s.States[id])
 	s.CurrState = &id
 	s.Status = StatusRunning
 	return &id, nil
@@ -94,9 +94,9 @@ func (s *Service) GetBackups(apiKey string) (interface{}, int, error) {
 }
 
 // runBackup is the routine that runs the backup
-func runBackup(b *Service, backup openapi.Backup) {
+func runBackup(b *Service, request openapi.BackupRequest, backup openapi.Backup) {
 	b.Backup.Run(fmt.Sprintf("%s.dmp", backup.Identifier))
-	b.Storage.Push(&backup, fmt.Sprintf("%s.dmp", backup.Identifier))
+	b.Storage.Push(&request, fmt.Sprintf("%s.dmp", backup.Identifier))
 
 	b.M.Lock()
 	defer b.M.Unlock()

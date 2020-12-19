@@ -20,7 +20,7 @@ func (s *StorageSuite) SetupTest() {
 
 func (s *StorageSuite) TestStorageSuccess() {
 
-	b := openapi.Backup{
+	b := openapi.BackupRequest{
 		Bucket:   "bucket",
 		Location: "location",
 		Envs:     []openapi.EnvVar{},
