@@ -14,8 +14,8 @@ RUN apt-get update && \
     apt-get install -y docker-ce-cli
 
 ENV GALLY=0.0.40
-ENV KUSTOMIZE=3.8.7
-ENV OPERATORSDK=1.2.0
+ENV KUSTOMIZE=3.8.8
+ENV OPERATORSDK=1.3.0
 
 RUN cd /usr/local/bin && \
   curl -LO https://github.com/missena-corp/gally/releases/download/v${GALLY}/gally_${GALLY}_linux_x86_64.tar.gz && \
