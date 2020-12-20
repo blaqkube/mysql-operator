@@ -208,10 +208,13 @@ func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.St
 				name := s.Name
 				key := s.Key
 				optional := s.Optional != nil && *s.Optional
+				r.Log.Info("Get SecretRef", "variable", envVar.Name, "secret", name, "key", key)
 				secret, ok := secrets[name]
 				if !ok {
+					r.Log.Info("Could not find secret; run Get")
 					secret = corev1.Secret{}
 					if err := r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &secret); err != nil {
+						r.Log.Info("secret not found")
 						if !optional {
 							return nil, err
 						}
@@ -221,11 +224,13 @@ func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.St
 					}
 				}
 				if ok {
+					r.Log.Info("secret found, continue")
 					valueBytes, ok := secret.Data[key]
 					if !ok && !optional {
 						return nil, errors.New("MissingVariable")
 					}
 					if ok {
+						r.Log.Info("secret found, get value")
 						value = string(valueBytes)
 					}
 				}
@@ -235,5 +240,6 @@ func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.St
 		}
 		return nil, errors.New("MissingVariable")
 	}
+	r.Log.Info("everything found, continue")
 	return output, nil
 }
