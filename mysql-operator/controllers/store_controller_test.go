@@ -2,122 +2,110 @@ package controllers
 
 import (
 	"context"
+	"errors"
 
 	"go.uber.org/zap"
 
 	"github.com/go-logr/zapr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	openapi "github.com/blaqkube/mysql-operator/agent/go"
+	"github.com/stretchr/testify/mock"
+
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 
+const (
+	statusSucceed = "succeed"
+	statusFailS3  = "fail/s3"
+)
+
+// NewStorage takes a S3 connection and creates a default storage
+func NewStorage(status string) *Storage {
+	return &Storage{
+		Status: status,
+	}
+}
+
+// Storage is the default storage for S3
+type Storage struct {
+	mock.Mock
+	Status string
+}
+
+// Push pushes a file
+func (s *Storage) Push(backup *openapi.BackupRequest, filename string) error {
+	switch s.Status {
+	case statusFailS3:
+		return errors.New("WriteFailure")
+	}
+	return nil
+}
+
+// Pull pull a file from S3, using a different location if necessary
+func (s *Storage) Pull(backup *openapi.BackupRequest, filename string) error {
+	return nil
+}
+
+// Delete deletes a file from S3
+func (s *Storage) Delete(backup *openapi.BackupRequest) error {
+	return nil
+}
+
 var _ = Describe("Store Controller", func() {
-	It("New Store and S3 Okay", func() {
+	It("Create a new store and check success/failure", func() {
 		ctx := context.Background()
-		store := mysqlv1alpha1.Store{
-			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "test-store",
-				Namespace:    "default",
+
+		tests := []map[string]string{
+			{
+				"status": statusSucceed,
+				"result": mysqlv1alpha1.StateCheckSucceeded,
 			},
-			Spec: mysqlv1alpha1.StoreSpec{
-				Bucket: "pong",
+			{
+				"status": statusFailS3,
+				"result": mysqlv1alpha1.StateCheckFailed,
 			},
 		}
 
-		Expect(k8sClient.Create(ctx, &store)).To(Succeed())
+		for _, test := range tests {
+			store := mysqlv1alpha1.Store{
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: "store-",
+					Namespace:    "default",
+				},
+				Spec: mysqlv1alpha1.StoreSpec{
+					Bucket: "pong",
+				},
+			}
 
-		name := types.NamespacedName{Namespace: store.Namespace, Name: store.Name}
+			zapLog, _ := zap.NewDevelopment()
+			reconcile := &StoreReconciler{
+				Client:  k8sClient,
+				Log:     zapr.NewLogger(zapLog),
+				Scheme:  scheme.Scheme,
+				Storage: NewStorage(test["status"]),
+			}
 
-		zapLog, _ := zap.NewDevelopment()
-		reconcile := &StoreReconciler{
-			Client: k8sClient,
-			Log:    zapr.NewLogger(zapLog),
-			Scheme: scheme.Scheme,
+			Expect(k8sClient.Create(ctx, &store)).To(Succeed())
+
+			name := types.NamespacedName{Namespace: store.Namespace, Name: store.Name}
+			Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
+			response := mysqlv1alpha1.Store{}
+			Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
+			Expect(response.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckRequested), "Expected reconcile to change the status to Check")
+
+			Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
+			Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
+			Expect(response.Status.Reason).To(Equal(test["result"]), "Expected reconcile to change the status to the result")
+
+			Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
 		}
-		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true}))
-
-		response := mysqlv1alpha1.Store{}
-		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Reason).To(Equal("Check"), "Expected reconcile to change the status to Check")
-
-		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
-		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Reason).To(Equal("Success"), "Expected reconcile to change the status to Success")
-
 	})
 
-	It("New Store fails", func() {
-		ctx := context.Background()
-		store := mysqlv1alpha1.Store{
-			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "test-store",
-				Namespace:    "default",
-			},
-			Spec: mysqlv1alpha1.StoreSpec{
-				Bucket: "fail",
-				Env:    []corev1.EnvVar{},
-			},
-		}
-
-		Expect(k8sClient.Create(ctx, &store)).To(Succeed())
-
-		name := types.NamespacedName{Namespace: store.Namespace, Name: store.Name}
-
-		zapLog, _ := zap.NewDevelopment()
-		reconcile := &StoreReconciler{
-			Client: k8sClient,
-			Log:    zapr.NewLogger(zapLog),
-			Scheme: scheme.Scheme,
-		}
-		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true}))
-
-		response := mysqlv1alpha1.Store{}
-		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Reason).To(Equal("Check"), "Expected reconcile to change the status to Check")
-
-		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
-		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Reason).To(Equal("Success"), "Expected reconcile to change the status to AccessDenied")
-	})
-
-	It("Write Store fails", func() {
-		ctx := context.Background()
-		store := mysqlv1alpha1.Store{
-			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "test-store",
-				Namespace:    "default",
-			},
-			Spec: mysqlv1alpha1.StoreSpec{
-				Bucket: "fail",
-				Env:    []corev1.EnvVar{},
-			},
-		}
-
-		Expect(k8sClient.Create(ctx, &store)).To(Succeed())
-
-		name := types.NamespacedName{Namespace: store.Namespace, Name: store.Name}
-
-		zapLog, _ := zap.NewDevelopment()
-		reconcile := &StoreReconciler{
-			Client: k8sClient,
-			Log:    zapr.NewLogger(zapLog),
-			Scheme: scheme.Scheme,
-		}
-		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true}))
-
-		response := mysqlv1alpha1.Store{}
-		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Reason).To(Equal("Check"), "Expected reconcile to change the status to Check")
-
-		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
-		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect(response.Status.Reason).To(Equal("Success"), "Expected reconcile to change the status to AccessDenied")
-	})
 })

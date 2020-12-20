@@ -6,62 +6,75 @@ import (
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+// NOTE: json tags are required.  Any new fields you add must have json tags
+// for the fields to be serialized.
+
+const (
+	// StateCheckRequested specifies a state check request
+	StateCheckRequested = "CheckRequested"
+
+	// StateCheckSucceeded shows the last state check has passed
+	StateCheckSucceeded = "CheckSucceeded"
+
+	// StateCheckFailed shows the last state check has failed
+	StateCheckFailed = "CheckFailed"
+)
 
 // EnvVar represents an environment variable present in a store.
 type EnvVar struct {
 	// Name of the environment variable. Must be a C_IDENTIFIER.
-	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
-
+	Name string `json:"name"`
 	// Variable's value.
 	// +optional
-	Value string `json:"value,omitempty" protobuf:"bytes,2,opt,name=value"`
-	// Source for the environment variable's value. Cannot be used if value is not empty.
+	Value string `json:"value,omitempty"`
+	// Source for the environment variable's value. Cannot be used if value is
+	// not empty.
 	// +optional
-	ValueFrom *EnvVarSource `json:"valueFrom,omitempty" protobuf:"bytes,3,opt,name=valueFrom"`
-
-	// Conditions provides informations about the the last conditions
-	Conditions []metav1.Condition `json:"Conditions,omitempty"`
+	ValueFrom *EnvVarSource `json:"valueFrom,omitempty"`
 }
 
 // EnvVarSource represents a source for the value of an EnvVar.
 type EnvVarSource struct {
 	// Selects a key of a ConfigMap.
 	// +optional
-	ConfigMapKeyRef *corev1.ConfigMapKeySelector `json:"configMapKeyRef,omitempty" protobuf:"bytes,3,opt,name=configMapKeyRef"`
+	ConfigMapKeyRef *corev1.ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
 	// Selects a key of a secret in the pod's namespace
 	// +optional
-	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty" protobuf:"bytes,4,opt,name=secretKeyRef"`
+	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
 }
 
 // StoreSpec defines the desired state of Store
 type StoreSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
+	// Defines the type of backend to be used for the store. For now on, only
+	// s3 is supported (default: s3)
 	// +kubebuilder:validation:Enum=s3
 	Backend *string `json:"backend,omitempty"`
-
-	// Bucket defines the store bucket
+	// the store bucket
 	Bucket string `json:"bucket"`
-
-	// Path defines the path that will prefix files in the bucket
+	// Prefix defines section of the path that will prefix files in the bucket.
+	// This is to keep files from multiple sources in the same bucket.
 	// +optional
 	Prefix string `json:"prefix,omitempty"`
-
-	// Env defines environment variables to connect to the store
+	// Envs defines a set of environment variables that can be used to access
+	// secured stores which should be the case for every store
 	// +optional
-	Env []corev1.EnvVar `json:"env,omitempty"`
+	Envs []corev1.EnvVar `json:"envs,omitempty"`
 }
 
 // StoreStatus defines the observed state of Store
 type StoreStatus struct {
-
-	// A brief CamelCase message indicating details about why the store is in this state. e.g. 'Ready'
+	// Defines if the store can be considered as ready or not
+	Ready metav1.ConditionStatus `json:"ready,omitempty"`
+	// Defines if the store current Reason
 	Reason string `json:"reason,omitempty"`
-
-	// A human readable message indicating details about why the store is in this condition.
+	// A flag that indicates a resouce should be re-checked
+	CheckRequested bool `json:"checkrequested,omitempty"`
+	// A human readable message indicating details about why the store is in
+	// this condition.
 	Message string `json:"message,omitempty"`
+	// A human readable message indicating details about why the store is in
+	// this condition.
+	Conditions []metav1.Condition `json:"Conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -71,9 +84,8 @@ type StoreStatus struct {
 type Store struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   StoreSpec   `json:"spec,omitempty"`
-	Status StoreStatus `json:"status,omitempty"`
+	Spec              StoreSpec   `json:"spec,omitempty"`
+	Status            StoreStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true

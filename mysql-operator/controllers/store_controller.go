@@ -3,24 +3,36 @@ package controllers
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
 
+	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
 	"github.com/go-logr/logr"
-	"github.com/prometheus/common/log"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/blaqkube/mysql-operator/agent/backend"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // StoreReconciler reconciles a Store object
 type StoreReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log     logr.Logger
+	Scheme  *runtime.Scheme
+	Storage backend.Storage
 }
+
+const (
+	// StoreReasonCheckRequest set the reason for the change in conditions to check requested
+	StoreReasonCheckRequest = "CheckRequest"
+
+	maxConditions = 10
+)
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
@@ -28,48 +40,116 @@ type StoreReconciler struct {
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=stores/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=stores/finalizers,verbs=update
 
+func setStoreCondition(ctx context.Context, r *StoreReconciler, store *mysqlv1alpha1.Store, condition metav1.Condition) (ctrl.Result, error) {
+	store.Status.Ready = condition.Status
+	store.Status.Reason = condition.Reason
+	store.Status.Message = condition.Message
+	conditions := append(store.Status.Conditions, condition)
+	if len(conditions) > maxConditions {
+		conditions = conditions[1:]
+	}
+	store.Status.Conditions = conditions
+	log := r.Log.WithValues("store", store.Namespace+"."+store.Name)
+	log.Info("Updating store with new Status", "Reason", condition.Reason, "Message", condition.Message)
+	if err := r.Status().Update(ctx, store); err != nil {
+		log.Error(err, "Unable to update store")
+		return ctrl.Result{}, err
+	}
+	return ctrl.Result{}, nil
+}
+
+func initTestFile() (*string, error) {
+	name := ".mysql-operator.out"
+	file, err := os.Create(name)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	_, err = fmt.Fprintf(file, "[blaqkube]")
+	return &name, err
+}
+
 // Reconcile implement the reconciliation loop for stores
 func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("store", req.NamespacedName)
+	log := r.Log.WithValues("store", req.NamespacedName)
 
-	// your logic here
+	// TODO:
+	// - Reconciler should be able to detect a change in the ConfigMap or
+	//   Secret and reload the associated data
 	var store mysqlv1alpha1.Store
 	if err := r.Get(ctx, req.NamespacedName, &store); err != nil {
 		log.Error(err, "unable to fetch Store")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	if store.Status.Reason == "" {
-		store.Status.Reason = "Check"
-		if err := r.Status().Update(ctx, &store); err != nil {
-			log.Error(err, "Unable to update store status to Check")
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{Requeue: true}, nil
-	}
-	if store.Status.Reason == "Check" {
-		if store.Spec.Backend == nil || *store.Spec.Backend == "s3" {
 
-			// keys, err := r.GetEnvVars(ctx, store)
-			// if err != nil {
-			// 	store.Status.Reason = "Error"
-			// 	if err.Error() == "MissingVariable" {
-			// 		store.Status.Reason = "MissingVariable"
-			// 	}
-			// 	log.Errorf("Error reading environment variable: %v", err)
-			// 	if err := r.Status().Update(ctx, &store); err != nil {
-			// 		log.Errorf("Unable to update store status: %s", err)
-			// 		return ctrl.Result{}, err
-			// 	}
-			// 	return ctrl.Result{}, nil
-			// }
-			//TODO: test the backup store can be accessed
-			store.Status.Reason = "Success"
-			// log.Error(err, "Access to store Succeeded")
-			if err := r.Status().Update(ctx, &store); err != nil {
-				log.Error(err, "Unable to update store status to Success")
-				return ctrl.Result{}, err
+	if store.Status.Reason == "" || store.Status.CheckRequested == true {
+		store.Status.CheckRequested = false
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionUnknown,
+			LastTransitionTime: metav1.Now(),
+			Reason:             mysqlv1alpha1.StateCheckRequested,
+			Message:            "A new check has been requested",
+		}
+		return setStoreCondition(ctx, r, &store, condition)
+	}
+
+	if store.Status.Reason == mysqlv1alpha1.StateCheckRequested {
+		if store.Spec.Backend == nil || *store.Spec.Backend == "s3" {
+			store.Status.CheckRequested = false
+			envs, err := r.GetEnvVars(ctx, store)
+			if err != nil {
+				condition := metav1.Condition{
+					Type:               "available",
+					Status:             metav1.ConditionFalse,
+					LastTransitionTime: metav1.Now(),
+					Reason:             mysqlv1alpha1.StateCheckFailed,
+					Message:            "Cannot access values for envs",
+				}
+				return setStoreCondition(ctx, r, &store, condition)
 			}
-			return ctrl.Result{}, nil
+			e := []openapi.EnvVar{}
+			for k := range envs {
+				e = append(e, openapi.EnvVar{Name: k, Value: envs[k]})
+			}
+			filename, err := initTestFile()
+			request := &openapi.BackupRequest{
+				Bucket:   store.Spec.Bucket,
+				Location: "/blaqkube/.mysql-operator.out",
+				Envs:     e,
+			}
+			if err != nil {
+				condition := metav1.Condition{
+					Type:               "available",
+					Status:             metav1.ConditionFalse,
+					LastTransitionTime: metav1.Now(),
+					Reason:             mysqlv1alpha1.StateCheckFailed,
+					Message:            "Cannot initialize local file",
+				}
+				return setStoreCondition(ctx, r, &store, condition)
+			}
+			err = r.Storage.Push(request, *filename)
+			if err == nil {
+				err = r.Storage.Delete(request)
+			}
+			if err != nil {
+				condition := metav1.Condition{
+					Type:               "available",
+					Status:             metav1.ConditionFalse,
+					LastTransitionTime: metav1.Now(),
+					Reason:             mysqlv1alpha1.StateCheckFailed,
+					Message:            "Cannot write to bucket",
+				}
+				return setStoreCondition(ctx, r, &store, condition)
+			}
+			condition := metav1.Condition{
+				Type:               "available",
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: metav1.Now(),
+				Reason:             mysqlv1alpha1.StateCheckSucceeded,
+				Message:            "The check has succeeded",
+			}
+			return setStoreCondition(ctx, r, &store, condition)
 		}
 	}
 	return ctrl.Result{}, nil
@@ -87,7 +167,7 @@ func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.St
 	output := map[string]string{}
 	configMaps := map[string]corev1.ConfigMap{}
 	secrets := map[string]corev1.Secret{}
-	for _, envVar := range store.Spec.Env {
+	for _, envVar := range store.Spec.Envs {
 		if envVar.Name == "" {
 			return nil, errors.New("MissingVariable")
 		}
