@@ -1,0 +1,25 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Store
+metadata:
+  name: store-sample
+spec:
+  backend: s3
+  bucket: logs.blaqkube.io
+  prefix: /backup/black    
+  envs:
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: store-sample
+        key: AWS_ACCESS_KEY_ID
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: store-sample
+        key: AWS_SECRET_ACCESS_KEY
+  - name: AWS_REGION
+    valueFrom:
+      secretKeyRef:
+        name: store-sample
+        key: AWS_REGION
+---

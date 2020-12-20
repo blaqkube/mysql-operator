@@ -223,7 +223,7 @@ func (r *BackupReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.S
 	output := map[string]string{}
 	configMaps := map[string]corev1.ConfigMap{}
 	secrets := map[string]corev1.Secret{}
-	for _, envVar := range store.Spec.Env {
+	for _, envVar := range store.Spec.Envs {
 		if envVar.Name == "" {
 			return nil, errors.New("MissingVariable")
 		}

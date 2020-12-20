@@ -5,6 +5,8 @@
 *.dll
 *.so
 *.dylib
+.env
+.secret
 bin
 testbin/*
 
