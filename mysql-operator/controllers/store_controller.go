@@ -110,6 +110,7 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 			}
 			e := []openapi.EnvVar{}
 			for k := range envs {
+				log.Info("Preparing variables", "Name", k, "Value", envs[k])
 				e = append(e, openapi.EnvVar{Name: k, Value: envs[k]})
 			}
 			filename, err := initTestFile()
@@ -208,13 +209,10 @@ func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.St
 				name := s.Name
 				key := s.Key
 				optional := s.Optional != nil && *s.Optional
-				r.Log.Info("Get SecretRef", "variable", envVar.Name, "secret", name, "key", key)
 				secret, ok := secrets[name]
 				if !ok {
-					r.Log.Info("Could not find secret; run Get")
 					secret = corev1.Secret{}
 					if err := r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &secret); err != nil {
-						r.Log.Info("secret not found")
 						if !optional {
 							return nil, err
 						}
@@ -224,22 +222,21 @@ func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.St
 					}
 				}
 				if ok {
-					r.Log.Info("secret found, continue")
 					valueBytes, ok := secret.Data[key]
 					if !ok && !optional {
 						return nil, errors.New("MissingVariable")
 					}
 					if ok {
-						r.Log.Info("secret found, get value")
 						value = string(valueBytes)
 					}
 				}
 			}
+			r.Log.Info("Get SecretRef", "variable", envVar.Name, "value", value)
 			output[envVar.Name] = value
 			continue
 		}
 		return nil, errors.New("MissingVariable")
 	}
-	r.Log.Info("everything found, continue")
+	r.Log.Info("Map with all values built, continue...")
 	return output, nil
 }
