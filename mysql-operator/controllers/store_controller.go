@@ -110,7 +110,6 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 			}
 			e := []openapi.EnvVar{}
 			for k := range envs {
-				log.Info("Preparing variables", "Name", k, "Value", envs[k])
 				e = append(e, openapi.EnvVar{Name: k, Value: envs[k]})
 			}
 			filename, err := initTestFile()
@@ -125,7 +124,7 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 					Status:             metav1.ConditionFalse,
 					LastTransitionTime: metav1.Now(),
 					Reason:             mysqlv1alpha1.StateCheckFailed,
-					Message:            "Cannot initialize local file",
+					Message:            fmt.Sprintf("Cannot initialize local file, error: %v", err),
 				}
 				return setStoreCondition(ctx, r, &store, condition)
 			}
@@ -139,7 +138,7 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 					Status:             metav1.ConditionFalse,
 					LastTransitionTime: metav1.Now(),
 					Reason:             mysqlv1alpha1.StateCheckFailed,
-					Message:            "Cannot write to bucket",
+					Message:            fmt.Sprintf("Cannot write to bucket, error: %v", err),
 				}
 				return setStoreCondition(ctx, r, &store, condition)
 			}
