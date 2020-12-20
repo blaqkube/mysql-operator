@@ -73,12 +73,12 @@ func initTestFile() (*string, error) {
 func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("store", req.NamespacedName)
 
-	// TODO:
-	// - Reconciler should be able to detect a change in the ConfigMap or
-	//   Secret and reload the associated data
+	// TODO: Reconciler should be able to
+	// - detect a change in the ConfigMap or Secret and reload the associated data
+	// - Retry on regular basis in the event of a failure
 	var store mysqlv1alpha1.Store
 	if err := r.Get(ctx, req.NamespacedName, &store); err != nil {
-		log.Error(err, "unable to fetch Store")
+		log.Info("Unable to fetch store manifest from kubernetes")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -113,11 +113,6 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 				e = append(e, openapi.EnvVar{Name: k, Value: envs[k]})
 			}
 			filename, err := initTestFile()
-			request := &openapi.BackupRequest{
-				Bucket:   store.Spec.Bucket,
-				Location: "/blaqkube/.mysql-operator.out",
-				Envs:     e,
-			}
 			if err != nil {
 				condition := metav1.Condition{
 					Type:               "available",
@@ -128,6 +123,12 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 				}
 				return setStoreCondition(ctx, r, &store, condition)
 			}
+			request := &openapi.BackupRequest{
+				Bucket:   store.Spec.Bucket,
+				Location: "/blaqkube/.mysql-operator.out",
+				Envs:     e,
+			}
+			log.Info("Checking access for bucket", "bucket", request.Bucket)
 			err = r.Storage.Push(request, *filename)
 			if err == nil {
 				err = r.Storage.Delete(request)
@@ -230,12 +231,11 @@ func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.St
 					}
 				}
 			}
-			r.Log.Info("Get SecretRef", "variable", envVar.Name, "value", value)
+			r.Log.Info("Ref", "variable", envVar.Name, "value", "***")
 			output[envVar.Name] = value
 			continue
 		}
 		return nil, errors.New("MissingVariable")
 	}
-	r.Log.Info("Map with all values built, continue...")
 	return output, nil
 }
