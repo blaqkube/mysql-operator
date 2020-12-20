@@ -26,7 +26,7 @@ RUN cd /usr/local/bin && \
   chmod +x gally kustomize
 
 RUN cd /usr/local/bin && \
-  curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATORSDK}/operator-sdk-v${OPERATORSDK}-x86_64-linux-gnu && \
+  curl -Lo operator-sdk https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATORSDK}/operator-sdk_linux_amd64 && \
   chmod +x operator-sdk
 
 ENV PATH="/usr/local/go/bin:${PATH}"
