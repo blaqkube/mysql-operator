@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/zapr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -22,8 +23,9 @@ import (
 )
 
 const (
-	statusSucceed = "succeed"
-	statusFailS3  = "fail/s3"
+	statusSucceed  = "succeed"
+	statusWithKeys = "keys"
+	statusFailS3   = "fail/s3"
 )
 
 // NewStorage takes a S3 connection and creates a default storage
@@ -43,6 +45,19 @@ type Storage struct {
 func (s *Storage) Push(backup *openapi.BackupRequest, filename string) error {
 	switch s.Status {
 	case statusFailS3:
+		return errors.New("WriteFailure")
+	case statusWithKeys:
+		count := 0
+		for _, v := range backup.Envs {
+			if (v.Name == "AWS_ACCESS_KEY_ID" && v.Value == "AKIA") ||
+				(v.Name == "AWS_SECRET_ACCESS_KEY" && v.Value == "secret...") ||
+				(v.Name == "AWS_REGION" && v.Value == "us-east-1") {
+				count++
+			}
+		}
+		if count == 3 {
+			return nil
+		}
 		return errors.New("WriteFailure")
 	}
 	return nil
@@ -106,6 +121,223 @@ var _ = Describe("Store Controller", func() {
 
 			Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
 		}
+	})
+
+	It("Create a store with SecretKeyRefs/succeed", func() {
+		ctx := context.Background()
+
+		secret := corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "store-secret1",
+				Namespace: "default",
+			},
+			Type: corev1.SecretTypeOpaque,
+			StringData: map[string]string{
+				"AWS_ACCESS_KEY_ID":     "AKIA",
+				"AWS_SECRET_ACCESS_KEY": "secret...",
+				"AWS_REGION":            "us-east-1",
+			},
+		}
+
+		store := mysqlv1alpha1.Store{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: "store-",
+				Namespace:    "default",
+			},
+			Spec: mysqlv1alpha1.StoreSpec{
+				Bucket: "pong",
+				Envs: []corev1.EnvVar{
+					{
+						Name: "AWS_ACCESS_KEY_ID",
+						ValueFrom: &corev1.EnvVarSource{
+							SecretKeyRef: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "store-secret1"},
+								Key:                  "AWS_ACCESS_KEY_ID",
+							},
+						},
+					},
+					{
+						Name: "AWS_SECRET_ACCESS_KEY",
+						ValueFrom: &corev1.EnvVarSource{
+							SecretKeyRef: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "store-secret1"},
+								Key:                  "AWS_SECRET_ACCESS_KEY",
+							},
+						},
+					},
+					{
+						Name: "AWS_REGION",
+						ValueFrom: &corev1.EnvVarSource{
+							SecretKeyRef: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "store-secret1"},
+								Key:                  "AWS_REGION",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		zapLog, _ := zap.NewDevelopment()
+		reconcile := &StoreReconciler{
+			Client:  k8sClient,
+			Log:     zapr.NewLogger(zapLog),
+			Scheme:  scheme.Scheme,
+			Storage: NewStorage(statusWithKeys),
+		}
+
+		Expect(k8sClient.Create(ctx, &secret)).To(Succeed())
+		Expect(k8sClient.Create(ctx, &store)).To(Succeed())
+
+		name := types.NamespacedName{Namespace: store.Namespace, Name: store.Name}
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
+		response := mysqlv1alpha1.Store{}
+		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
+		Expect(response.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckRequested), "Expected reconcile to change the status to Check")
+
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
+		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
+		Expect(response.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckSucceeded), "Expected reconcile to change the status to the result")
+
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
+	})
+
+	It("Create a store with SecretKeyRefs/Missing keys", func() {
+		ctx := context.Background()
+
+		secret := corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "store-secret2",
+				Namespace: "default",
+			},
+			Type: corev1.SecretTypeOpaque,
+			StringData: map[string]string{
+				"AWS_ACCESS_KEY_ID": "AKIA",
+			},
+		}
+
+		store := mysqlv1alpha1.Store{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: "store-",
+				Namespace:    "default",
+			},
+			Spec: mysqlv1alpha1.StoreSpec{
+				Bucket: "pong",
+				Envs: []corev1.EnvVar{
+					{
+						Name: "AWS_ACCESS_KEY_ID",
+						ValueFrom: &corev1.EnvVarSource{
+							SecretKeyRef: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "store-secret2"},
+								Key:                  "AWS_ACCESS_KEY_ID",
+							},
+						},
+					},
+					{
+						Name: "AWS_SECRET_ACCESS_KEY",
+						ValueFrom: &corev1.EnvVarSource{
+							SecretKeyRef: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "store-secret2"},
+								Key:                  "AWS_SECRET_ACCESS_KEY",
+							},
+						},
+					},
+					{
+						Name: "AWS_REGION",
+						ValueFrom: &corev1.EnvVarSource{
+							SecretKeyRef: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "store-secret2"},
+								Key:                  "AWS_REGION",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		zapLog, _ := zap.NewDevelopment()
+		reconcile := &StoreReconciler{
+			Client:  k8sClient,
+			Log:     zapr.NewLogger(zapLog),
+			Scheme:  scheme.Scheme,
+			Storage: NewStorage(statusWithKeys),
+		}
+
+		Expect(k8sClient.Create(ctx, &secret)).To(Succeed())
+		Expect(k8sClient.Create(ctx, &store)).To(Succeed())
+
+		name := types.NamespacedName{Namespace: store.Namespace, Name: store.Name}
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
+		response := mysqlv1alpha1.Store{}
+		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
+		Expect(response.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckRequested), "Expected reconcile to change the status to Check")
+
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
+		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
+		Expect(response.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckFailed), "Expected reconcile to change the status to the result")
+
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
+	})
+
+	It("Create a store with SecretKeyRefs/succeed", func() {
+		ctx := context.Background()
+
+		secret := corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "store-secret3",
+				Namespace: "default",
+			},
+			Type: corev1.SecretTypeOpaque,
+			StringData: map[string]string{
+				"AWS_ACCESS_KEY_ID":     "AKIA",
+				"AWS_SECRET_ACCESS_KEY": "secret...",
+				"AWS_REGION":            "us-east-1",
+			},
+		}
+
+		store := mysqlv1alpha1.Store{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: "store-",
+				Namespace:    "default",
+			},
+			Spec: mysqlv1alpha1.StoreSpec{
+				Bucket: "pong",
+				Envs: []corev1.EnvVar{
+					{
+						Name: "AWS_ACCESS_KEY_ID",
+						ValueFrom: &corev1.EnvVarSource{
+							SecretKeyRef: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "store-secret3"},
+								Key:                  "AWS_ACCESS_KEY_ID",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		zapLog, _ := zap.NewDevelopment()
+		reconcile := &StoreReconciler{
+			Client:  k8sClient,
+			Log:     zapr.NewLogger(zapLog),
+			Scheme:  scheme.Scheme,
+			Storage: NewStorage(statusWithKeys),
+		}
+
+		Expect(k8sClient.Create(ctx, &secret)).To(Succeed())
+		Expect(k8sClient.Create(ctx, &store)).To(Succeed())
+
+		name := types.NamespacedName{Namespace: store.Namespace, Name: store.Name}
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
+		response := mysqlv1alpha1.Store{}
+		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
+		Expect(response.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckRequested), "Expected reconcile to change the status to Check")
+
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
+		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
+		Expect(response.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckFailed), "Expected reconcile to change the status to the result")
+
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: false}))
 	})
 
 })
