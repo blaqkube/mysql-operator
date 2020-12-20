@@ -4,9 +4,8 @@ metadata:
   name: store-sample
 spec:
   backend: s3
-  s3_backup:
   bucket: bucket-sample
-  location: /backup/instance-sample/backup-123.dmp    
+  prefix: /backup/instance-sample/backup-123.dmp    
   envs:
   - name: AWS_ACCESS_KEY_ID
     value: AKIAXXX
@@ -14,4 +13,3 @@ spec:
     value: aSzx...
   - name: AWS_REGION
     value: eu-west-1
-
