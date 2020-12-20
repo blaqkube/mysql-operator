@@ -168,7 +168,6 @@ func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.St
 	configMaps := map[string]corev1.ConfigMap{}
 	secrets := map[string]corev1.Secret{}
 	for _, envVar := range store.Spec.Envs {
-		r.Log.Info("Get Variable", "name", envVar.Name)
 		if envVar.Name == "" {
 			return nil, errors.New("MissingVariable")
 		}
@@ -187,7 +186,7 @@ func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.St
 				optional := cm.Optional != nil && *cm.Optional
 				configMap, ok := configMaps[name]
 				if !ok {
-					configMap := corev1.ConfigMap{}
+					configMap = corev1.ConfigMap{}
 					if err := r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &configMap); err != nil {
 						if !optional {
 							return nil, err
@@ -208,11 +207,10 @@ func (r *StoreReconciler) GetEnvVars(ctx context.Context, store mysqlv1alpha1.St
 				namespace := store.Namespace
 				name := s.Name
 				key := s.Key
-				r.Log.Info("SecretKeyRef", "name", envVar.Name, "secret", name, "key", key)
 				optional := s.Optional != nil && *s.Optional
 				secret, ok := secrets[name]
 				if !ok {
-					secret := corev1.Secret{}
+					secret = corev1.Secret{}
 					if err := r.Get(ctx, types.NamespacedName{Namespace: namespace, Name: name}, &secret); err != nil {
 						if !optional {
 							return nil, err
