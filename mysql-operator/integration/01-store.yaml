@@ -4,7 +4,7 @@ metadata:
   name: store-sample
 spec:
   backend: s3
-  bucket: bucket-sample
+  bucket: logs.blaqkube.io
   prefix: /backup/instance-sample/backup-123.dmp    
   envs:
   - name: AWS_ACCESS_KEY_ID
