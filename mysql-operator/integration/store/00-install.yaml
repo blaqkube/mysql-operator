@@ -2,6 +2,7 @@ apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Store
 metadata:
   name: store-sample
+  namespace: default
 spec:
   backend: s3
   bucket: logs.blaqkube.io

@@ -1,7 +1,8 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Store
 metadata:
   name: store-sample
+  namespace: default
 status:
   ready: "true"
   reason: "CheckSucceeded"
