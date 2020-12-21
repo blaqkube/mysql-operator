@@ -1,3 +1,8 @@
+.env
+.secret
+bin
+testbin/*
+kubeconfig
 
 # Binaries for programs and plugins
 *.exe
@@ -5,10 +10,6 @@
 *.dll
 *.so
 *.dylib
-.env
-.secret
-bin
-testbin/*
 
 # Test binary, build with `go test -c`
 *.test
