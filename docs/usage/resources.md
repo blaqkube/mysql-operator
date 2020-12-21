@@ -103,30 +103,38 @@ an example of a Store manifest:
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Store
 metadata:
-  name: mybackupstore
+  name: store-sample
 spec:
   backend: s3
-  s3access:
-    awsConfig:
-      aws_access_key_id: AKIAXXXXXXXXXXXXXXX
-      aws_secret_access_key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-      region: us-east-1
-    bucket: mybucket
-    path: /location
+  bucket: logs.blaqkube.io
+  prefix: /backup/black    
+  envs:
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: store-sample
+        key: AWS_ACCESS_KEY_ID
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: store-sample
+        key: AWS_SECRET_ACCESS_KEY
+  - name: AWS_REGION
+    valueFrom:
+      secretKeyRef:
+        name: store-sample
+        key: AWS_REGION
 ```
 
 The properties are the following:
 
 - `backend` defines the backend, for now only s3 is supported
-- `s3access` defines the properties for s3
-  - `awsConfig` defines some AWS configuration properties. Supported
-    properties are:
-    - `aws_access_key_id` defines an AWS access key
-    - `aws_secret_access_key` defines the associated AWS secret access key
-    - `region` defines the region for the s3 bucket
-  - `bucket` defines the bucket to store backups
-  - `path` defines the prefix used to prefix backups. It should start with
+- `bucket` defines the bucket to store backups
+- `prefix` defines the prefix used to prefix backups. It should start with
     `/` and ended without any.
+- `envs` contains a set of environment variables that can be used to connect to
+  the bucket. It can reference a `name`/`value` pair or a `name`/`valueFrom` 
+  pair with a `secretKeyRef` definition.
 
 ## Backup
 

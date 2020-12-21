@@ -1,9 +1,9 @@
 # Welcome
 
-Thank you for using and considering contributing to the
-`blaqkube/mysql-operator`! This section is written to help developers
-starting with the project. Leave an issue on
-[Github Project](https://github.com/blaqkube/mysql-operator/issues) if needed.
+Thank you for contributing to the `blaqkube/mysql-operator`! This section is
+written to help developers starting with the project. Do not hesitate to leave
+an issue on the [Github](https://github.com/blaqkube/mysql-operator/issues)
+if needed.
 
 ## Overview
 
