@@ -22,4 +22,3 @@ spec:
       secretKeyRef:
         name: store-sample
         key: AWS_REGION
----
