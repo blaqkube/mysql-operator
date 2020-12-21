@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -14,64 +15,58 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// StatefulSetProperties defines an interface with the default agent/mysql versions
+// StatefulSetProperties defines the default agent and mysql versions
 type StatefulSetProperties struct {
 	AgentVersion string
 	MySQLVersion string
 }
 
-// CreateOrUpdateStafefulSet creates a secret for the instance
-func (r *InstanceReconciler) CreateOrUpdateStafefulSet(instance *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, filePath string) (ctrl.Result, error) {
-	ctx := context.Background()
+// InstanceManager provides methods to manage the instance subcomponents
+type InstanceManager struct {
+	Context    context.Context
+	Reconciler *InstanceReconciler
+	Properties *StatefulSetProperties
+}
 
-	secretName := types.NamespacedName{Name: instance.Name + "-exporter", Namespace: instance.Namespace}
-	secret := &corev1.Secret{}
-	err := r.Client.Get(ctx, secretName, secret)
-	if err != nil && !errors.IsNotFound(err) {
+func (im *InstanceManager) setInstanceCondition(instance *mysqlv1alpha1.Instance, condition metav1.Condition) (ctrl.Result, error) {
+	instance.Status.Ready = condition.Status
+	instance.Status.Reason = condition.Reason
+	instance.Status.Message = condition.Message
+	conditions := append(instance.Status.Conditions, condition)
+	if len(conditions) > maxConditions {
+		conditions = conditions[1:]
+	}
+	instance.Status.Conditions = conditions
+	log := im.Reconciler.Log.WithValues("namespace", instance.Namespace, "instance", instance.Name)
+	log.Info("Updating instance with new Status", "Reason", condition.Reason, "Message", condition.Message)
+	if err := im.Reconciler.Status().Update(im.Context, instance); err != nil {
+		log.Error(err, "Unable to update instance")
 		return ctrl.Result{}, err
 	}
-	if err != nil {
-		r.Log.Info("Creating a new Secret", "Secret.Namespace", instance.Namespace, "secret.Name", instance.Name+"-exporter")
-		newSecret := r.Properties.NewSecretForInstance(instance)
-		if err := controllerutil.SetControllerReference(instance, newSecret, r.Scheme); err != nil {
-			return ctrl.Result{}, err
-		}
-		if err := r.Client.Create(ctx, newSecret); err != nil {
-			return ctrl.Result{}, err
-		}
-	}
-
-	sts := r.Properties.NewStatefulSetForInstance(instance, store, filePath)
-	// Check if this StatefulSet already exists
-	found := &appsv1.StatefulSet{}
-	err = r.Client.Get(ctx, types.NamespacedName{Name: sts.Name, Namespace: sts.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		r.Log.Info("Creating a new StatefulSet", "StatefulSet.Namespace", sts.Namespace, "StatefulSet.Name", sts.Name)
-		if err := controllerutil.SetControllerReference(instance, sts, r.Scheme); err != nil {
-			return ctrl.Result{}, err
-		}
-		err = r.Client.Create(ctx, sts)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		// StatefulSet created successfully - don't requeue
-		instance.Status.LastCondition = "Success"
-		if err := r.Status().Update(ctx, instance); err != nil {
-			r.Log.Error(err, "unable to update instance status")
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
-	} else if err != nil {
-		return ctrl.Result{}, err
-	}
-
-	// StatefulSet already exists - don't requeue
-	r.Log.Info("Skip reconcile: StatefulSet already exists", "StatefulSet.Namespace", found.Namespace, "StatefulSet.Name", found.Name)
 	return ctrl.Result{}, nil
 }
 
-// NewSecretForInstance returns a secret that stores the mysql configuration file
-func (s *StatefulSetProperties) NewSecretForInstance(instance *mysqlv1alpha1.Instance) *corev1.Secret {
+func (im *InstanceManager) getExporterSecret(instance *mysqlv1alpha1.Instance) (*corev1.Secret, error) {
+	log := im.Reconciler.Log.WithValues("function", "getExporterSecret", "namespace", instance.Namespace, "instance", instance.Name)
+
+	secretName := types.NamespacedName{
+		Name:      instance.Name + "-exporter",
+		Namespace: instance.Namespace,
+	}
+	secret := &corev1.Secret{}
+	err := im.Reconciler.Client.Get(im.Context, secretName, secret)
+	if err != nil && !errors.IsNotFound(err) {
+		log.Error(err, "Error getting secret", "secret", secretName.Name)
+	}
+	if err != nil {
+		log.Info("Secret does not exist", "secret", secretName.Name)
+	}
+	return secret, err
+}
+
+func (im *InstanceManager) createExporterSecret(instance *mysqlv1alpha1.Instance) (ctrl.Result, error) {
+	log := im.Reconciler.Log.WithValues("function", "createExporterSecret", "namespace", instance.Namespace, "instance", instance.Name)
+
 	labels := map[string]string{
 		"app": instance.Name,
 	}
@@ -81,15 +76,130 @@ func (s *StatefulSetProperties) NewSecretForInstance(instance *mysqlv1alpha1.Ins
 			Namespace: instance.Namespace,
 			Labels:    labels,
 		},
-		Data: map[string][]byte{
-			".my.cnf": []byte("[client]\nuser=exporter\npassword=exporter\nhost=localhost\n"),
+		StringData: map[string]string{
+			".my.cnf": "[client]\nuser=exporter\npassword=exporter\nhost=localhost\n",
 		},
 	}
-	return secret
+	if err := controllerutil.SetControllerReference(instance, secret, im.Reconciler.Scheme); err != nil {
+		return ctrl.Result{}, err
+	}
+	log.Info("Create secret", "secret", secret.Name)
+	if err := im.Reconciler.Client.Create(im.Context, secret); err != nil {
+		log.Error(err, "Secret creation failed", "secret", secret.Name)
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionFalse,
+			LastTransitionTime: metav1.Now(),
+			Reason:             mysqlv1alpha1.InstanceExporterSecretFailed,
+			Message:            fmt.Sprintf("Secret exporter creation failed: %v", err),
+		}
+		return im.setInstanceCondition(instance, condition)
+	}
+	log.Info("Secret create succeeded", "secret", secret.Name)
+	instance.Status.ExporterSecret = corev1.ObjectReference{
+		Kind:            secret.Kind,
+		Namespace:       secret.Namespace,
+		Name:            secret.Name,
+		UID:             secret.UID,
+		APIVersion:      secret.APIVersion,
+		ResourceVersion: secret.ResourceVersion,
+	}
+	condition := metav1.Condition{
+		Type:               "available",
+		Status:             metav1.ConditionFalse,
+		LastTransitionTime: metav1.Now(),
+		Reason:             mysqlv1alpha1.InstanceExporterSecretCreated,
+		Message:            "Secret exporter has been successfully created",
+	}
+	return im.setInstanceCondition(instance, condition)
+}
+
+func (im *InstanceManager) deleteExporterSecret(instance *mysqlv1alpha1.Instance, secret *corev1.Secret) (ctrl.Result, error) {
+	log := im.Reconciler.Log.WithValues("function", "deleteExporterSecret", "namespace", instance.Namespace, "instance", instance.Name)
+
+	log.Info("Delete secret", "secret", secret.Name)
+	if err := im.Reconciler.Client.Delete(im.Context, secret); err != nil {
+		log.Error(err, "Secret deletion failed", "secret", secret.Name)
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionFalse,
+			LastTransitionTime: metav1.Now(),
+			Reason:             mysqlv1alpha1.InstanceExporterSecretFailed,
+			Message:            fmt.Sprintf("Secret deletion failed: %v", err),
+		}
+		return im.setInstanceCondition(instance, condition)
+	}
+	log.Info("Secret deletion succeeded", "secret", secret.Name)
+	instance.Status.ExporterSecret = corev1.ObjectReference{}
+	condition := metav1.Condition{
+		Type:               "available",
+		Status:             metav1.ConditionFalse,
+		LastTransitionTime: metav1.Now(),
+		Reason:             mysqlv1alpha1.InstanceExporterSecretDeleted,
+		Message:            "Secret exporter has been successfully deleted",
+	}
+	return im.setInstanceCondition(instance, condition)
+}
+
+func (im *InstanceManager) getStatefulSet(instance *mysqlv1alpha1.Instance) (*appsv1.StatefulSet, error) {
+	log := im.Reconciler.Log.WithValues("function", "getStatefulSet", "namespace", instance.Namespace, "statefulset", instance.Name)
+
+	stsName := types.NamespacedName{
+		Name:      instance.Name,
+		Namespace: instance.Namespace,
+	}
+	sts := &appsv1.StatefulSet{}
+	err := im.Reconciler.Client.Get(im.Context, stsName, sts)
+	if err != nil && !errors.IsNotFound(err) {
+		log.Error(err, "Error getting statefulset", "statefulset", stsName.Name)
+	}
+	if err != nil {
+		log.Info("Statefulset does not exist", "secret", stsName.Name)
+	}
+	return sts, err
+}
+
+func (im *InstanceManager) createStatefulSet(instance *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, location string) (ctrl.Result, error) {
+	log := im.Reconciler.Log.WithValues("function", "createStatefulSet", "namespace", instance.Namespace, "instance", instance.Name)
+
+	sts := im.Properties.NewStatefulSetForInstance(instance, store, location)
+
+	if err := controllerutil.SetControllerReference(instance, sts, im.Reconciler.Scheme); err != nil {
+		return ctrl.Result{}, err
+	}
+	log.Info("Create StatefulSet", "statefulset", sts.Name)
+	if err := im.Reconciler.Client.Create(im.Context, sts); err != nil {
+		log.Error(err, "Statfulset creation failed", "statefulset", sts.Name)
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionFalse,
+			LastTransitionTime: metav1.Now(),
+			Reason:             mysqlv1alpha1.InstanceStatefulSetFailed,
+			Message:            fmt.Sprintf("Statfulset creation failed: %v", err),
+		}
+		return im.setInstanceCondition(instance, condition)
+	}
+	log.Info("Statfulset creation succeeded", "statefulset", sts.Name)
+	instance.Status.ExporterSecret = corev1.ObjectReference{
+		Kind:            sts.Kind,
+		Namespace:       sts.Namespace,
+		Name:            sts.Name,
+		UID:             sts.UID,
+		APIVersion:      sts.APIVersion,
+		ResourceVersion: sts.ResourceVersion,
+	}
+	condition := metav1.Condition{
+		Type:               "available",
+		Status:             metav1.ConditionFalse,
+		LastTransitionTime: metav1.Now(),
+		Reason:             mysqlv1alpha1.InstanceStatefulSetCreated,
+		Message:            "StatefulSet has been successfully created",
+	}
+	return im.setInstanceCondition(instance, condition)
 }
 
 // NewStatefulSetForInstance returns a MySQL StatefulSet with the instance name/namespace
-func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, filePath string) *appsv1.StatefulSet {
+func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha1.Instance, store *mysqlv1alpha1.Store, location string) *appsv1.StatefulSet {
 	labels := map[string]string{
 		"app": instance.Name,
 	}
@@ -106,7 +216,7 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 			})
 			env = append(env, corev1.EnvVar{
 				Name:  "AGT_PATH",
-				Value: filePath,
+				Value: location,
 			})
 			env = append(env, corev1.EnvVar{
 				Name:  "AGT_FILENAME",

@@ -8,6 +8,7 @@ import (
 	"github.com/go-logr/zapr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -39,7 +40,7 @@ var _ = Describe("Instance Controller", func() {
 			Client: k8sClient,
 			Log:    zapr.NewLogger(zapLog),
 			Scheme: scheme.Scheme,
-			Properties: StatefulSetProperties{
+			Properties: &StatefulSetProperties{
 				AgentVersion: "latest",
 				MySQLVersion: "8.0.22",
 			},
@@ -48,7 +49,21 @@ var _ = Describe("Instance Controller", func() {
 
 		response := mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect("Success").To(Equal(response.Status.LastCondition), "Expected reconcile to change the status to Success")
+		Expect(mysqlv1alpha1.InstanceExporterSecretCreated).
+			To(Equal(response.Status.Reason), "Expected reconcile to change the status to ExporterSecretCreated")
+
+		secret := corev1.Secret{}
+		secretName := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name + "-exporter"}
+		Expect(k8sClient.Get(ctx, secretName, &secret)).To(Succeed())
+		Expect("[client]\nuser=exporter\npassword=exporter\nhost=localhost\n").
+			To(Equal(string(secret.Data[".my.cnf"])), "Data should match")
+
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
+
+		response = mysqlv1alpha1.Instance{}
+		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
+		Expect(mysqlv1alpha1.InstanceStatefulSetCreated).
+			To(Equal(response.Status.Reason), "Expected reconcile to change the status to StatefulSetCreated")
 	})
 
 	// It("Instance with existing Store", func() {

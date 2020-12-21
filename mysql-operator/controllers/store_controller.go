@@ -49,7 +49,7 @@ func setStoreCondition(ctx context.Context, r *StoreReconciler, store *mysqlv1al
 		conditions = conditions[1:]
 	}
 	store.Status.Conditions = conditions
-	log := r.Log.WithValues("store", store.Namespace+"."+store.Name)
+	log := r.Log.WithValues("namespace", store.Namespace, "store", store.Name)
 	log.Info("Updating store with new Status", "Reason", condition.Reason, "Message", condition.Message)
 	if err := r.Status().Update(ctx, store); err != nil {
 		log.Error(err, "Unable to update store")

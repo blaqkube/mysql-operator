@@ -381,6 +381,7 @@ func (in *InstanceSpec) DeepCopy() *InstanceSpec {
 func (in *InstanceStatus) DeepCopyInto(out *InstanceStatus) {
 	*out = *in
 	out.StatefulSet = in.StatefulSet
+	out.ExporterSecret = in.ExporterSecret
 	if in.Conditions != nil {
 		in, out := &in.Conditions, &out.Conditions
 		*out = make([]v1.Condition, len(*in))

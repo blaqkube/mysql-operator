@@ -104,6 +104,10 @@ func main() {
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("Instance"),
 		Scheme: mgr.GetScheme(),
+		Properties: &controllers.StatefulSetProperties{
+			AgentVersion: DefaultAgentVersion,
+			MySQLVersion: DefaultMySQLVersion,
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Instance")
 		os.Exit(1)
