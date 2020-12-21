@@ -2,7 +2,7 @@
 
 The `mysql-agent` is an OpenAPI 3.0 API that is used by the MySQL operator
 to interact with the MySQL database. It is attached to each instances as a
-sidecar and has access to the latest mysql tools.
+sidecar and has access to the latest mysql tools. The 
 
 ## How to modify the mysql-agent API?
 
