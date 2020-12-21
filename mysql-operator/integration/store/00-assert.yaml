@@ -4,5 +4,4 @@ metadata:
   name: store-sample
   namespace: default
 status:
-  ready: "true"
   reason: "CheckSucceeded"
