@@ -51,10 +51,11 @@ var initCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		payload := &openapi.BackupRequest{
+			Backend:  "s3",
 			Bucket:   bucket,
 			Location: location,
 		}
-		err = resources.Storage.Pull(payload, localfile)
+		err = resources.Storages[payload.Backend].Pull(payload, localfile)
 		if err != nil {
 			log.Printf("error pulling %s: %v", localfile, err)
 			os.Exit(1)

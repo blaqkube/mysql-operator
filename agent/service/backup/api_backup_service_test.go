@@ -3,6 +3,7 @@ package backup
 import (
 	"testing"
 
+	"github.com/blaqkube/mysql-operator/agent/backend"
 	"github.com/blaqkube/mysql-operator/agent/backend/mock"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	_ "github.com/go-sql-driver/mysql"
@@ -18,8 +19,11 @@ type BackupServiceSuite struct {
 
 func (s *BackupServiceSuite) SetupSuite() {
 	backup := mock.NewBackup()
-	storage := mock.NewStorage()
-	s.Service = NewService(backup, storage)
+	storages := map[string]backend.Storage{
+		"s3":        mock.NewStorage(),
+		"blackhole": mock.NewStorage(),
+	}
+	s.Service = NewService(backup, storages)
 }
 
 func (s *BackupServiceSuite) Test_GetBackups() {
@@ -29,7 +33,7 @@ func (s *BackupServiceSuite) Test_GetBackups() {
 
 func (s *BackupServiceSuite) Test_CreateBackup() {
 	_, err := s.Service.CreateBackup(
-		openapi.BackupRequest{Bucket: "bucket", Location: "file"},
+		openapi.BackupRequest{Backend: "s3", Bucket: "bucket", Location: "file"},
 		"apikey",
 	)
 	require.NoError(s.T(), err)

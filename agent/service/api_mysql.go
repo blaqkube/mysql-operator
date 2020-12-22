@@ -32,9 +32,9 @@ type MysqlAPIController struct {
 func NewMysqlAPIController(
 	db *sql.DB,
 	bck backend.Backup,
-	str backend.Storage,
+	strs map[string]backend.Storage,
 ) Router {
-	b := backup.NewService(bck, str)
+	b := backup.NewService(bck, strs)
 	d := database.NewMysqlDatabaseService(db)
 	u := user.NewMysqlUserService(db)
 	return &MysqlAPIController{

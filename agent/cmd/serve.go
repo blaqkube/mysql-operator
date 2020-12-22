@@ -25,7 +25,7 @@ var serveCmd = &cobra.Command{
 		log.Fatal(
 			http.ListenAndServe(
 				fmt.Sprintf(":%d", port),
-				openapi.NewRouter(service.NewMysqlAPIController(resources.DB, resources.Backup, resources.Storage)),
+				openapi.NewRouter(service.NewMysqlAPIController(resources.DB, resources.Backup, resources.Storages)),
 			),
 		)
 	},

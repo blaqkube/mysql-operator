@@ -38,16 +38,16 @@ type Service struct {
 	M         sync.Mutex
 	States    map[string]openapi.Backup
 	Status    string
-	Storage   backend.Storage
+	Storages  map[string]backend.Storage
 }
 
 // NewService creates a backup service
-func NewService(backup backend.Backup, storage backend.Storage) *Service {
+func NewService(backup backend.Backup, storages map[string]backend.Storage) *Service {
 	return &Service{
-		Backup:  backup,
-		Status:  StatusWaiting,
-		States:  map[string]openapi.Backup{},
-		Storage: storage,
+		Backup:   backup,
+		Status:   StatusWaiting,
+		States:   map[string]openapi.Backup{},
+		Storages: storages,
 	}
 }
 
@@ -96,8 +96,9 @@ func (s *Service) GetBackups(apiKey string) (interface{}, int, error) {
 // runBackup is the routine that runs the backup
 func runBackup(b *Service, request openapi.BackupRequest, backup openapi.Backup) {
 	b.Backup.Run(fmt.Sprintf("%s.dmp", backup.Identifier))
-	b.Storage.Push(&request, fmt.Sprintf("%s.dmp", backup.Identifier))
-
+	st := request.Backend
+	if st == "" { st = "s3" }
+	b.Storages[request.Backend].Push(&request, fmt.Sprintf("%s.dmp", backup.Identifier))
 	b.M.Lock()
 	defer b.M.Unlock()
 	b.Status = StatusWaiting
