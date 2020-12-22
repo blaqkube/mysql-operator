@@ -68,7 +68,7 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			Message:            fmt.Sprintf("Cannot find pod %s-0; error: %v", user.Spec.Instance, err),
 			LastTransitionTime: t,
 		}
-		user.Status.LastCondition = "Failed"
+		user.Status.Reason = "Failed"
 		user.Status.Conditions = append(user.Status.Conditions, condition)
 		err = r.Client.Status().Update(context.TODO(), user)
 		if err != nil {
@@ -100,7 +100,7 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			Message:            fmt.Sprintf("Cannot create user %s, error: %v", u.Username, err),
 			LastTransitionTime: t,
 		}
-		user.Status.LastCondition = "Failed"
+		user.Status.Reason = "Failed"
 		user.Status.Conditions = append(user.Status.Conditions, condition)
 		err = r.Client.Status().Update(ctx, user)
 		if err != nil {
@@ -116,7 +116,7 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		Message:            fmt.Sprintf("User %s created", u.Username),
 		LastTransitionTime: t,
 	}
-	user.Status.LastCondition = "Failed"
+	user.Status.Reason = "Failed"
 	user.Status.Conditions = append(user.Status.Conditions, condition)
 	err = r.Client.Status().Update(ctx, user)
 	if err != nil {

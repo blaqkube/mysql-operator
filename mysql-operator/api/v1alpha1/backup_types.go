@@ -27,11 +27,15 @@ type BackupStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	Details *BackupDetails `json:"details,omitempty"`
-
-	// LastCondition provides informations about the current backup status
-	LastCondition string `json:"lastCondition,omitempty"`
-
-	// Conditions provides informations about the the last conditions
+	// Defines if the store can be considered as ready or not
+	Ready metav1.ConditionStatus `json:"ready,omitempty"`
+	// Defines if the store current Reason
+	Reason string `json:"reason,omitempty"`
+	// A human readable message indicating details about why the store is in
+	// this condition.
+	Message string `json:"message,omitempty"`
+	// A human readable message indicating details about why the store is in
+	// this condition.
 	Conditions []metav1.Condition `json:"Conditions,omitempty"`
 }
 

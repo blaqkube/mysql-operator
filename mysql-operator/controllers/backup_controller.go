@@ -52,7 +52,7 @@ func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-	if backup.Status.LastCondition != "" {
+	if backup.Status.Reason != "" {
 		return reconcile.Result{}, nil
 	}
 	// Check if this Pod already exists
@@ -67,7 +67,7 @@ func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			Message:            fmt.Sprintf("Cannot find pod %s-0; error: %v", backup.Spec.Instance, err),
 			LastTransitionTime: t,
 		}
-		backup.Status.LastCondition = "Failed"
+		backup.Status.Reason = "Failed"
 		backup.Status.Conditions = append(backup.Status.Conditions, condition)
 		err = r.Client.Status().Update(ctx, backup)
 		if err != nil {
@@ -86,7 +86,7 @@ func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			Message:            fmt.Sprintf("Error accessing store %s: %v", backup.Spec.Store, err),
 			LastTransitionTime: t,
 		}
-		backup.Status.LastCondition = "Failed"
+		backup.Status.Reason = "Failed"
 		backup.Status.Conditions = append(backup.Status.Conditions, condition)
 		err = r.Client.Status().Update(ctx, backup)
 		if err != nil {
@@ -120,7 +120,7 @@ func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			Message:            fmt.Sprintf("Error accessing api: %v", err),
 			LastTransitionTime: t,
 		}
-		backup.Status.LastCondition = "Failed"
+		backup.Status.Reason = "Failed"
 		backup.Status.Conditions = append(backup.Status.Conditions, condition)
 		err = r.Client.Status().Update(ctx, backup)
 		if err != nil {
@@ -140,7 +140,7 @@ func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		LastTransitionTime: t,
 	}
 
-	backup.Status.LastCondition = b.Status
+	backup.Status.Reason = b.Status
 	backup.Status.Conditions = append(backup.Status.Conditions, condition)
 	backup.Status.Details = &details
 	err = r.Client.Status().Update(context.TODO(), backup)
@@ -162,7 +162,7 @@ func (r *BackupReconciler) MonitorBackup(n types.NamespacedName, a *agent.MysqlA
 		log.Info(fmt.Sprintf("Error querying backup: %v", err))
 		return
 	}
-	log.Info(fmt.Sprintf("Starting to check for backup, current status %s", backup.Status.LastCondition))
+	log.Info(fmt.Sprintf("Starting to check for backup, current status %s", backup.Status.Reason))
 	for time.Now().Before(endTime) && !succeeded {
 		log.Info(fmt.Sprintf("Loop..."))
 		b, _, err := a.GetBackups(context.TODO(), nil)
@@ -170,10 +170,10 @@ func (r *BackupReconciler) MonitorBackup(n types.NamespacedName, a *agent.MysqlA
 			time.Sleep(2 * time.Second)
 			continue
 		}
-		lastCondition := backup.Status.LastCondition
-		if b.Items[0].Status != lastCondition {
+		reason := backup.Status.Reason
+		if b.Items[0].Status != reason {
 			t := metav1.Now()
-			backup.Status.LastCondition = b.Items[0].Status
+			backup.Status.Reason = b.Items[0].Status
 			condition := metav1.Condition{
 				Type:               "backup",
 				Status:             metav1.ConditionTrue,
@@ -183,10 +183,10 @@ func (r *BackupReconciler) MonitorBackup(n types.NamespacedName, a *agent.MysqlA
 			backup.Status.Conditions = append(backup.Status.Conditions, condition)
 			err = r.Client.Status().Update(context.TODO(), backup)
 			if err != nil {
-				backup.Status.LastCondition = lastCondition
+				backup.Status.Reason = reason
 			}
 		}
-		if backup.Status.LastCondition == "Available" || backup.Status.LastCondition == "Failed" {
+		if backup.Status.Reason == "Available" || backup.Status.Reason == "Failed" {
 			succeeded = true
 			break
 		}
@@ -194,7 +194,7 @@ func (r *BackupReconciler) MonitorBackup(n types.NamespacedName, a *agent.MysqlA
 	}
 	if !succeeded {
 		t := metav1.Now()
-		backup.Status.LastCondition = "Failed"
+		backup.Status.Reason = "Failed"
 		condition := metav1.Condition{
 			Type:               "backup",
 			Status:             metav1.ConditionTrue,

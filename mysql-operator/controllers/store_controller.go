@@ -36,6 +36,7 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	// TODO: Reconciler should be able to
 	// - detect a change in the ConfigMap or Secret and reload the associated data
 	// - Retry on regular basis in the event of a failure
+	// - Update databases status when store moves to success
 	var store mysqlv1alpha1.Store
 	if err := r.Get(ctx, req.NamespacedName, &store); err != nil {
 		log.Info("Unable to fetch store manifest from kubernetes")
@@ -53,13 +54,13 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 			Type:               "available",
 			Status:             metav1.ConditionUnknown,
 			LastTransitionTime: metav1.Now(),
-			Reason:             mysqlv1alpha1.StateCheckRequested,
+			Reason:             mysqlv1alpha1.StoreCheckRequested,
 			Message:            "A new check has been requested",
 		}
 		return sm.setStoreCondition(&store, condition)
 	}
 
-	if store.Status.Reason == mysqlv1alpha1.StateCheckRequested {
+	if store.Status.Reason == mysqlv1alpha1.StoreCheckRequested {
 		if store.Spec.Backend == nil || *store.Spec.Backend == "s3" {
 			store.Status.CheckRequested = false
 			envs, err := sm.GetEnvVars(store)
@@ -68,7 +69,7 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 					Type:               "available",
 					Status:             metav1.ConditionFalse,
 					LastTransitionTime: metav1.Now(),
-					Reason:             mysqlv1alpha1.StateCheckFailed,
+					Reason:             mysqlv1alpha1.StoreCheckFailed,
 					Message:            "Cannot access values for envs",
 				}
 				return sm.setStoreCondition(&store, condition)
@@ -83,7 +84,7 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 					Type:               "available",
 					Status:             metav1.ConditionFalse,
 					LastTransitionTime: metav1.Now(),
-					Reason:             mysqlv1alpha1.StateCheckFailed,
+					Reason:             mysqlv1alpha1.StoreCheckFailed,
 					Message:            fmt.Sprintf("Cannot initialize local file, error: %v", err),
 				}
 				return sm.setStoreCondition(&store, condition)
@@ -103,7 +104,7 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 					Type:               "available",
 					Status:             metav1.ConditionFalse,
 					LastTransitionTime: metav1.Now(),
-					Reason:             mysqlv1alpha1.StateCheckFailed,
+					Reason:             mysqlv1alpha1.StoreCheckFailed,
 					Message:            fmt.Sprintf("Cannot write to bucket, error: %v", err),
 				}
 				return sm.setStoreCondition(&store, condition)
@@ -112,7 +113,7 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 				Type:               "available",
 				Status:             metav1.ConditionTrue,
 				LastTransitionTime: metav1.Now(),
-				Reason:             mysqlv1alpha1.StateCheckSucceeded,
+				Reason:             mysqlv1alpha1.StoreCheckSucceeded,
 				Message:            "The check has succeeded",
 			}
 			return sm.setStoreCondition(&store, condition)
