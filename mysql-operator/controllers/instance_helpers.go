@@ -15,6 +15,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+const (
+	maxInstanceConditions = 10
+)
+
 // StatefulSetProperties defines the default agent and mysql versions
 type StatefulSetProperties struct {
 	AgentVersion string
@@ -33,7 +37,7 @@ func (im *InstanceManager) setInstanceCondition(instance *mysqlv1alpha1.Instance
 	instance.Status.Reason = condition.Reason
 	instance.Status.Message = condition.Message
 	conditions := append(instance.Status.Conditions, condition)
-	if len(conditions) > maxConditions {
+	if len(conditions) > maxInstanceConditions {
 		conditions = conditions[1:]
 	}
 	instance.Status.Conditions = conditions
