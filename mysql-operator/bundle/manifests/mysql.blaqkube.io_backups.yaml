@@ -42,7 +42,7 @@ spec:
             description: BackupStatus defines the observed state of Backup
             properties:
               Conditions:
-                description: Conditions provides informations about the the last conditions
+                description: A human readable message indicating details about why the store is in this condition.
                 items:
                   description: "Condition contains details for one aspect of the current state of this API Resource. --- This struct is intended for direct use as an array at the field path .status.conditions.  For example, type FooStatus struct{     // Represents the observations of a foo's current state.     // Known .status.conditions.type are: \"Available\", \"Progressing\", and \"Degraded\"     // +patchMergeKey=type     // +patchStrategy=merge     // +listType=map     // +listMapKey=type     Conditions []metav1.Condition `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"` \n     // other fields }"
                   properties:
@@ -94,8 +94,14 @@ spec:
                   location:
                     type: string
                 type: object
-              lastCondition:
-                description: LastCondition provides informations about the current backup status
+              message:
+                description: A human readable message indicating details about why the store is in this condition.
+                type: string
+              ready:
+                description: Defines if the store can be considered as ready or not
+                type: string
+              reason:
+                description: Defines if the store current Reason
                 type: string
             type: object
         type: object

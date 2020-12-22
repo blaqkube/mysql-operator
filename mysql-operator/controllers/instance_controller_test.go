@@ -94,11 +94,11 @@ var _ = Describe("Instance Controller", func() {
 		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
 		storeResponse := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
-		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckRequested), "Expected reconcile to change the status to Check")
+		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StoreCheckRequested), "Expected reconcile to change the status to Check")
 
 		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
 		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
-		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckSucceeded), "Expected reconcile to change the status to the result")
+		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StoreCheckSucceeded), "Expected reconcile to change the status to the result")
 
 		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
 
@@ -223,11 +223,11 @@ var _ = Describe("Instance Controller", func() {
 		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
 		storeResponse := mysqlv1alpha1.Store{}
 		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
-		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckRequested), "Expected reconcile to change the status to Check")
+		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StoreCheckRequested), "Expected reconcile to change the status to Check")
 
 		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
 		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
-		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckSucceeded), "Expected reconcile to change the status to the result")
+		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StoreCheckSucceeded), "Expected reconcile to change the status to the result")
 
 		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
 

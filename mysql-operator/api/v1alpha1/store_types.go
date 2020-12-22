@@ -10,14 +10,14 @@ import (
 // for the fields to be serialized.
 
 const (
-	// StateCheckRequested specifies a state check request
-	StateCheckRequested = "CheckRequested"
+	// StoreCheckRequested specifies a state check request
+	StoreCheckRequested = "CheckRequested"
 
-	// StateCheckSucceeded shows the last state check has passed
-	StateCheckSucceeded = "CheckSucceeded"
+	// StoreCheckSucceeded shows the last state check has passed
+	StoreCheckSucceeded = "CheckSucceeded"
 
-	// StateCheckFailed shows the last state check has failed
-	StateCheckFailed = "CheckFailed"
+	// StoreCheckFailed shows the last state check has failed
+	StoreCheckFailed = "CheckFailed"
 )
 
 // EnvVar represents an environment variable present in a store.
