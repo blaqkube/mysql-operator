@@ -6,6 +6,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 
+	"github.com/blaqkube/mysql-operator/agent/backend"
 	bmock "github.com/blaqkube/mysql-operator/agent/backend/mock"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	"github.com/stretchr/testify/assert"
@@ -23,11 +24,14 @@ type Suite struct {
 func (s *Suite) SetupSuite() {
 	var err error
 	s.db, s.mock, err = sqlmock.New()
-	storage := bmock.NewStorage()
+	storages := map[string]backend.Storage{
+		"s3":        bmock.NewStorage(),
+		"blackhole": bmock.NewStorage(),
+	}
 	backup := bmock.NewBackup()
 	require.NoError(s.T(), err)
 
-	s.testService = NewMysqlAPIController(s.db, backup, storage)
+	s.testService = NewMysqlAPIController(s.db, backup, storages)
 }
 
 func (s *Suite) Test_Routes() {

@@ -12,6 +12,7 @@ package agent
 
 // BackupRequest struct for BackupRequest
 type BackupRequest struct {
+	Backend  string   `json:"backend,omitempty"`
 	Bucket   string   `json:"bucket"`
 	Location string   `json:"location,omitempty"`
 	Envs     []EnvVar `json:"envs,omitempty"`

@@ -28,7 +28,7 @@ type Backend struct {
 	Backup   backend.Backup
 	DB       *sql.DB
 	Instance backend.Instance
-	Storage  backend.Storage
+	Storages  map[string]backend.Storage
 }
 
 var resources *Backend
@@ -38,13 +38,13 @@ func Execute(
 	backup backend.Backup,
 	db *sql.DB,
 	instance backend.Instance,
-	storage backend.Storage,
+	storages map[string]backend.Storage,
 ) {
 	resources = &Backend{
 		Backup:   backup,
 		DB:       db,
 		Instance: instance,
-		Storage:  storage,
+		Storages:  storages,
 	}
 
 	if err := rootCmd.Execute(); err != nil {

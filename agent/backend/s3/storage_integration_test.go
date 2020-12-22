@@ -56,7 +56,7 @@ func deleteFile(filename string) error {
 func (s *StorageSuite) TestS3Success() {
 	_ = godotenv.Load()
 
-	b := openapi.Backup{
+	b := openapi.BackupRequest{
 		Bucket:   os.Getenv("BACKUP_BUCKET"),
 		Location: os.Getenv("BACKUP_LOCATION"),
 		Envs: []openapi.EnvVar{
@@ -120,7 +120,7 @@ func (s *StorageSuite) TestFailed() {
 		},
 	}
 
-	c := openapi.Backup{
+	c := openapi.BackupRequest{
 		Bucket:   os.Getenv("BACKUP_BUCKET"),
 		Location: os.Getenv("BACKUP_LOCATION"),
 		Envs: []openapi.EnvVar{

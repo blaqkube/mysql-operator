@@ -371,12 +371,18 @@ components:
       type: object
     BackupRequest:
       example:
+        backend: s3
         bucket: backup.blaqkube.io
         location: /blue/mybackup.dmp
         env:
         - name: AWS_REGION
           value: eu-west-1
       properties:
+        backend:
+          enum:
+          - s3
+          - blackhole
+          type: string
         bucket:
           type: string
         location:

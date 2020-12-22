@@ -41,8 +41,9 @@ func TestCreateBackupSuccess(t *testing.T) {
 
 	next := openapi.NewRouter(c)
 	b := openapi.BackupRequest{
-		Location:  "s3://bucket/loc/backup-1.dmp",
-		Bucket:  "bucket",
+		Backend:  "s3",
+		Location: "/bucket/loc/backup-1.dmp",
+		Bucket:   "bucket",
 	}
 	data, err := json.Marshal(&b)
 
