@@ -23,9 +23,9 @@ import (
 )
 
 const (
-	statusSucceed  = "succeed"
-	statusWithKeys = "keys"
-	statusFailS3   = "fail/s3"
+	storeMockStatusSucceed  = "succeed"
+	storeMockStatusWithKeys = "keys"
+	storeMockStatusFailS3   = "fail/s3"
 )
 
 // NewStorage takes a S3 connection and creates a default storage
@@ -44,9 +44,9 @@ type Storage struct {
 // Push pushes a file
 func (s *Storage) Push(backup *openapi.BackupRequest, filename string) error {
 	switch s.Status {
-	case statusFailS3:
+	case storeMockStatusFailS3:
 		return errors.New("WriteFailure")
-	case statusWithKeys:
+	case storeMockStatusWithKeys:
 		count := 0
 		for _, v := range backup.Envs {
 			if (v.Name == "AWS_ACCESS_KEY_ID" && v.Value == "AKIA") ||
@@ -79,11 +79,11 @@ var _ = Describe("Store Controller", func() {
 
 		tests := []map[string]string{
 			{
-				"status": statusSucceed,
+				"status": storeMockStatusSucceed,
 				"result": mysqlv1alpha1.StateCheckSucceeded,
 			},
 			{
-				"status": statusFailS3,
+				"status": storeMockStatusFailS3,
 				"result": mysqlv1alpha1.StateCheckFailed,
 			},
 		}
@@ -183,7 +183,7 @@ var _ = Describe("Store Controller", func() {
 			Client:  k8sClient,
 			Log:     zapr.NewLogger(zapLog),
 			Scheme:  scheme.Scheme,
-			Storage: NewStorage(statusWithKeys),
+			Storage: NewStorage(storeMockStatusWithKeys),
 		}
 
 		Expect(k8sClient.Create(ctx, &secret)).To(Succeed())
@@ -260,7 +260,7 @@ var _ = Describe("Store Controller", func() {
 			Client:  k8sClient,
 			Log:     zapr.NewLogger(zapLog),
 			Scheme:  scheme.Scheme,
-			Storage: NewStorage(statusWithKeys),
+			Storage: NewStorage(storeMockStatusWithKeys),
 		}
 
 		Expect(k8sClient.Create(ctx, &secret)).To(Succeed())
@@ -321,7 +321,7 @@ var _ = Describe("Store Controller", func() {
 			Client:  k8sClient,
 			Log:     zapr.NewLogger(zapLog),
 			Scheme:  scheme.Scheme,
-			Storage: NewStorage(statusWithKeys),
+			Storage: NewStorage(storeMockStatusWithKeys),
 		}
 
 		Expect(k8sClient.Create(ctx, &secret)).To(Succeed())

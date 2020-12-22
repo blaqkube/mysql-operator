@@ -89,7 +89,7 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		location = instance.Spec.Restore.Location
 		NamespacedStore := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Spec.Restore.Store}
 		if err := r.Get(ctx, NamespacedStore, store); err != nil {
-			log.Error(err, "Unable to fetch store", "store", store.Name)
+			log.Info(fmt.Sprintf("Unable to fetch store, error: %v", err), "store", store.Name)
 			condition := metav1.Condition{
 				Type:               "available",
 				Status:             metav1.ConditionFalse,
