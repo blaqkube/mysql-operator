@@ -8,6 +8,7 @@ import (
 	"github.com/go-logr/zapr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -18,12 +19,12 @@ import (
 )
 
 var _ = Describe("Instance Controller", func() {
-	It("Instance Okay", func() {
+	It("Create instance without any restore", func() {
 		ctx := context.Background()
 		instance := mysqlv1alpha1.Instance{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test-mysql1",
-				Namespace: "default",
+				GenerateName: "test-mysql1",
+				Namespace:    "default",
 			},
 			Spec: mysqlv1alpha1.InstanceSpec{
 				Database: "me",
@@ -32,123 +33,210 @@ var _ = Describe("Instance Controller", func() {
 
 		Expect(k8sClient.Create(ctx, &instance)).To(Succeed())
 
-		name := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name}
+		instanceName := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name}
 
 		zapLog, _ := zap.NewDevelopment()
 		reconcile := &InstanceReconciler{
 			Client: k8sClient,
 			Log:    zapr.NewLogger(zapLog),
 			Scheme: scheme.Scheme,
-			Properties: StatefulSetProperties{
+			Properties: &StatefulSetProperties{
 				AgentVersion: "latest",
 				MySQLVersion: "8.0.22",
 			},
 		}
-		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
 
 		response := mysqlv1alpha1.Instance{}
-		Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-		Expect("Success").To(Equal(response.Status.LastCondition), "Expected reconcile to change the status to Success")
+		Expect(k8sClient.Get(ctx, instanceName, &response)).To(Succeed())
+		Expect(mysqlv1alpha1.InstanceExporterSecretCreated).
+			To(Equal(response.Status.Reason), "Expected reconcile to change the status to ExporterSecretCreated")
+
+		secret := corev1.Secret{}
+		secretName := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name + "-exporter"}
+		Expect(k8sClient.Get(ctx, secretName, &secret)).To(Succeed())
+		Expect("[client]\nuser=exporter\npassword=exporter\nhost=localhost\n").
+			To(Equal(string(secret.Data[".my.cnf"])), "Data should match")
+
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
+
+		response = mysqlv1alpha1.Instance{}
+		Expect(k8sClient.Get(ctx, instanceName, &response)).To(Succeed())
+		Expect(mysqlv1alpha1.InstanceStatefulSetCreated).
+			To(Equal(response.Status.Reason), "Expected reconcile to change the status to StatefulSetCreated")
 	})
 
-	// It("Instance with existing Store", func() {
-	// 	ctx := context.Background()
-	// 	instance := mysqlv1alpha1.Instance{
-	// 		ObjectMeta: metav1.ObjectMeta{
-	// 			Name:      "test-mysql2",
-	// 			Namespace: "default",
-	// 		},
-	// 		Spec: mysqlv1alpha1.InstanceSpec{
-	// 			Database: "me",
-	// 			Restore: mysqlv1alpha1.RestoreSpec{
-	// 				Store: "existing-store",
-	// 			},
-	// 		},
-	// 	}
+	It("Create an Instance with a Store", func() {
 
-	// 	store := mysqlv1alpha1.Store{
-	// 		ObjectMeta: metav1.ObjectMeta{
-	// 			Name:      "existing-store",
-	// 			Namespace: "default",
-	// 		},
-	// 		Spec: mysqlv1alpha1.StoreSpec{
-	// 			Bucket: "pong",
-	// 		},
-	// 	}
+		ctx := context.TODO()
 
-	// 	Expect(k8sClient.Create(ctx, &store)).To(Succeed())
+		store := mysqlv1alpha1.Store{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: "store-",
+				Namespace:    "default",
+			},
+			Spec: mysqlv1alpha1.StoreSpec{
+				Bucket: "pong",
+			},
+		}
 
-	// 	storeName := types.NamespacedName{Namespace: store.Namespace, Name: store.Name}
+		zapLog, _ := zap.NewDevelopment()
+		storeReconcile := &StoreReconciler{
+			Client:  k8sClient,
+			Log:     zapr.NewLogger(zapLog),
+			Scheme:  scheme.Scheme,
+			Storage: NewStorage(storeMockStatusSucceed),
+		}
 
-	// 	zapLog, _ := zap.NewDevelopment()
-	// 	storeReconcile := &StoreReconciler{
-	// 		Client: k8sClient,
-	// 		Log:    zapr.NewLogger(zapLog),
-	// 		Scheme: scheme.Scheme,
-	// 	}
-	// 	Expect(storeReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: true}))
+		Expect(k8sClient.Create(ctx, &store)).To(Succeed())
 
-	// 	storeResponse := mysqlv1alpha1.Store{}
-	// 	Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
-	// 	Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckRequested), "Expected reconcile to change the status to Check")
+		storeName := types.NamespacedName{Namespace: store.Namespace, Name: store.Name}
+		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
+		storeResponse := mysqlv1alpha1.Store{}
+		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
+		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckRequested), "Expected reconcile to change the status to Check")
 
-	// 	Expect(storeReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{}))
-	// 	Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
-	// 	Expect(storeResponse.Status.Reason).To(Equal("Success"), "Expected reconcile to change the status to Success")
+		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
+		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
+		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckSucceeded), "Expected reconcile to change the status to the result")
 
-	// 	Expect(k8sClient.Create(ctx, &instance)).To(Succeed())
+		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
 
-	// 	name := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name}
+		instance := mysqlv1alpha1.Instance{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: "instance-",
+				Namespace:    "default",
+			},
+			Spec: mysqlv1alpha1.InstanceSpec{
+				Database: "me",
+				Restore: mysqlv1alpha1.RestoreSpec{
+					Store:    store.Name,
+					Location: "/location/backup01.sql",
+				},
+			},
+		}
+		Expect(k8sClient.Create(ctx, &instance)).To(Succeed())
 
-	// 	instanceReconcile := &InstanceReconciler{
-	// 		Client: k8sClient,
-	// 		Log:    zapr.NewLogger(zapLog),
-	// 		Scheme: scheme.Scheme,
-	// 		Properties: StatefulSetProperties{
-	// 			AgentVersion: "",
-	// 			MySQLVersion: "",
-	// 		},
-	// 	}
-	// 	Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{}))
+		instanceName := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name}
 
-	// 	instanceResponse := mysqlv1alpha1.Instance{}
-	// 	Expect(k8sClient.Get(ctx, name, &instanceResponse)).To(Succeed())
-	// 	Expect("Success").To(Equal(instanceResponse.Status.LastCondition), "Expected reconcile to change the status to Scheduling")
-	// })
+		instanceReconcile := &InstanceReconciler{
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
+			Properties: &StatefulSetProperties{
+				AgentVersion: "latest",
+				MySQLVersion: "8.0.22",
+			},
+		}
+		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
 
-	// It("Instance with Unexisting Store", func() {
-	// 	ctx := context.Background()
-	// 	instance := mysqlv1alpha1.Instance{
-	// 		ObjectMeta: metav1.ObjectMeta{
-	// 			GenerateName: "test-mysql3",
-	// 			Namespace:    "default",
-	// 		},
-	// 		Spec: mysqlv1alpha1.InstanceSpec{
-	// 			Database: "me",
-	// 			Restore: mysqlv1alpha1.RestoreSpec{
-	// 				Store: "missing-store",
-	// 			},
-	// 		},
-	// 	}
+		instanceResponse := mysqlv1alpha1.Instance{}
+		Expect(k8sClient.Get(ctx, instanceName, &instanceResponse)).To(Succeed())
+		Expect(mysqlv1alpha1.InstanceExporterSecretCreated).
+			To(Equal(instanceResponse.Status.Reason), "Expected reconcile to change the status to ExporterSecretCreated")
 
-	// 	Expect(k8sClient.Create(ctx, &instance)).To(Succeed())
+		secret := corev1.Secret{}
+		secretName := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name + "-exporter"}
+		Expect(k8sClient.Get(ctx, secretName, &secret)).To(Succeed())
+		Expect("[client]\nuser=exporter\npassword=exporter\nhost=localhost\n").
+			To(Equal(string(secret.Data[".my.cnf"])), "Data should match")
 
-	// 	name := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name}
+		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
 
-	// 	zapLog, _ := zap.NewDevelopment()
-	// 	reconcile := &InstanceReconciler{
-	// 		Client: k8sClient,
-	// 		Log:    zapr.NewLogger(zapLog),
-	// 		Scheme: scheme.Scheme,
-	// 		Properties: StatefulSetProperties{
-	// 			AgentVersion: "",
-	// 			MySQLVersion: "",
-	// 		},
-	// 	}
-	// 	Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: name})).To(Equal(ctrl.Result{Requeue: true, RequeueAfter: time.Duration(30 * time.Second)}))
+		instanceResponse = mysqlv1alpha1.Instance{}
+		Expect(k8sClient.Get(ctx, instanceName, &instanceResponse)).To(Succeed())
+		Expect(mysqlv1alpha1.InstanceStatefulSetCreated).
+			To(Equal(instanceResponse.Status.Reason), "Expected reconcile to change the status to StatefulSetCreated")
+	})
 
-	// 	response := mysqlv1alpha1.Instance{}
-	// 	Expect(k8sClient.Get(ctx, name, &response)).To(Succeed())
-	// 	Expect("Waiting for store").To(Equal(response.Status.LastCondition), "Expected reconcile to change the status to Scheduling")
-	// })
+	It("Create an Instance with later Store", func() {
+
+		storeName := types.NamespacedName{Namespace: "default", Name: "store-later-1"}
+		ctx := context.TODO()
+		zapLog, _ := zap.NewDevelopment()
+
+		instance := mysqlv1alpha1.Instance{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: "instance-",
+				Namespace:    "default",
+			},
+			Spec: mysqlv1alpha1.InstanceSpec{
+				Database: "me",
+				Restore: mysqlv1alpha1.RestoreSpec{
+					Store:    storeName.Name,
+					Location: "/location/backup01.sql",
+				},
+			},
+		}
+		Expect(k8sClient.Create(ctx, &instance)).To(Succeed())
+
+		instanceName := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name}
+
+		instanceReconcile := &InstanceReconciler{
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
+			Properties: &StatefulSetProperties{
+				AgentVersion: "latest",
+				MySQLVersion: "8.0.22",
+			},
+		}
+		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
+
+		instanceResponse := mysqlv1alpha1.Instance{}
+		Expect(k8sClient.Get(ctx, instanceName, &instanceResponse)).To(Succeed())
+		Expect(mysqlv1alpha1.InstanceExporterSecretCreated).
+			To(Equal(instanceResponse.Status.Reason), "Expected reconcile to change the status to ExporterSecretCreated")
+
+		secret := corev1.Secret{}
+		secretName := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name + "-exporter"}
+		Expect(k8sClient.Get(ctx, secretName, &secret)).To(Succeed())
+		Expect("[client]\nuser=exporter\npassword=exporter\nhost=localhost\n").
+			To(Equal(string(secret.Data[".my.cnf"])), "Data should match")
+
+		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
+
+		instanceResponse = mysqlv1alpha1.Instance{}
+		Expect(k8sClient.Get(ctx, instanceName, &instanceResponse)).To(Succeed())
+		Expect(mysqlv1alpha1.InstanceStoreInaccessible).
+			To(Equal(instanceResponse.Status.Reason), "Expected reconcile to change the status to StatefulSetCreated")
+
+		store := mysqlv1alpha1.Store{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      storeName.Name,
+				Namespace: storeName.Namespace,
+			},
+			Spec: mysqlv1alpha1.StoreSpec{
+				Bucket: "pong",
+			},
+		}
+
+		storeReconcile := &StoreReconciler{
+			Client:  k8sClient,
+			Log:     zapr.NewLogger(zapLog),
+			Scheme:  scheme.Scheme,
+			Storage: NewStorage(storeMockStatusSucceed),
+		}
+
+		Expect(k8sClient.Create(ctx, &store)).To(Succeed())
+
+		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
+		storeResponse := mysqlv1alpha1.Store{}
+		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
+		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckRequested), "Expected reconcile to change the status to Check")
+
+		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
+		Expect(k8sClient.Get(ctx, storeName, &storeResponse)).To(Succeed())
+		Expect(storeResponse.Status.Reason).To(Equal(mysqlv1alpha1.StateCheckSucceeded), "Expected reconcile to change the status to the result")
+
+		Expect(storeReconcile.Reconcile(ctx, ctrl.Request{NamespacedName: storeName})).To(Equal(ctrl.Result{Requeue: false}))
+
+		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
+
+		instanceResponse = mysqlv1alpha1.Instance{}
+		Expect(k8sClient.Get(ctx, instanceName, &instanceResponse)).To(Succeed())
+		Expect(mysqlv1alpha1.InstanceStatefulSetCreated).
+			To(Equal(instanceResponse.Status.Reason), "Expected reconcile to change the status to StatefulSetCreated")
+	})
+
 })

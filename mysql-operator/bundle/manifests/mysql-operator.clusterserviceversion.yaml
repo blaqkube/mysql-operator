@@ -63,8 +63,7 @@ metadata:
                 "value": "eu-west-1"
               }
             ],
-            "location": "/backup/instance-sample/backup-123.dmp",
-            "s3_backup": null
+            "prefix": "/backup/instance-sample/backup-123.dmp"
           }
         },
         {
@@ -142,8 +141,24 @@ spec:
           resources:
           - secrets
           verbs:
+          - create
+          - delete
           - get
           - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - apps
+          resources:
+          - statefulsets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
           - watch
         - apiGroups:
           - mysql.blaqkube.io

@@ -8,11 +8,36 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+const (
+	// InstanceInitializing instance creation has been requested
+	InstanceInitializing = "Initializing"
+	// InstanceExporterSecretInaccessible the secret for the exporter could not be accessed
+	InstanceExporterSecretInaccessible = "ExporterSecretInaccessible"
+	// InstanceExporterSecretCreated the secret for the exporter has been created
+	InstanceExporterSecretCreated = "ExporterSecretCreated"
+	// InstanceExporterSecretDeleted the secret for the exporter has been deleted
+	InstanceExporterSecretDeleted = "ExporterSecretDeleted"
+	// InstanceExporterSecretFailed the secret for the exporter could not be created
+	InstanceExporterSecretFailed = "ExporterSecretFailed"
+	// InstanceStoreInaccessible the store cannot be accessed
+	InstanceStoreInaccessible = "StoreInaccessible"
+	// InstanceStatefulSetInaccessible the store cannot be accessed
+	InstanceStatefulSetInaccessible = "StatefulSetInaccessible"
+	// InstanceStatefulSetFailed the statefulset could not be created
+	InstanceStatefulSetFailed = "StatefulSetFailed"
+	// InstanceStatefulSetCreated the statefulset has been successfully created
+	InstanceStatefulSetCreated = "StatefulSetCreated"
+	// InstanceStatefulSetWaiting the statefulset is not yet reported as ready
+	InstanceStatefulSetWaiting = "StatefulSetWaitingForReady"
+	// InstanceStatefulSetReady the statefulset is ready
+	InstanceStatefulSetReady = "StatefulSetReady"
+)
+
 // RestoreSpec defines the backup location when create a instance with a restore
 type RestoreSpec struct {
 	Store string `json:"store,omitempty"`
 
-	FilePath string `json:"filePath,omitempty"`
+	Location string `json:"location,omitempty"`
 }
 
 // InstanceSpec defines the desired state of Instance
@@ -31,11 +56,17 @@ type InstanceSpec struct {
 type InstanceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	// StatefulSet keeps track of the instance Statefulset
 	StatefulSet corev1.ObjectReference `json:"statefulset,omitempty"`
-
-	// LastCondition provides informations about the current instance status
-	LastCondition string `json:"lastCondition,omitempty"`
-
+	// ExporterSecret keeps track of the secret used for the exporter
+	ExporterSecret corev1.ObjectReference `json:"exporter,omitempty"`
+	// Defines if the instance is ready
+	Ready metav1.ConditionStatus `json:"ready,omitempty"`
+	// Defines if the store current Reason
+	Reason string `json:"reason,omitempty"`
+	// A human readable message indicating details about why the store is in
+	// this condition.
+	Message string `json:"message,omitempty"`
 	// Conditions provides informations about the the last conditions
 	Conditions []metav1.Condition `json:"Conditions,omitempty"`
 }
