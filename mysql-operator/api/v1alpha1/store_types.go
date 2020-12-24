@@ -48,6 +48,7 @@ type StoreSpec struct {
 	// Defines the type of backend to be used for the store. For now on, only
 	// s3 is supported (default: s3)
 	// +kubebuilder:validation:Enum=s3
+	// +kubebuilder:validation:Enum=blackhole
 	Backend *string `json:"backend,omitempty"`
 	// the store bucket
 	Bucket string `json:"bucket"`

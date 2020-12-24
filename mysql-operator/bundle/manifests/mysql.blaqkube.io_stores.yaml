@@ -33,7 +33,7 @@ spec:
               backend:
                 description: 'Defines the type of backend to be used for the store. For now on, only s3 is supported (default: s3)'
                 enum:
-                - s3
+                - blackhole
                 type: string
               bucket:
                 description: the store bucket
