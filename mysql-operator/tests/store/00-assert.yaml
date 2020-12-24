@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: squid
+  namespace: default
+status:
+  ready: true
