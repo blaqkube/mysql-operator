@@ -1,7 +1,7 @@
-apiVersion: v1
-kind: Pod
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Store
 metadata:
-  name: squid
+  name: store1
   namespace: default
 status:
-  ready: true
+  reason: "CheckSucceeded"
