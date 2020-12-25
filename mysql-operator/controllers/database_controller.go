@@ -29,6 +29,7 @@ type DatabaseReconciler struct {
 // Reconcile implement the reconciliation loop for databases
 func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("database", req.NamespacedName)
+	log.Info("Running a reconcile loop")
 
 	// your logic here
 	database := &mysqlv1alpha1.Database{}

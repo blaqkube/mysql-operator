@@ -32,8 +32,7 @@ type UserReconciler struct {
 // Reconcile implement the reconciliation loop for users
 func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("user", req.NamespacedName)
-
-	log.Info("Reconciling User")
+	log.Info("Running a reconcile loop")
 
 	// Fetch the User instance
 	user := &mysqlv1alpha1.User{}

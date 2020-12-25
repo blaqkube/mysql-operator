@@ -38,6 +38,7 @@ type InstanceReconciler struct {
 // Reconcile implement the reconciliation loop for instances
 func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("instance", req.NamespacedName)
+	log.Info("Running a reconcile loop")
 
 	// TODO: Reconciler should be able to
 	// - detect changes on the store when it is needed and start the instance accordingly

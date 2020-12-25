@@ -38,7 +38,8 @@ type BackupReconciler struct {
 // Reconcile implement the reconciliation loop for backups
 func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("backup", req.NamespacedName)
-	log.Info("Reconciling Backup")
+	log.Info("Running a reconcile loop")
+
 	// your logic here
 	backup := &mysqlv1alpha1.Backup{}
 	err := r.Client.Get(ctx, req.NamespacedName, backup)

@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/blaqkube/mysql-operator/agent/backend"
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
@@ -82,10 +83,13 @@ var _ = Describe("Instance Controller", func() {
 
 		zapLog, _ := zap.NewDevelopment()
 		storeReconcile := &StoreReconciler{
-			Client:  k8sClient,
-			Log:     zapr.NewLogger(zapLog),
-			Scheme:  scheme.Scheme,
-			Storage: NewStorage(storeMockStatusSucceed),
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
+			Storages: map[string]backend.Storage{
+				"s3":        NewStorage(storeMockStatusSucceed),
+				"blackhole": NewStorage(storeMockStatusSucceed),
+			},
 		}
 
 		Expect(k8sClient.Create(ctx, &store)).To(Succeed())
@@ -212,10 +216,13 @@ var _ = Describe("Instance Controller", func() {
 		}
 
 		storeReconcile := &StoreReconciler{
-			Client:  k8sClient,
-			Log:     zapr.NewLogger(zapLog),
-			Scheme:  scheme.Scheme,
-			Storage: NewStorage(storeMockStatusSucceed),
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
+			Storages: map[string]backend.Storage{
+				"s3":        NewStorage(storeMockStatusSucceed),
+				"blackhole": NewStorage(storeMockStatusSucceed),
+			},
 		}
 
 		Expect(k8sClient.Create(ctx, &store)).To(Succeed())

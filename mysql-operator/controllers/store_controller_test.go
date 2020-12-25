@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/blaqkube/mysql-operator/agent/backend"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	"github.com/stretchr/testify/mock"
 
@@ -101,10 +102,13 @@ var _ = Describe("Store Controller", func() {
 
 			zapLog, _ := zap.NewDevelopment()
 			reconcile := &StoreReconciler{
-				Client:  k8sClient,
-				Log:     zapr.NewLogger(zapLog),
-				Scheme:  scheme.Scheme,
-				Storage: NewStorage(test["status"]),
+				Client: k8sClient,
+				Log:    zapr.NewLogger(zapLog),
+				Scheme: scheme.Scheme,
+				Storages: map[string]backend.Storage{
+					"s3":        NewStorage(test["status"]),
+					"blackhole": NewStorage(test["status"]),
+				},
 			}
 
 			Expect(k8sClient.Create(ctx, &store)).To(Succeed())
@@ -180,10 +184,13 @@ var _ = Describe("Store Controller", func() {
 
 		zapLog, _ := zap.NewDevelopment()
 		reconcile := &StoreReconciler{
-			Client:  k8sClient,
-			Log:     zapr.NewLogger(zapLog),
-			Scheme:  scheme.Scheme,
-			Storage: NewStorage(storeMockStatusWithKeys),
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
+			Storages: map[string]backend.Storage{
+				"s3":        NewStorage(storeMockStatusWithKeys),
+				"blackhole": NewStorage(storeMockStatusWithKeys),
+			},
 		}
 
 		Expect(k8sClient.Create(ctx, &secret)).To(Succeed())
@@ -257,10 +264,13 @@ var _ = Describe("Store Controller", func() {
 
 		zapLog, _ := zap.NewDevelopment()
 		reconcile := &StoreReconciler{
-			Client:  k8sClient,
-			Log:     zapr.NewLogger(zapLog),
-			Scheme:  scheme.Scheme,
-			Storage: NewStorage(storeMockStatusWithKeys),
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
+			Storages: map[string]backend.Storage{
+				"s3":        NewStorage(storeMockStatusWithKeys),
+				"blackhole": NewStorage(storeMockStatusWithKeys),
+			},
 		}
 
 		Expect(k8sClient.Create(ctx, &secret)).To(Succeed())
@@ -318,10 +328,13 @@ var _ = Describe("Store Controller", func() {
 
 		zapLog, _ := zap.NewDevelopment()
 		reconcile := &StoreReconciler{
-			Client:  k8sClient,
-			Log:     zapr.NewLogger(zapLog),
-			Scheme:  scheme.Scheme,
-			Storage: NewStorage(storeMockStatusWithKeys),
+			Client: k8sClient,
+			Log:    zapr.NewLogger(zapLog),
+			Scheme: scheme.Scheme,
+			Storages: map[string]backend.Storage{
+				"s3":        NewStorage(storeMockStatusWithKeys),
+				"blackhole": NewStorage(storeMockStatusWithKeys),
+			},
 		}
 
 		Expect(k8sClient.Create(ctx, &secret)).To(Succeed())
