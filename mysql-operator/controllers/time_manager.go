@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -34,7 +33,6 @@ func NewTimeManager() *TimeManager {
 // Next returns the next duration based on the first time
 func (t *TimeManager) Next(c time.Time) time.Duration {
 	d := time.Now().Sub(c)
-	fmt.Println(d)
 	overall := 1 * time.Second
 	result := 1 * time.Second
 	if t != nil {
