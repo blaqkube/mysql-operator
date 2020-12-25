@@ -3,4 +3,5 @@ kind: Instance
 metadata:
   name: instance1
 status:
-  Reason: StatefulSetReady
+  ready: "True"
+  reason: StatefulSetReady
