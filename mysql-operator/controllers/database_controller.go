@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -22,6 +24,7 @@ type DatabaseReconciler struct {
 }
 
 // +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
+// +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=instances,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=databases,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=databases/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=databases/finalizers,verbs=update
@@ -33,11 +36,8 @@ func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	// your logic here
 	database := &mysqlv1alpha1.Database{}
-	if err := r.Client.Get(ctx, req.NamespacedName, database); err != nil {
-		log.Info("Unable to fetch database manifest")
-		if client.IgnoreNotFound(err) != nil {
-			log.Error(err, "Error with accessing database manifest")
-		}
+	if err := r.Get(ctx, req.NamespacedName, database); err != nil {
+		log.Info("Unable to fetch database from kubernetes")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -49,6 +49,32 @@ func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		Context:     ctx,
 		Reconciler:  r,
 		TimeManager: NewTimeManager(),
+	}
+
+	instance := &mysqlv1alpha1.Instance{}
+	instanceName := types.NamespacedName{Name: database.Spec.Instance, Namespace: database.Namespace}
+	if err := r.Get(ctx, instanceName, instance); err != nil {
+		log.Info("Unable to fetch instance from kubernetes, err: %s", err)
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionFalse,
+			LastTransitionTime: metav1.Now(),
+			Reason:             mysqlv1alpha1.DatabaseInstanceAccessError,
+			Message:            "Could not find the instance",
+		}
+		return dm.setDatabaseCondition(database, condition)
+	}
+
+	if instance.Status.Reason != mysqlv1alpha1.InstanceStatefulSetReady {
+		log.Info("Instance is not ready yet")
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionFalse,
+			LastTransitionTime: metav1.Now(),
+			Reason:             mysqlv1alpha1.DatabaseInstanceNotReady,
+			Message:            "Could not find the instance",
+		}
+		return dm.setDatabaseCondition(database, condition)
 	}
 
 	err := dm.CreateDatabase(database)

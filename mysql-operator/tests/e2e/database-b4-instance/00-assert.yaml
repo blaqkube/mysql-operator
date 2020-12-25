@@ -1,0 +1,6 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Database
+metadata:
+  name: instance1-red
+status:
+  reason: AgentNotFound
