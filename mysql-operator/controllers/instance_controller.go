@@ -40,9 +40,6 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	log := r.Log.WithValues("instance", req.NamespacedName)
 	log.Info("Running a reconcile loop")
 
-	// TODO: Reconciler should be able to
-	// - detect changes on the store when it is needed and start the instance accordingly
-	// - manage an update on the sts or on the properties
 	instance := &mysqlv1alpha1.Instance{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		log.Info("Unable to fetch instance from kubernetes")
@@ -69,8 +66,7 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err != nil {
 		return im.createExporterSecret(instance)
 	}
-	if secret.UID != instance.Status.ExporterSecret.UID ||
-		secret.ResourceVersion != instance.Status.ExporterSecret.ResourceVersion {
+	if secret.UID != instance.Status.ExporterSecret.UID {
 		im.deleteExporterSecret(instance, secret)
 	}
 
@@ -85,6 +81,7 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		return im.setInstanceCondition(instance, condition)
 	}
+	// TODO: detect changes on the store when it is needed and start the instance accordingly
 	store := &mysqlv1alpha1.Store{}
 	location := ""
 	if instance.Spec.Restore.Store != "" {
@@ -116,18 +113,16 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if stsErr != nil {
 		return im.createStatefulSet(instance, store, location)
 	}
-	if sts.UID != instance.Status.StatefulSet.UID ||
-		sts.ResourceVersion != instance.Status.StatefulSet.ResourceVersion {
+	// TODO: Check the StatefulSet matches the requirements
+	if sts.UID != instance.Status.StatefulSet.UID {
 		condition := metav1.Condition{
 			Type:               "available",
 			Status:             metav1.ConditionFalse,
 			LastTransitionTime: metav1.Now(),
 			Reason:             mysqlv1alpha1.InstanceStatefulSetUpdated,
-			Message: fmt.Sprintf("The statefulset updated current(%s:%s) referenced (%s:%s)",
+			Message: fmt.Sprintf("The statefulset has been updated %s from %s",
 				sts.UID,
 				sts.ResourceVersion,
-				instance.Status.StatefulSet.UID,
-				instance.Status.StatefulSet.ResourceVersion,
 			),
 		}
 		return im.setInstanceCondition(instance, condition)

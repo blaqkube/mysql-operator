@@ -1,6 +1,6 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
-kind: Pod
+kind: Instance
 metadata:
-  name: instance1-0
+  name: instance1
 status:
-  phase: Running
+  Reason: StatefulSetReady
