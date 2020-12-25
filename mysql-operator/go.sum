@@ -69,8 +69,11 @@ github.com/bketelsen/crypt v0.0.3-0.20200106085610-5cbc8cc4026c/go.mod h1:MKsuJm
 github.com/blang/semver v3.5.0+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
 github.com/blaqkube/mysql-operator v0.0.0-20201219061503-a4320f877963 h1:donTDGU28cYJYKsMN3F2vTClIb+ScO7vZC4wFmYy7YM=
 github.com/blaqkube/mysql-operator v0.0.0-20201219151856-6983e53ab2f7 h1:N3GFgoi8KVA0Fx7t7aFv1Col5BP6SUiiwbycdIntNp0=
+github.com/blaqkube/mysql-operator v0.0.0-20201222130924-f1e967e3dc69 h1:uFtt/ohcyKNE2xY2u5ct11NtTdAnXoFYBKEOVKF6Jlo=
 github.com/blaqkube/mysql-operator/agent v0.0.0-20201219151856-6983e53ab2f7 h1:/hl2DYd3fPtJU5cnHHKDB3NggOdpBAKr1M3lChWv/gI=
 github.com/blaqkube/mysql-operator/agent v0.0.0-20201219151856-6983e53ab2f7/go.mod h1:VyNKu2DRI86SwqROF2QTngYQQJzXXSACFRsp54mDNKM=
+github.com/blaqkube/mysql-operator/agent v0.0.0-20201222130924-f1e967e3dc69 h1:ktfxQDM1+c5Rv/P6a0Wg9CytLlza266J2EuDw3u3DEY=
+github.com/blaqkube/mysql-operator/agent v0.0.0-20201222130924-f1e967e3dc69/go.mod h1:boNO6W6GsfsfvVF1CV0Zk0F3pRZYMUE5B+8Br9ceWCY=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash v1.1.0 h1:a6HrQnmkObjyL+Gs60czilIUGqrzKutQD6XZog3p+ko=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=

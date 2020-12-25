@@ -4,7 +4,8 @@ go 1.15
 
 require (
 	github.com/antihax/optional v1.0.0
-	github.com/blaqkube/mysql-operator/agent v0.0.0-20201219151856-6983e53ab2f7
+	github.com/aws/aws-sdk-go v1.36.12 // indirect
+	github.com/blaqkube/mysql-operator/agent v0.0.0-20201222130924-f1e967e3dc69
 	github.com/go-logr/logr v0.3.0
 	github.com/go-logr/zapr v0.2.0
 	github.com/hashicorp/go-uuid v1.0.2

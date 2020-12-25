@@ -18,9 +18,9 @@ import (
 // StoreReconciler reconciles a Store object
 type StoreReconciler struct {
 	client.Client
-	Log     logr.Logger
-	Scheme  *runtime.Scheme
-	Storage backend.Storage
+	Log      logr.Logger
+	Scheme   *runtime.Scheme
+	Storages map[string]backend.Storage
 }
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
@@ -32,6 +32,7 @@ type StoreReconciler struct {
 // Reconcile implement the reconciliation loop for stores
 func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("store", req.NamespacedName)
+	log.Info("Running a reconcile loop")
 
 	// TODO: Reconciler should be able to
 	// - detect a change in the ConfigMap or Secret and reload the associated data
@@ -39,13 +40,14 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	// - Update databases status when store moves to success
 	var store mysqlv1alpha1.Store
 	if err := r.Get(ctx, req.NamespacedName, &store); err != nil {
-		log.Info("Unable to fetch store manifest from kubernetes")
+		log.Info("Unable to fetch store from kubernetes")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	sm := &StoreManager{
-		Context:    ctx,
-		Reconciler: r,
+		Context:     ctx,
+		Reconciler:  r,
+		TimeManager: NewTimeManager(),
 	}
 
 	if store.Status.Reason == "" || store.Status.CheckRequested == true {
@@ -61,7 +63,11 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	}
 
 	if store.Status.Reason == mysqlv1alpha1.StoreCheckRequested {
-		if store.Spec.Backend == nil || *store.Spec.Backend == "s3" {
+		storage := "s3"
+		if store.Spec.Backend != "" {
+			storage = string(store.Spec.Backend)
+		}
+		if storage == "s3" || storage == "blackhole" {
 			store.Status.CheckRequested = false
 			envs, err := sm.GetEnvVars(store)
 			if err != nil {
@@ -95,9 +101,9 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 				Envs:     e,
 			}
 			log.Info("Checking access for bucket", "bucket", request.Bucket)
-			err = r.Storage.Push(request, *filename)
+			err = r.Storages[storage].Push(request, *filename)
 			if err == nil {
-				err = r.Storage.Delete(request)
+				err = r.Storages[storage].Delete(request)
 			}
 			if err != nil {
 				condition := metav1.Condition{

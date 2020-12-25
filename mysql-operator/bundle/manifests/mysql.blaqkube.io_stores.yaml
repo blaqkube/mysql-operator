@@ -31,9 +31,10 @@ spec:
             description: StoreSpec defines the desired state of Store
             properties:
               backend:
-                description: 'Defines the type of backend to be used for the store. For now on, only s3 is supported (default: s3)'
+                description: Defines the type of backend to be used for the store.
                 enum:
                 - s3
+                - blackhole
                 type: string
               bucket:
                 description: the store bucket

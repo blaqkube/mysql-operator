@@ -38,20 +38,19 @@ type InstanceReconciler struct {
 // Reconcile implement the reconciliation loop for instances
 func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("instance", req.NamespacedName)
+	log.Info("Running a reconcile loop")
 
-	// TODO: Reconciler should be able to
-	// - detect changes on the store when it is needed and start the instance accordingly
-	// - manage an update on the sts or on the properties
 	instance := &mysqlv1alpha1.Instance{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
-		log.Error(err, "Unable to fetch instance")
+		log.Info("Unable to fetch instance from kubernetes")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	im := &InstanceManager{
-		Context:    ctx,
-		Reconciler: r,
-		Properties: r.Properties,
+		Context:     ctx,
+		Reconciler:  r,
+		Properties:  r.Properties,
+		TimeManager: NewTimeManager(),
 	}
 	secret, err := im.getExporterSecret(instance)
 	if err != nil && !errors.IsNotFound(err) {
@@ -67,22 +66,22 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err != nil {
 		return im.createExporterSecret(instance)
 	}
-	if secret.UID != instance.Status.ExporterSecret.UID ||
-		secret.ResourceVersion != instance.Status.ExporterSecret.ResourceVersion {
+	if secret.UID != instance.Status.ExporterSecret.UID {
 		im.deleteExporterSecret(instance, secret)
 	}
 
 	sts, stsErr := im.getStatefulSet(instance)
-	if err != nil && !errors.IsNotFound(err) {
+	if stsErr != nil && !errors.IsNotFound(stsErr) {
 		condition := metav1.Condition{
 			Type:               "available",
 			Status:             metav1.ConditionFalse,
 			LastTransitionTime: metav1.Now(),
 			Reason:             mysqlv1alpha1.InstanceStatefulSetInaccessible,
-			Message:            fmt.Sprintf("The statefulset could not be accessed: %v", err),
+			Message:            fmt.Sprintf("The statefulset could not be accessed: %v", stsErr),
 		}
 		return im.setInstanceCondition(instance, condition)
 	}
+	// TODO: detect changes on the store when it is needed and start the instance accordingly
 	store := &mysqlv1alpha1.Store{}
 	location := ""
 	if instance.Spec.Restore.Store != "" {
@@ -105,8 +104,8 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				Type:               "available",
 				Status:             metav1.ConditionFalse,
 				LastTransitionTime: metav1.Now(),
-				Reason:             mysqlv1alpha1.InstanceStoreInaccessible,
-				Message:            fmt.Sprintf("Store %s status is False or Unknown, Reason: %s", store.Name, store.Status.Reason),
+				Reason:             mysqlv1alpha1.InstanceStoreNotReady,
+				Message:            fmt.Sprintf("Store %s ready is False or Unknown, Reason: %s", store.Name, store.Status.Reason),
 			}
 			return im.setInstanceCondition(instance, condition)
 		}
@@ -114,14 +113,17 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if stsErr != nil {
 		return im.createStatefulSet(instance, store, location)
 	}
-	if sts.UID != instance.Status.StatefulSet.UID ||
-		sts.ResourceVersion != instance.Status.StatefulSet.ResourceVersion {
+	// TODO: Check the StatefulSet matches the requirements
+	if sts.UID != instance.Status.StatefulSet.UID {
 		condition := metav1.Condition{
 			Type:               "available",
 			Status:             metav1.ConditionFalse,
 			LastTransitionTime: metav1.Now(),
-			Reason:             mysqlv1alpha1.InstanceStatefulSetInaccessible,
-			Message:            fmt.Sprintf("The statefulset could not be accessed: %v", err),
+			Reason:             mysqlv1alpha1.InstanceStatefulSetUpdated,
+			Message: fmt.Sprintf("The statefulset has been updated %s from %s",
+				sts.UID,
+				sts.ResourceVersion,
+			),
 		}
 		return im.setInstanceCondition(instance, condition)
 	}
