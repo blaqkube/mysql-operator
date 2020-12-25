@@ -8,9 +8,6 @@ spec:
   bucket: bucket1
   prefix: /backup/black    
   envs:
-  - name: AWS_ACCESS_KEY_ID
-    valueFrom:
-      secretKeyRef:
-        name: store-sample
-        key: AWS_ACCESS_KEY_ID
+  - name: NAME
+    value: VALUE
 ---
