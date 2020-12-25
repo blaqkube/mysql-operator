@@ -42,7 +42,10 @@ func (dm *DatabaseManager) setDatabaseCondition(database *mysqlv1alpha1.Database
 	if condition.Reason == database.Status.Reason {
 		c := len(database.Status.Conditions) - 1
 		d := dm.TimeManager.Next(database.Status.Conditions[c].LastTransitionTime.Time)
-		return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
+		if condition.Reason != mysqlv1alpha1.DatabaseSucceeded {
+			return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
+		}
+		return ctrl.Result{}, nil
 	}
 	database.Status.Ready = condition.Status
 	database.Status.Reason = condition.Reason

@@ -8,6 +8,10 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 const (
+	// DatabaseInstanceAccessError the associated instance could not be accessed
+	DatabaseInstanceAccessError = "InstanceAccessError"
+	// DatabaseInstanceNotReady the associated instance is not yet ready
+	DatabaseInstanceNotReady = "InstanceNotReady"
 	// DatabaseAgentNotFound the agent could not be found
 	DatabaseAgentNotFound = "AgentNotFound"
 	// DatabaseAgentFailed a request to the agent failed

@@ -43,7 +43,7 @@ var _ = Describe("Database Controller", func() {
 		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: databaseName})).To(Equal(ctrl.Result{Requeue: false}))
 		response := mysqlv1alpha1.Database{}
 		Expect(k8sClient.Get(ctx, databaseName, &response)).To(Succeed())
-		Expect(response.Status.Reason).To(Equal(mysqlv1alpha1.DatabaseAgentNotFound), "Expected reconcile to change the status to Check")
+		Expect(response.Status.Reason).To(Equal(mysqlv1alpha1.DatabaseInstanceAccessError), "Expected reconcile to change the status to Check")
 
 	})
 
