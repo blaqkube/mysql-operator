@@ -27,6 +27,13 @@ var initCmd = &cobra.Command{
 		}
 
 		log.Printf("Restore database...")
+		storage, err := cmd.Flags().GetString("type")
+		if err != nil || storage == "" {
+			storage = viper.GetString("type")
+			if storage == "" {
+				storage = "s3"
+			}
+		}
 		location, err := cmd.Flags().GetString("location")
 		if err != nil || location == "" {
 			location = viper.GetString("location")
@@ -35,8 +42,12 @@ var initCmd = &cobra.Command{
 		if err != nil || bucket == "" {
 			bucket = viper.GetString("bucket")
 		}
-		if bucket == "" || location == "" {
-			fmt.Println("Missing parameter, check LOCATION and BUCKET are set")
+		if bucket == "" {
+			fmt.Printf("Missing BUCKET, value: %s", bucket)
+			os.Exit(1)
+		}
+		if location == "" {
+			fmt.Printf("Missing LOCATION, value: %s", location)
 			os.Exit(1)
 		}
 		fpath := strings.Split(location, string(os.PathSeparator))
@@ -51,7 +62,7 @@ var initCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		payload := &openapi.BackupRequest{
-			Backend:  "s3",
+			Backend:  storage,
 			Bucket:   bucket,
 			Location: location,
 		}
@@ -67,6 +78,7 @@ var initCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(initCmd)
 	initCmd.Flags().BoolP("restore", "r", false, "restore a dump file")
-	initCmd.Flags().StringP("filename", "f", "", "dump file name")
+	initCmd.Flags().StringP("location", "l", "", "file location on bucket")
 	initCmd.Flags().StringP("bucket", "b", "", "dump file bucket")
+	initCmd.Flags().StringP("type", "t", "", "type of backend (s3, blackhole)")
 }
