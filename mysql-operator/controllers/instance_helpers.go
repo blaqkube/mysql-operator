@@ -227,8 +227,13 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 				Value: store.Spec.Bucket,
 			})
 			env = append(env, corev1.EnvVar{
-				Name:  "AGT_PATH",
+				Name:  "AGT_LOCATION",
 				Value: location,
+			})
+			b := string(store.Spec.Backend)
+			env = append(env, corev1.EnvVar{
+				Name:  "AGT_TYPE",
+				Value: b,
 			})
 			env = append(env, corev1.EnvVar{
 				Name:  "AGT_FILENAME",
