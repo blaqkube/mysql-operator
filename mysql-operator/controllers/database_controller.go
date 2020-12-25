@@ -54,7 +54,7 @@ func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	instance := &mysqlv1alpha1.Instance{}
 	instanceName := types.NamespacedName{Name: database.Spec.Instance, Namespace: database.Namespace}
 	if err := r.Get(ctx, instanceName, instance); err != nil {
-		log.Info("Unable to fetch instance from kubernetes, err: %s", err)
+		log.Info(fmt.Sprintf("Unable to fetch instance from kubernetes, error: %v", err))
 		condition := metav1.Condition{
 			Type:               "available",
 			Status:             metav1.ConditionFalse,

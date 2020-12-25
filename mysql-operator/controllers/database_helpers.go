@@ -33,8 +33,8 @@ var (
 
 // DatabaseManager provides methods to manage database subcomponents
 type DatabaseManager struct {
-	Context    context.Context
-	Reconciler *DatabaseReconciler
+	Context     context.Context
+	Reconciler  *DatabaseReconciler
 	TimeManager *TimeManager
 }
 

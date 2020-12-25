@@ -4,5 +4,5 @@ metadata:
   name: instance1-red
 spec:
   instance: instance1
-  database: red
+  name: red
 ---
