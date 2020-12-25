@@ -19,11 +19,17 @@ const (
 
 // StoreManager provides methods to manage the store subcomponents
 type StoreManager struct {
-	Context    context.Context
-	Reconciler *StoreReconciler
+	Context     context.Context
+	Reconciler  *StoreReconciler
+	TimeManager *TimeManager
 }
 
 func (sm *StoreManager) setStoreCondition(store *mysqlv1alpha1.Store, condition metav1.Condition) (ctrl.Result, error) {
+	if condition.Reason == store.Status.Reason {
+		c := len(store.Status.Conditions) - 1
+		d := sm.TimeManager.Next(store.Status.Conditions[c].LastTransitionTime.Time)
+		return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
+	}
 	store.Status.Ready = condition.Status
 	store.Status.Reason = condition.Reason
 	store.Status.Message = condition.Message

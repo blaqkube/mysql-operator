@@ -50,9 +50,10 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	im := &InstanceManager{
-		Context:    ctx,
-		Reconciler: r,
-		Properties: r.Properties,
+		Context:     ctx,
+		Reconciler:  r,
+		Properties:  r.Properties,
+		TimeManager: NewTimeManager(),
 	}
 	secret, err := im.getExporterSecret(instance)
 	if err != nil && !errors.IsNotFound(err) {

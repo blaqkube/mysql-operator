@@ -45,8 +45,9 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	}
 
 	sm := &StoreManager{
-		Context:    ctx,
-		Reconciler: r,
+		Context:     ctx,
+		Reconciler:  r,
+		TimeManager: NewTimeManager(),
 	}
 
 	if store.Status.Reason == "" || store.Status.CheckRequested == true {

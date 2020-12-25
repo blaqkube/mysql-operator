@@ -33,11 +33,17 @@ var (
 
 // DatabaseManager provides methods to manage database subcomponents
 type DatabaseManager struct {
-	Context    context.Context
-	Reconciler *DatabaseReconciler
+	Context     context.Context
+	Reconciler  *DatabaseReconciler
+	TimeManager *TimeManager
 }
 
 func (dm *DatabaseManager) setDatabaseCondition(database *mysqlv1alpha1.Database, condition metav1.Condition) (ctrl.Result, error) {
+	if condition.Reason == database.Status.Reason {
+		c := len(database.Status.Conditions) - 1
+		d := dm.TimeManager.Next(database.Status.Conditions[c].LastTransitionTime.Time)
+		return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
+	}
 	database.Status.Ready = condition.Status
 	database.Status.Reason = condition.Reason
 	database.Status.Message = condition.Message

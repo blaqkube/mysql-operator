@@ -46,9 +46,11 @@ func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	dm := &DatabaseManager{
-		Context:    ctx,
-		Reconciler: r,
+		Context:     ctx,
+		Reconciler:  r,
+		TimeManager: NewTimeManager(),
 	}
+
 	err := dm.CreateDatabase(database)
 	if err == ErrPodNotFound {
 		condition := metav1.Condition{

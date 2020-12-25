@@ -27,12 +27,18 @@ type StatefulSetProperties struct {
 
 // InstanceManager provides methods to manage the instance subcomponents
 type InstanceManager struct {
-	Context    context.Context
-	Reconciler *InstanceReconciler
-	Properties *StatefulSetProperties
+	Context     context.Context
+	Reconciler  *InstanceReconciler
+	Properties  *StatefulSetProperties
+	TimeManager *TimeManager
 }
 
 func (im *InstanceManager) setInstanceCondition(instance *mysqlv1alpha1.Instance, condition metav1.Condition) (ctrl.Result, error) {
+	if condition.Reason == instance.Status.Reason {
+		c := len(instance.Status.Conditions) - 1
+		d := im.TimeManager.Next(instance.Status.Conditions[c].LastTransitionTime.Time)
+		return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
+	}
 	instance.Status.Ready = condition.Status
 	instance.Status.Reason = condition.Reason
 	instance.Status.Message = condition.Message

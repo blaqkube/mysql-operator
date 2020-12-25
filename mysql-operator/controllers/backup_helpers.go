@@ -18,7 +18,7 @@ type BackupManager struct {
 	Reconciler *BackupReconciler
 }
 
-func (bm *BackupManager) setDatabaseCondition(backup *mysqlv1alpha1.Backup, condition metav1.Condition) (ctrl.Result, error) {
+func (bm *BackupManager) setBackupCondition(backup *mysqlv1alpha1.Backup, condition metav1.Condition) (ctrl.Result, error) {
 	backup.Status.Ready = condition.Status
 	backup.Status.Reason = condition.Reason
 	backup.Status.Message = condition.Message
