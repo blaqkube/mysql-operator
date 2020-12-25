@@ -2,6 +2,5 @@ apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Store
 metadata:
   name: store1
-  namespace: default
 status:
   reason: "CheckSucceeded"
