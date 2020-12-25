@@ -3,3 +3,4 @@ kind: TestSuite
 testDirs:
 - ./e2e
 startKIND: false
+timeout: 60

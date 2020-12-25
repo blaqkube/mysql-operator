@@ -1,6 +1,6 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Pod
 metadata:
-  name: instance1
+  name: instance1-0
 status:
-  reason: "CheckSucceeded"
+  phase: Successful
