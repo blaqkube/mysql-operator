@@ -122,8 +122,13 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			Type:               "available",
 			Status:             metav1.ConditionFalse,
 			LastTransitionTime: metav1.Now(),
-			Reason:             mysqlv1alpha1.InstanceStatefulSetInaccessible,
-			Message:            fmt.Sprintf("The statefulset could not be accessed: %v", err),
+			Reason:             mysqlv1alpha1.InstanceStatefulSetUpdated,
+			Message: fmt.Sprintf("The statefulset updated current(%s:%s) referenced (%s:%s)",
+				sts.UID,
+				sts.ResourceVersion,
+				instance.Status.StatefulSet.UID,
+				instance.Status.StatefulSet.ResourceVersion,
+			),
 		}
 		return im.setInstanceCondition(instance, condition)
 	}

@@ -190,7 +190,7 @@ func (im *InstanceManager) createStatefulSet(instance *mysqlv1alpha1.Instance, s
 		return im.setInstanceCondition(instance, condition)
 	}
 	log.Info("Statfulset creation succeeded", "statefulset", sts.Name)
-	instance.Status.ExporterSecret = corev1.ObjectReference{
+	instance.Status.StatefulSet = corev1.ObjectReference{
 		Kind:            sts.Kind,
 		Namespace:       sts.Namespace,
 		Name:            sts.Name,

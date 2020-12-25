@@ -23,6 +23,8 @@ const (
 	InstanceStoreInaccessible = "StoreInaccessible"
 	// InstanceStatefulSetInaccessible the store cannot be accessed
 	InstanceStatefulSetInaccessible = "StatefulSetInaccessible"
+	// InstanceStatefulSetUpdated the statefulset has been updated
+	InstanceStatefulSetUpdated = "StatefulSetUpdated"
 	// InstanceStatefulSetFailed the statefulset could not be created
 	InstanceStatefulSetFailed = "StatefulSetFailed"
 	// InstanceStatefulSetCreated the statefulset has been successfully created
