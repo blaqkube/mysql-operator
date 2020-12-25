@@ -43,13 +43,21 @@ type EnvVarSource struct {
 	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
 }
 
+// Backend is an Enum type to reference different storages
+type Backend string
+
+const (
+	// BackendS3 for s3
+	BackendS3 Backend = "s3"
+	// BackendBlackhole for blackhole. A backend used to perform tests
+	BackendBlackhole Backend = "blackhole"
+)
+
 // StoreSpec defines the desired state of Store
 type StoreSpec struct {
-	// Defines the type of backend to be used for the store. For now on, only
-	// s3 is supported (default: s3)
-	// +kubebuilder:validation:Enum=s3
-	// +kubebuilder:validation:Enum=blackhole
-	Backend *string `json:"backend,omitempty"`
+	// Defines the type of backend to be used for the store.
+	// +kubebuilder:validation:Enum=s3;blackhole
+	Backend Backend `json:"backend,omitempty"`
 	// the store bucket
 	Bucket string `json:"bucket"`
 	// Prefix defines section of the path that will prefix files in the bucket.

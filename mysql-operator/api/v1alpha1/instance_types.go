@@ -21,7 +21,9 @@ const (
 	InstanceExporterSecretFailed = "ExporterSecretFailed"
 	// InstanceStoreInaccessible the store cannot be accessed
 	InstanceStoreInaccessible = "StoreInaccessible"
-	// InstanceStatefulSetInaccessible the store cannot be accessed
+	// InstanceStoreNotReady the store is not ready
+	InstanceStoreNotReady = "StoreNotReady"
+	// InstanceStatefulSetInaccessible the statefulset cannot be accessed
 	InstanceStatefulSetInaccessible = "StatefulSetInaccessible"
 	// InstanceStatefulSetUpdated the statefulset has been updated
 	InstanceStatefulSetUpdated = "StatefulSetUpdated"

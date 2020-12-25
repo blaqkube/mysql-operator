@@ -104,8 +104,8 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				Type:               "available",
 				Status:             metav1.ConditionFalse,
 				LastTransitionTime: metav1.Now(),
-				Reason:             mysqlv1alpha1.InstanceStoreInaccessible,
-				Message:            fmt.Sprintf("Store %s status is False or Unknown, Reason: %s", store.Name, store.Status.Reason),
+				Reason:             mysqlv1alpha1.InstanceStoreNotReady,
+				Message:            fmt.Sprintf("Store %s ready is False or Unknown, Reason: %s", store.Name, store.Status.Reason),
 			}
 			return im.setInstanceCondition(instance, condition)
 		}
