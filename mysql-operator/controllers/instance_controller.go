@@ -75,13 +75,13 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	sts, stsErr := im.getStatefulSet(instance)
-	if err != nil && !errors.IsNotFound(err) {
+	if stsErr != nil && !errors.IsNotFound(stsErr) {
 		condition := metav1.Condition{
 			Type:               "available",
 			Status:             metav1.ConditionFalse,
 			LastTransitionTime: metav1.Now(),
 			Reason:             mysqlv1alpha1.InstanceStatefulSetInaccessible,
-			Message:            fmt.Sprintf("The statefulset could not be accessed: %v", err),
+			Message:            fmt.Sprintf("The statefulset could not be accessed: %v", stsErr),
 		}
 		return im.setInstanceCondition(instance, condition)
 	}

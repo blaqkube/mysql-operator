@@ -4,3 +4,4 @@ testDirs:
 - ./e2e
 startKIND: false
 timeout: 60
+parallel: 1
