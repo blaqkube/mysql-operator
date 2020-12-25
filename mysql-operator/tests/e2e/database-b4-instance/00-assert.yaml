@@ -3,4 +3,4 @@ kind: Database
 metadata:
   name: instance1-red
 status:
-  reason: AgentNotFound
+  reason: InstanceAccessError
