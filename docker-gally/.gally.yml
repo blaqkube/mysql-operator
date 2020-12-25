@@ -1,9 +1,9 @@
 name: docker-gally
 strategies:
   compare-to:
-    branch: master
+    branch: main
   previous-commit:
-    only: master
+    only: main
 build: ../.circleci/build.sh
 scripts:
   bundle: ../.circleci/bundle.sh

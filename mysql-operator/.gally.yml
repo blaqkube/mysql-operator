@@ -1,9 +1,9 @@
 name: mysql-operator
 strategies:
   compare-to:
-    branch: master
+    branch: main
   previous-commit:
-    only: master
+    only: main
 build: ./.ci/build.sh
 scripts:
   bundle: ./.ci/bundle.sh
