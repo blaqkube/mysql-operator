@@ -3,4 +3,4 @@ kind: Pod
 metadata:
   name: instance1-0
 status:
-  phase: Successful
+  phase: Running

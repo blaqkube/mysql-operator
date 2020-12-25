@@ -45,7 +45,7 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// - manage an update on the sts or on the properties
 	instance := &mysqlv1alpha1.Instance{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
-		log.Error(err, "Unable to fetch instance")
+		log.Info("Unable to fetch instance from kubernetes")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 

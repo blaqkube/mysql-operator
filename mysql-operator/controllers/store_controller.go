@@ -40,7 +40,7 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	// - Update databases status when store moves to success
 	var store mysqlv1alpha1.Store
 	if err := r.Get(ctx, req.NamespacedName, &store); err != nil {
-		log.Info("Unable to fetch store manifest from kubernetes")
+		log.Info("Unable to fetch store from kubernetes")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
