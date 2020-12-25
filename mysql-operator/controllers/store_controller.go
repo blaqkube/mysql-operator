@@ -64,8 +64,8 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 	if store.Status.Reason == mysqlv1alpha1.StoreCheckRequested {
 		storage := "s3"
-		if store.Spec.Backend != nil {
-			storage = *store.Spec.Backend
+		if store.Spec.Backend != "" {
+			storage = string(store.Spec.Backend)
 		}
 		if storage == "s3" || storage == "blackhole" {
 			store.Status.CheckRequested = false
