@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
+	"github.com/gorilla/mux"
 )
 
 // Controller binds http requests to an api service and writes the service results to the http response
@@ -22,16 +23,16 @@ func NewController(s Servicer) Router {
 func (c *Controller) Routes() openapi.Routes {
 	return openapi.Routes{
 		{
-			Name: "CreateBackup",
-			Method: strings.ToUpper("Post"),
-			Pattern: "/backup",
+			Name:        "CreateBackup",
+			Method:      strings.ToUpper("Post"),
+			Pattern:     "/backup",
 			HandlerFunc: c.CreateBackup,
 		},
 		{
-			Name: "GetBackups",
-			Method: strings.ToUpper("Get"),
-			Pattern: "/backup",
-			HandlerFunc: c.GetBackups,
+			Name:        "GetBackupByID",
+			Method:      strings.ToUpper("Get"),
+			Pattern:     "/backup/{uuid}",
+			HandlerFunc: c.GetBackupByID,
 		},
 	}
 }
@@ -45,19 +46,20 @@ func (c *Controller) CreateBackup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	apiKey := r.Header.Get("apiKey")
-	result, err := c.service.CreateBackup(*request, apiKey)
+	result, code, err := c.service.CreateBackup(*request, apiKey)
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
-	code := http.StatusCreated
 	openapi.EncodeJSONResponse(result, &code, w)
 }
 
-// GetBackups - Get backups
-func (c *Controller) GetBackups(w http.ResponseWriter, r *http.Request) {
+// GetBackupByID - Get backups
+func (c *Controller) GetBackupByID(w http.ResponseWriter, r *http.Request) {
 	apiKey := r.Header.Get("apiKey")
-	result, code, err := c.service.GetBackups(apiKey)
+	params := mux.Vars(r)
+	uuid := params["uuid"]
+	result, code, err := c.service.GetBackupByID(uuid, apiKey)
 	if err != nil && code != 0 {
 		w.WriteHeader(500)
 		return

@@ -1,4 +1,5 @@
 /README.md
+/go.mod
 /Dockerfile
 /main.go
 /go/api_mysql_service.go

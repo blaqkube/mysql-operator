@@ -23,7 +23,7 @@ tags:
 paths:
   /backup:
     post:
-      operationId: createBackup
+      operationId: CreateBackup
       parameters:
       - explode: false
         in: header
@@ -46,17 +46,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/Backup'
           description: Backup Created
-        "405":
-          content: {}
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
           description: Invalid input
       security:
       - api_key: []
       summary: create an on-demand backup
       tags:
       - mysql
+  /backup/{uuid}:
     get:
-      description: Returns a backup list
-      operationId: getBackups
+      operationId: GetBackupByID
       parameters:
       - explode: false
         in: header
@@ -65,22 +68,36 @@ paths:
         schema:
           type: string
         style: simple
+      - description: Backup Internal ID
+        explode: false
+        in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+        style: simple
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BackupList'
-          description: successful operation
-        "400":
-          content: {}
-          description: Invalid Backup supplied
+                $ref: '#/components/schemas/Backup'
+          description: Get Backup
         "404":
-          content: {}
-          description: Backup not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
+          description: Invalid input
       security:
       - api_key: []
-      summary: Get backup properties
+      summary: Get a backup on demand
       tags:
       - mysql
   /database:
@@ -466,6 +483,7 @@ components:
       - location
       - identifier
       - start_time
+      - status
       type: object
     BackupRequest:
       example:
@@ -489,22 +507,8 @@ components:
           type: array
       required:
       - bucket
-      - path
-      type: object
-    BackupList:
-      example:
-        size: 1
-        items:
-        - bucket: backup.blaqkube.io
-          location: /blue/mybackup.dmp
-          id: abc
-      properties:
-        size:
-          type: integer
-        items:
-          items:
-            $ref: '#/components/schemas/Backup'
-          type: array
+      - location
+      - backend
       type: object
     Database:
       example:

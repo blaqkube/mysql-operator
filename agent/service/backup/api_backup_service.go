@@ -33,8 +33,8 @@ const (
 // Include any external packages or services that will be required by this service.
 type Service struct {
 	Backup    backend.Backup
-	CurrState *string
-	LastState *string
+	CurrState string
+	LastState string
 	M         sync.Mutex
 	States    map[string]openapi.Backup
 	Status    string
@@ -52,52 +52,49 @@ func NewService(backup backend.Backup, storages map[string]backend.Storage) *Ser
 }
 
 // CreateBackup - create an on-demand backup
-func (s *Service) CreateBackup(request openapi.BackupRequest, apiKey string) (interface{}, error) {
+func (s *Service) CreateBackup(request openapi.BackupRequest, apiKey string) (interface{}, int, error) {
 	s.M.Lock()
 	defer s.M.Unlock()
 	if s.Status != StatusWaiting {
-		return nil, fmt.Errorf("State %s", s.Status)
+		return &openapi.Backup{}, http.StatusConflict, fmt.Errorf("State %s", s.Status)
 	}
 	id, err := uuid.GenerateUUID()
 	if err != nil {
-		return nil, err
+		return &openapi.Backup{}, http.StatusInternalServerError, err
 	}
 	s.LastState = s.CurrState
-	s.States[id] = openapi.Backup{
+	backup := openapi.Backup{
 		Identifier: id,
 		Bucket:     request.Bucket,
 		Location:   request.Location,
 		Status:     StatusWaiting,
 		StartTime:  time.Now(),
 	}
+	s.States[id] = backup
 	go runBackup(s, request, s.States[id])
-	s.CurrState = &id
+	s.CurrState = id
 	s.Status = StatusRunning
-	return &id, nil
+	return &backup, http.StatusCreated, nil
 }
 
-// GetBackups - Get backup properties
-func (s *Service) GetBackups(apiKey string) (interface{}, int, error) {
+// GetBackupByID - Get backup from UUID
+func (s *Service) GetBackupByID(uuid, apiKey string) (interface{}, int, error) {
 	s.M.Lock()
 	defer s.M.Unlock()
-	backups := []openapi.Backup{}
-	size := int32(0)
-	if s.CurrState != nil {
-		size++
-		backups = append(backups, s.States[*s.CurrState])
+	backup, ok := s.States[uuid]
+	if ok {
+		return &backup, http.StatusOK, nil
 	}
-	if s.LastState != nil {
-		size++
-		backups = append(backups, s.States[*s.LastState])
-	}
-	return &openapi.BackupList{Size: size, Items: backups}, http.StatusOK, nil
+	return &openapi.Backup{}, http.StatusNotFound, nil
 }
 
 // runBackup is the routine that runs the backup
 func runBackup(b *Service, request openapi.BackupRequest, backup openapi.Backup) {
 	b.Backup.Run(fmt.Sprintf("%s.dmp", backup.Identifier))
 	st := request.Backend
-	if st == "" { st = "s3" }
+	if st == "" {
+		st = "s3"
+	}
 	b.Storages[request.Backend].Push(&request, fmt.Sprintf("%s.dmp", backup.Identifier))
 	b.M.Lock()
 	defer b.M.Unlock()

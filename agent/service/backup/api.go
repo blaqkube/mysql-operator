@@ -12,7 +12,7 @@ import (
 type Router interface {
 	Routes() openapi.Routes
 	CreateBackup(http.ResponseWriter, *http.Request)
-	GetBackups(http.ResponseWriter, *http.Request)
+	GetBackupByID(http.ResponseWriter, *http.Request)
 }
 
 // Servicer defines the api actions for the Backup service
@@ -20,6 +20,6 @@ type Router interface {
 // while the service implementation can ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type Servicer interface {
-	CreateBackup(openapi.BackupRequest, string) (interface{}, error)
-	GetBackups(string) (interface{}, int, error)
+	CreateBackup(openapi.BackupRequest, string) (interface{}, int, error)
+	GetBackupByID(string, string) (interface{}, int, error)
 }
