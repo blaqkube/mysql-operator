@@ -23,6 +23,10 @@ resources:
   group: mysql
   kind: User
   version: v1alpha1
+- crdVersion: v1
+  group: mysql
+  kind: Grant
+  version: v1alpha1
 version: 3-alpha
 plugins:
   manifests.sdk.operatorframework.io/v2: {}

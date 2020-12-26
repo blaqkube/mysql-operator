@@ -1,0 +1,9 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Grant
+metadata:
+  name: grant-sample
+spec:
+  database: instance-db1
+  user: instance-user1
+  accessMode: readOnly
+---

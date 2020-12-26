@@ -28,6 +28,18 @@ metadata:
         },
         {
           "apiVersion": "mysql.blaqkube.io/v1alpha1",
+          "kind": "Grant",
+          "metadata": {
+            "name": "grant-sample"
+          },
+          "spec": {
+            "accessMode": "readWrite",
+            "database": "database1",
+            "user": "user1"
+          }
+        },
+        {
+          "apiVersion": "mysql.blaqkube.io/v1alpha1",
           "kind": "Instance",
           "metadata": {
             "name": "instance-sample"
@@ -97,6 +109,11 @@ spec:
       displayName: Database
       kind: Database
       name: databases.mysql.blaqkube.io
+      version: v1alpha1
+    - description: Grant is the Schema for the grants API
+      displayName: Grant
+      kind: Grant
+      name: grants.mysql.blaqkube.io
       version: v1alpha1
     - description: Instance is the Schema for the instances API
       displayName: Instance
@@ -210,6 +227,32 @@ spec:
           - mysql.blaqkube.io
           resources:
           - databases/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - grants
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - grants/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - mysql.blaqkube.io
+          resources:
+          - grants/status
           verbs:
           - get
           - patch

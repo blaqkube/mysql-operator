@@ -101,6 +101,32 @@ rules:
 - apiGroups:
   - mysql.blaqkube.io
   resources:
+  - grants
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
+  - grants/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
+  - grants/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
   - instances
   verbs:
   - create
