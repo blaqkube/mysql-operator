@@ -47,7 +47,10 @@ paths:
                 $ref: '#/components/schemas/Backup'
           description: Backup Created
         "500":
-          content: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
           description: Invalid input
       security:
       - api_key: []
@@ -81,10 +84,16 @@ paths:
                 $ref: '#/components/schemas/Backup'
           description: Get Backup
         "404":
-          content: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
           description: Not Found
         "500":
-          content: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
           description: Invalid input
       security:
       - api_key: []
