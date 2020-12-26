@@ -4,4 +4,4 @@ metadata:
   name: instance1-red
 status:
   ready: "True"
-  reason: DatabaseSucceeded
+  reason: Succeeded
