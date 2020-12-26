@@ -37,10 +37,10 @@ spec:
             description: BackupSpec defines the desired state of Backup
             properties:
               instance:
+                description: Instance to backup.
                 type: string
               store:
-                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                  Important: Run "make" to regenerate code after modifying this file'
+                description: The store to use to perform the backup.
                 type: string
             required:
             - instance
@@ -121,18 +121,24 @@ spec:
                   type: object
                 type: array
               details:
-                description: 'Important: Run "make" to regenerate code after modifying
-                  this file'
+                description: Defines the details for the backup
                 properties:
                   backupTime:
+                    description: Start Time
                     format: date-time
                     type: string
+                  bucket:
+                    description: Bucket
+                    type: string
                   endTime:
+                    description: End Time
                     format: date-time
                     type: string
                   identifier:
+                    description: Internal Identifier
                     type: string
                   location:
+                    description: Location in bucket
                     type: string
                 type: object
               message:
