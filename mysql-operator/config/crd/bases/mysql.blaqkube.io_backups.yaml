@@ -39,6 +39,8 @@ spec:
               instance:
                 type: string
               store:
+                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                  Important: Run "make" to regenerate code after modifying this file'
                 type: string
             required:
             - instance
@@ -119,12 +121,16 @@ spec:
                   type: object
                 type: array
               details:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "make" to regenerate code after modifying
+                description: 'Important: Run "make" to regenerate code after modifying
                   this file'
                 properties:
                   backupTime:
                     format: date-time
+                    type: string
+                  endTime:
+                    format: date-time
+                    type: string
+                  identifier:
                     type: string
                   location:
                     type: string

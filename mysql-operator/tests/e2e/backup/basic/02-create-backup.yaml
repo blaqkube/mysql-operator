@@ -1,0 +1,9 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Backup
+metadata:
+  name: backup1
+spec:
+  store: store
+  instance: instance
+  prefix: /backups
+---

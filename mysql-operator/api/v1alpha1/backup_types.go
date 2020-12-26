@@ -11,20 +11,45 @@ import (
 type BackupSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
 	Store    string `json:"store"`
 	Instance string `json:"instance"`
 }
 
+const (
+	// BackupFailed the associated backup has failed
+	BackupFailed = "Failed"
+	// BackupRunning the associated backup is running
+	BackupRunning = "Running"
+	// BackupStoreAccessError the associated store could not be accessed
+	BackupStoreAccessError = "StoreAccessError"
+	// BackupStoreNotReady the associated instance is not yet ready
+	BackupStoreNotReady = "StoreNotReady"
+	// BackupMissingVariable some variables are missing
+	BackupMissingVariable = "StoreMissingVariable"
+	// BackupInstanceAccessError the associated instance could not be accessed
+	BackupInstanceAccessError = "InstanceAccessError"
+	// BackupInstanceNotReady the associated instance is not yet ready
+	BackupInstanceNotReady = "InstanceNotReady"
+	// BackupAgentNotFound the agent could not be found
+	BackupAgentNotFound = "AgentNotFound"
+	// BackupAgentFailed a request to the agent failed
+	BackupAgentFailed = "AgentFailed"
+	// BackupNotImplemented grant creation has not been implemented
+	BackupNotImplemented = "NotImplemented"
+	// BackupSucceeded grant creation has succeeded
+	BackupSucceeded = "Succeeded"
+)
+
 // BackupDetails defines the Backup Location and StartupTime
 type BackupDetails struct {
+	Identifier string       `json:"identifier,omitempty"`
 	Location   string       `json:"location,omitempty"`
-	BackupTime *metav1.Time `json:"backupTime,omitempty"`
+	StartTime  *metav1.Time `json:"backupTime,omitempty"`
+	EndTime    *metav1.Time `json:"endTime,omitempty"`
 }
 
 // BackupStatus defines the observed state of Backup
 type BackupStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	Details *BackupDetails `json:"details,omitempty"`
 	// Defines if the store can be considered as ready or not
