@@ -1,6 +1,8 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Database
 metadata:
-  name: instance3-red
-status:
-  reason: InstanceAccessError
+  name: instance-red
+spec:
+  instance: instance
+  name: red
+---

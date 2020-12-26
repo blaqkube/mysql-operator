@@ -1,0 +1,9 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: User
+metadata:
+  name: instance-demo
+spec:
+  instance: instance
+  username: demo
+  password: changeme
+---

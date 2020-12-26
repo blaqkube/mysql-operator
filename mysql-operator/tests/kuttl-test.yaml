@@ -1,7 +1,12 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestSuite
 testDirs:
-- ./e2e
+- ./e2e/store
+- ./e2e/instance
+- ./e2e/database
+- ./e2e/user
+- ./e2e/grant
+- ./e2e/backup
 startKIND: false
 timeout: 120
 parallel: 1

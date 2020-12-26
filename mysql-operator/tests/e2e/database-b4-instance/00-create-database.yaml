@@ -1,8 +1,0 @@
-apiVersion: mysql.blaqkube.io/v1alpha1
-kind: Database
-metadata:
-  name: instance3-red
-spec:
-  instance: instance3
-  name: red
----

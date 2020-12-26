@@ -1,7 +1,6 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Database
 metadata:
-  name: instance3-red
+  name: instance-red
 status:
-  ready: "True"
-  reason: DatabaseSucceeded
+  reason: Succeeded
