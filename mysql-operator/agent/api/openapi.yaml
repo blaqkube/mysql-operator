@@ -323,6 +323,104 @@ paths:
       summary: Get user properties
       tags:
       - mysql
+  /user/{user}/database/{database}/grant:
+    get:
+      description: Returns the grant for a User and a Database
+      operationId: GetGrantByUserDatabase
+      parameters:
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: Name of the user to return the grant from
+        explode: false
+        in: path
+        name: user
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Name of the database to return the grant from
+        explode: false
+        in: path
+        name: database
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grant'
+          description: successful operation
+        "400":
+          content: {}
+          description: Invalid Database or User supplied
+        "404":
+          content: {}
+          description: Database or User not found
+        "500":
+          content: {}
+          description: Internal Error
+      security:
+      - api_key: []
+      summary: Get Database properties
+      tags:
+      - mysql
+    post:
+      description: Create a Grant for a User and Database
+      operationId: CreateGrantForUserDatabase
+      parameters:
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: Name of the database to return the grant from
+        explode: false
+        in: path
+        name: database
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: Name of the user to return the grant from
+        explode: false
+        in: path
+        name: user
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Grant'
+        description: Create a user
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grant'
+          description: successful operation
+        "500":
+          content: {}
+          description: Internal error
+      security:
+      - api_key: []
+      summary: Grant access to user and database
+      tags:
+      - mysql
 components:
   schemas:
     EnvVar:
@@ -421,15 +519,16 @@ components:
       type: object
     Grant:
       example:
-        database: blue
         accessMode: readwrite
       properties:
-        database:
-          type: string
         accessMode:
+          enum:
+          - none
+          - readWrite
+          - readOnly
           type: string
       required:
-      - database
+      - accessMode
       type: object
     listDatabases:
       example:
@@ -484,10 +583,6 @@ components:
           type: string
         password:
           type: string
-        grants:
-          items:
-            $ref: '#/components/schemas/Grant'
-          type: array
       required:
       - password
       - username

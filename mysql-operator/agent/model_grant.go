@@ -12,6 +12,5 @@ package agent
 
 // Grant struct for Grant
 type Grant struct {
-	Database   string `json:"database"`
-	AccessMode string `json:"accessMode,omitempty"`
+	AccessMode string `json:"accessMode"`
 }

@@ -17,7 +17,7 @@ const (
 	// DatabaseAgentFailed a request to the agent failed
 	DatabaseAgentFailed = "AgentFailed"
 	// DatabaseSucceeded database creation has succeeded
-	DatabaseSucceeded = "DatabaseSucceeded"
+	DatabaseSucceeded = "Succeeded"
 )
 
 // DatabaseSpec defines the desired state of Database
