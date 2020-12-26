@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"k8s.io/apimachinery/pkg/types"
-
 	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -51,50 +49,26 @@ func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		TimeManager: NewTimeManager(),
 	}
 
-	instance := &mysqlv1alpha1.Instance{}
-	instanceName := types.NamespacedName{Name: database.Spec.Instance, Namespace: database.Namespace}
-	if err := r.Get(ctx, instanceName, instance); err != nil {
-		log.Info(fmt.Sprintf("Unable to fetch instance from kubernetes, error: %v", err))
-		condition := metav1.Condition{
-			Type:               "available",
-			Status:             metav1.ConditionFalse,
-			LastTransitionTime: metav1.Now(),
-			Reason:             mysqlv1alpha1.DatabaseInstanceAccessError,
-			Message:            "Could not find the instance",
-		}
-		return dm.setDatabaseCondition(database, condition)
-	}
-
-	if instance.Status.Reason != mysqlv1alpha1.InstanceStatefulSetReady {
-		log.Info("Instance is not ready yet")
-		condition := metav1.Condition{
-			Type:               "available",
-			Status:             metav1.ConditionFalse,
-			LastTransitionTime: metav1.Now(),
-			Reason:             mysqlv1alpha1.DatabaseInstanceNotReady,
-			Message:            "Could not find the instance",
-		}
-		return dm.setDatabaseCondition(database, condition)
-	}
-
 	err := dm.CreateDatabase(database)
-	if err == ErrPodNotFound {
-		condition := metav1.Condition{
-			Type:               "available",
-			Status:             metav1.ConditionFalse,
-			LastTransitionTime: metav1.Now(),
-			Reason:             mysqlv1alpha1.DatabaseAgentNotFound,
-			Message:            "Could not find the agent",
-		}
-		return dm.setDatabaseCondition(database, condition)
-	}
 	if err != nil {
 		condition := metav1.Condition{
 			Type:               "available",
 			Status:             metav1.ConditionFalse,
 			LastTransitionTime: metav1.Now(),
-			Reason:             mysqlv1alpha1.DatabaseAgentFailed,
-			Message:            fmt.Sprintf("Unexpected failure with agent: %v", err),
+		}
+		switch err {
+		case ErrInstanceNotFound:
+			condition.Reason = mysqlv1alpha1.DatabaseInstanceAccessError
+			condition.Message = "Could not find the instance"
+		case ErrInstanceNotReady:
+			condition.Reason = mysqlv1alpha1.DatabaseInstanceNotReady
+			condition.Message = "The instance is not available"
+		case ErrPodNotFound:
+			condition.Reason = mysqlv1alpha1.DatabaseAgentNotFound
+			condition.Message = "Could not find the agent"
+		default:
+			condition.Reason = mysqlv1alpha1.DatabaseAgentFailed
+			condition.Message = fmt.Sprintf("Unexpected failure with agent: %v", err)
 		}
 		return dm.setDatabaseCondition(database, condition)
 	}

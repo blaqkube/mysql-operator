@@ -34,9 +34,7 @@ type InstanceManager struct {
 }
 
 func (im *InstanceManager) setInstanceCondition(instance *mysqlv1alpha1.Instance, condition metav1.Condition) (ctrl.Result, error) {
-	if condition.Reason == instance.Status.Reason &&
-		(condition.Reason == mysqlv1alpha1.InstanceStoreInaccessible ||
-			condition.Reason == mysqlv1alpha1.InstanceStoreNotReady) {
+	if condition.Reason == instance.Status.Reason {
 		c := len(instance.Status.Conditions) - 1
 		d := im.TimeManager.Next(instance.Status.Conditions[c].LastTransitionTime.Time)
 		return ctrl.Result{Requeue: true, RequeueAfter: d}, nil

@@ -5,16 +5,11 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/blaqkube/mysql-operator/mysql-operator/agent"
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
 )
 
@@ -25,6 +20,8 @@ type UserReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users/finalizers,verbs=update
@@ -36,92 +33,58 @@ func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	// Fetch the User instance
 	user := &mysqlv1alpha1.User{}
-	err := r.Client.Get(ctx, req.NamespacedName, user)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
-			return ctrl.Result{}, nil
-		}
-		// Error reading the object - requeue the request.
-		return ctrl.Result{}, err
+	if err := r.Get(ctx, req.NamespacedName, user); err != nil {
+		log.Info("Unable to fetch user from kubernetes")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Check if this Pod already exists
-	pod := &corev1.Pod{}
-	err = r.Client.Get(
-		context.TODO(),
-		types.NamespacedName{
-			Name:      user.Spec.Instance + "-0",
-			Namespace: user.Namespace,
-		},
-		pod,
-	)
-	if err != nil {
-		t := metav1.Now()
-		condition := metav1.Condition{
-			Type:               "podmonitor",
-			Status:             metav1.ConditionTrue,
-			Reason:             "Failed",
-			Message:            fmt.Sprintf("Cannot find pod %s-0; error: %v", user.Spec.Instance, err),
-			LastTransitionTime: t,
-		}
-		user.Status.Reason = "Failed"
-		user.Status.Conditions = append(user.Status.Conditions, condition)
-		err = r.Client.Status().Update(context.TODO(), user)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{}, nil
-	}
-	cfg := agent.NewConfiguration()
-	cfg.BasePath = "http://" + pod.Status.PodIP + ":8080"
-	api := agent.NewAPIClient(cfg)
-	u := agent.User{
-		Username: user.Spec.Username,
-		Password: user.Spec.Password,
-		Grants:   []agent.Grant{},
-	}
-	for _, v := range user.Spec.Grants {
-		u.Grants = append(u.Grants, agent.Grant{
-			Database:   v.Database,
-			AccessMode: v.AccessMode,
-		})
-	}
-	_, _, err = api.MysqlApi.CreateUser(ctx, u, nil)
-	if err != nil {
-		t := metav1.Now()
-		condition := metav1.Condition{
-			Type:               "user",
-			Status:             metav1.ConditionTrue,
-			Reason:             "Failed",
-			Message:            fmt.Sprintf("Cannot create user %s, error: %v", u.Username, err),
-			LastTransitionTime: t,
-		}
-		user.Status.Reason = "Failed"
-		user.Status.Conditions = append(user.Status.Conditions, condition)
-		err = r.Client.Status().Update(ctx, user)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
+	if user.Status.Reason == mysqlv1alpha1.UserSucceeded {
 		return ctrl.Result{}, nil
 	}
-	t := metav1.Now()
-	condition := metav1.Condition{
-		Type:               "user",
-		Status:             metav1.ConditionTrue,
-		Reason:             "Succeeded",
-		Message:            fmt.Sprintf("User %s created", u.Username),
-		LastTransitionTime: t,
+
+	um := &UserManager{
+		Context:     ctx,
+		Reconciler:  r,
+		TimeManager: NewTimeManager(),
 	}
-	user.Status.Reason = "Failed"
-	user.Status.Conditions = append(user.Status.Conditions, condition)
-	err = r.Client.Status().Update(ctx, user)
+
+	err := um.CreateUser(user)
 	if err != nil {
-		return ctrl.Result{}, err
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionFalse,
+			LastTransitionTime: metav1.Now(),
+		}
+		switch err {
+		case ErrMissingPassword:
+			condition.Reason = mysqlv1alpha1.UserPasswordError
+			condition.Message = "Missing password from user"
+		case ErrKeyNotFound, ErrConfigMapNotFound, ErrSecretNotFound:
+			condition.Reason = mysqlv1alpha1.UserPasswordAccessError
+			condition.Message = "Could not find the passsord from its definition"
+		case ErrInstanceNotFound:
+			condition.Reason = mysqlv1alpha1.UserInstanceAccessError
+			condition.Message = "Could not find the instance"
+		case ErrInstanceNotReady:
+			condition.Reason = mysqlv1alpha1.UserInstanceNotReady
+			condition.Message = "The Instance is not ready"
+		case ErrPodNotFound:
+			condition.Reason = mysqlv1alpha1.UserAgentNotFound
+			condition.Message = "Could not find the agent"
+		default:
+			condition.Reason = mysqlv1alpha1.UserAgentFailed
+			condition.Message = fmt.Sprintf("Unexpected failure with agent: %v", err)
+		}
+		return um.setUserCondition(user, condition)
 	}
-	return ctrl.Result{}, nil
+	condition := metav1.Condition{
+		Type:               "available",
+		Status:             metav1.ConditionTrue,
+		LastTransitionTime: metav1.Now(),
+		Reason:             mysqlv1alpha1.UserSucceeded,
+		Message:            fmt.Sprintf("User %s successfully created", user.Spec.Username),
+	}
+	return um.setUserCondition(user, condition)
 }
 
 // SetupWithManager configure type of events the manager should watch

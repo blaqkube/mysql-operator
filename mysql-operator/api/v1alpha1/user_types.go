@@ -1,27 +1,54 @@
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+const (
+	// UserPasswordError the password was not defined properly
+	UserPasswordError = "PasswordError"
+	// UserPasswordAccessError the password could not be access
+	UserPasswordAccessError = "PasswordAccessError"
+	// UserInstanceAccessError the associated instance could not be accessed
+	UserInstanceAccessError = "InstanceAccessError"
+	// UserInstanceNotReady the associated instance is not yet ready
+	UserInstanceNotReady = "InstanceNotReady"
+	// UserAgentNotFound the agent could not be found
+	UserAgentNotFound = "AgentNotFound"
+	// UserAgentFailed a request to the agent failed
+	UserAgentFailed = "AgentFailed"
+	// UserSucceeded user creation has succeeded
+	UserSucceeded = "Succeeded"
+)
+
 // UserSpec defines the desired state of User
 type UserSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Instance string      `json:"instance"`
-	Username string      `json:"username"`
-	Password string      `json:"password"`
-	Grants   []GrantSpec `json:"grants,omitempty"`
+	Instance string `json:"instance"`
+	Username string `json:"username"`
+	// Password's value.
+	// +optional
+	Password string `json:"password,omitempty"`
+	// Source for the environment Password's value. Cannot be used if Password is
+	// not empty.
+	// +optional
+	PasswordFrom *PasswordSource `json:"passwordFrom,omitempty"`
 }
 
-// GrantSpec defines granst for a user
-type GrantSpec struct {
-	AccessMode string `json:"accessMode,omitempty"`
-	Database   string `json:"database"`
+// PasswordSource represents a source for the value of a Password.
+type PasswordSource struct {
+	// Selects a key of a ConfigMap.
+	// +optional
+	ConfigMapKeyRef *corev1.ConfigMapKeySelector `json:"configMapKeyRef,omitempty"`
+	// Selects a key of a secret in the pod's namespace
+	// +optional
+	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
 }
 
 // UserStatus defines the observed state of User
