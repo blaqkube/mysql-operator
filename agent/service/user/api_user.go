@@ -35,28 +35,28 @@ func NewMysqlUserController(s MysqlUserServicer) MysqlUserRouter {
 func (c *MysqlUserController) Routes() openapi.Routes {
 	routes := openapi.Routes{
 		{
-			"CreateUser",
-			strings.ToUpper("Post"),
-			"/user",
-			c.CreateUser,
+			Name: "CreateUser",
+			Method: strings.ToUpper("Post"),
+			Pattern: "/user",
+			HandlerFunc: c.CreateUser,
 		},
 		{
-			"DeleteUser",
-			strings.ToUpper("Delete"),
-			"/user/{user}",
-			c.DeleteUser,
+			Name: "DeleteUser",
+			Method: strings.ToUpper("Delete"),
+			Pattern: "/user/{user}",
+			HandlerFunc: c.DeleteUser,
 		},
 		{
-			"GetUserByName",
-			strings.ToUpper("Get"),
-			"/user/{user}",
-			c.GetUserByName,
+			Name: "GetUserByName",
+			Method: strings.ToUpper("Get"),
+			Pattern: "/user/{user}",
+			HandlerFunc: c.GetUserByName,
 		},
 		{
-			"GetUsers",
-			strings.ToUpper("Get"),
-			"/user",
-			c.GetUsers,
+			Name: "GetUsers",
+			Method: strings.ToUpper("Get"),
+			Pattern: "/user",
+			HandlerFunc: c.GetUsers,
 		},
 	}
 	return routes

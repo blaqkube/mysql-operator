@@ -25,7 +25,6 @@ generate:
 	  --git-user-id blaqkube \
 	  --git-repo-id mysql-operator/agent
 	go fmt go/*.go
-	cd $$(git rev-parse --show-toplevel) && cd mysql-operator/agent && make api
 
 .PHONY: test
 test:

@@ -57,6 +57,20 @@ func (s *Suite) Test_Routes() {
 	assert.Equal(s.T(), nil, err, "Should succeed")
 	assert.Equal(s.T(), []string{"POST"}, m, "Should succeed")
 
+	p, err = next.GetRoute("CreateGrantByUserDatabase").GetPathRegexp()
+	assert.Equal(s.T(), nil, err, "Should succeed")
+	assert.Equal(s.T(), "^/user/(?P<v0>[^/]+)/database/(?P<v1>[^/]+)/grant[/]?$", p, "Should succeed")
+	m, err = next.GetRoute("CreateGrantByUserDatabase").GetMethods()
+	assert.Equal(s.T(), nil, err, "Should succeed")
+	assert.Equal(s.T(), []string{"POST"}, m, "Should succeed")
+
+	p, err = next.GetRoute("GetGrantByUserDatabase").GetPathRegexp()
+	assert.Equal(s.T(), nil, err, "Should succeed")
+	assert.Equal(s.T(), "^/user/(?P<v0>[^/]+)/database/(?P<v1>[^/]+)/grant[/]?$", p, "Should succeed")
+	m, err = next.GetRoute("GetGrantByUserDatabase").GetMethods()
+	assert.Equal(s.T(), nil, err, "Should succeed")
+	assert.Equal(s.T(), []string{"GET"}, m, "Should succeed")
+
 }
 
 func TestSuite(t *testing.T) {

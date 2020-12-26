@@ -11,7 +11,5 @@
 package openapi
 
 type Grant struct {
-	Database string `json:"database"`
-
-	AccessMode string `json:"accessMode,omitempty"`
+	AccessMode string `json:"accessMode"`
 }

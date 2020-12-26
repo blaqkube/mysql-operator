@@ -31,7 +31,6 @@ func (s *mockService) GetUserByName(user, apikey string) (interface{}, error) {
 		return openapi.User{
 			Username: user,
 			Password: "****",
-			Grants:   []openapi.Grant{},
 		}, nil
 	}
 	return nil, errors.New("failed")
@@ -44,7 +43,6 @@ func (s *mockService) GetUsers(apikey string) (interface{}, error) {
 			Items: []openapi.User{{
 				Username: "me",
 				Password: "****",
-				Grants:   []openapi.Grant{},
 			}},
 		}, nil
 	}
