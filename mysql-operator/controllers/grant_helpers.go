@@ -75,5 +75,5 @@ func (gm *GrantManager) CreateGrant(grant *mysqlv1alpha1.Grant) error {
 		return err
 	}
 	// TODO: call the agent to create the user
-	return nil
+	return ErrNotImplemented
 }

@@ -26,7 +26,9 @@ const (
 	GrantAgentNotFound = "AgentNotFound"
 	// GrantAgentFailed a request to the agent failed
 	GrantAgentFailed = "AgentFailed"
-	// GrantSucceeded user creation has succeeded
+	// GrantNotImplemented grant creation has not been implemented
+	GrantNotImplemented = "NotImplemented"
+	// GrantSucceeded grant creation has succeeded
 	GrantSucceeded = "Succeeded"
 )
 

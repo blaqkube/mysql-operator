@@ -20,6 +20,9 @@ const (
 )
 
 var (
+	// ErrNotImplemented is reported when a feature is not implemented
+	ErrNotImplemented = errors.New("NotImplemented")
+
 	// ErrUserDatabaseMismatch is reported when the user and database do not match for a Grant
 	ErrUserDatabaseMismatch = errors.New("UserDatabaseMismatch")
 
