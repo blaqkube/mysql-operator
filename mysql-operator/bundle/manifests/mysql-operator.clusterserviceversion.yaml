@@ -73,12 +73,6 @@ metadata:
             "name": "user-sample"
           },
           "spec": {
-            "grants": [
-              {
-                "accessmode": "readwrite",
-                "database": "mydb"
-              }
-            ],
             "instance": "instance-sample",
             "password": "changeme",
             "username": "demo"

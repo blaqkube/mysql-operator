@@ -30,27 +30,49 @@ spec:
           spec:
             description: UserSpec defines the desired state of User
             properties:
-              grants:
-                items:
-                  description: GrantSpec defines granst for a user
-                  properties:
-                    accessMode:
-                      type: string
-                    database:
-                      type: string
-                  required:
-                  - database
-                  type: object
-                type: array
               instance:
                 type: string
               password:
+                description: Password's value.
                 type: string
+              passwordFrom:
+                description: Source for the environment Password's value. Cannot be used if Password is not empty.
+                properties:
+                  configMapKeyRef:
+                    description: Selects a key of a ConfigMap.
+                    properties:
+                      key:
+                        description: The key to select.
+                        type: string
+                      name:
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                        type: string
+                      optional:
+                        description: Specify whether the ConfigMap or its key must be defined
+                        type: boolean
+                    required:
+                    - key
+                    type: object
+                  secretKeyRef:
+                    description: Selects a key of a secret in the pod's namespace
+                    properties:
+                      key:
+                        description: The key of the secret to select from.  Must be a valid secret key.
+                        type: string
+                      name:
+                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                        type: string
+                      optional:
+                        description: Specify whether the Secret or its key must be defined
+                        type: boolean
+                    required:
+                    - key
+                    type: object
+                type: object
               username:
                 type: string
             required:
             - instance
-            - password
             - username
             type: object
           status:
