@@ -3,4 +3,4 @@ kind: User
 metadata:
   name: instance-demo
 status:
-  reason: "InstanceAccessError"
+  reason: Succeeded
