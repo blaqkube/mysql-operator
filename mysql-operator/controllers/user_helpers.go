@@ -91,7 +91,6 @@ func (um *UserManager) CreateUser(user *mysqlv1alpha1.User) error {
 	payload := agent.User{
 		Username: user.Spec.Username,
 		Password: password,
-		Grants:   []agent.Grant{},
 	}
 
 	_, response, err := api.MysqlApi.CreateUser(um.Context, payload, nil)

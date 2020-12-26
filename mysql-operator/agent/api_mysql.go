@@ -225,6 +225,112 @@ func (a *MysqlApiService) CreateDatabase(ctx _context.Context, database Database
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+// CreateGrantForUserDatabaseOpts Optional parameters for the method 'CreateGrantForUserDatabase'
+type CreateGrantForUserDatabaseOpts struct {
+	ApiKey optional.String
+}
+
+/*
+CreateGrantForUserDatabase Grant access to user and database
+Create a Grant for a User and Database
+ * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ * @param database Name of the database to return the grant from
+ * @param user Name of the user to return the grant from
+ * @param grant Create a user
+ * @param optional nil or *CreateGrantForUserDatabaseOpts - Optional Parameters:
+ * @param "ApiKey" (optional.String) -
+@return Grant
+*/
+func (a *MysqlApiService) CreateGrantForUserDatabase(ctx _context.Context, database string, user string, grant Grant, localVarOptionals *CreateGrantForUserDatabaseOpts) (Grant, *_nethttp.Response, error) {
+	var (
+		localVarHTTPMethod   = _nethttp.MethodPost
+		localVarPostBody     interface{}
+		localVarFormFileName string
+		localVarFileName     string
+		localVarFileBytes    []byte
+		localVarReturnValue  Grant
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/user/{user}/database/{database}/grant"
+	localVarPath = strings.Replace(localVarPath, "{"+"database"+"}", _neturl.QueryEscape(parameterToString(database, "")), -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"user"+"}", _neturl.QueryEscape(parameterToString(user, "")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := _neturl.Values{}
+	localVarFormParams := _neturl.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if localVarOptionals != nil && localVarOptionals.ApiKey.IsSet() {
+		localVarHeaderParams["api_key"] = parameterToString(localVarOptionals.ApiKey.Value(), "")
+	}
+	// body params
+	localVarPostBody = &grant
+	if ctx != nil {
+		// API Key Authentication
+		if auth, ok := ctx.Value(ContextAPIKey).(APIKey); ok {
+			var key string
+			if auth.Prefix != "" {
+				key = auth.Prefix + " " + auth.Key
+			} else {
+				key = auth.Key
+			}
+			localVarHeaderParams["api_key"] = key
+		}
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 // CreateUserOpts Optional parameters for the method 'CreateUser'
 type CreateUserOpts struct {
 	ApiKey optional.String
@@ -721,6 +827,109 @@ func (a *MysqlApiService) GetDatabases(ctx _context.Context, localVarOptionals *
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/database"
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := _neturl.Values{}
+	localVarFormParams := _neturl.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	if localVarOptionals != nil && localVarOptionals.ApiKey.IsSet() {
+		localVarHeaderParams["api_key"] = parameterToString(localVarOptionals.ApiKey.Value(), "")
+	}
+	if ctx != nil {
+		// API Key Authentication
+		if auth, ok := ctx.Value(ContextAPIKey).(APIKey); ok {
+			var key string
+			if auth.Prefix != "" {
+				key = auth.Prefix + " " + auth.Key
+			} else {
+				key = auth.Key
+			}
+			localVarHeaderParams["api_key"] = key
+		}
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := _ioutil.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+// GetGrantByUserDatabaseOpts Optional parameters for the method 'GetGrantByUserDatabase'
+type GetGrantByUserDatabaseOpts struct {
+	ApiKey optional.String
+}
+
+/*
+GetGrantByUserDatabase Get Database properties
+Returns the grant for a User and a Database
+ * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ * @param user Name of the user to return the grant from
+ * @param database Name of the database to return the grant from
+ * @param optional nil or *GetGrantByUserDatabaseOpts - Optional Parameters:
+ * @param "ApiKey" (optional.String) -
+@return Grant
+*/
+func (a *MysqlApiService) GetGrantByUserDatabase(ctx _context.Context, user string, database string, localVarOptionals *GetGrantByUserDatabaseOpts) (Grant, *_nethttp.Response, error) {
+	var (
+		localVarHTTPMethod   = _nethttp.MethodGet
+		localVarPostBody     interface{}
+		localVarFormFileName string
+		localVarFileName     string
+		localVarFileBytes    []byte
+		localVarReturnValue  Grant
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/user/{user}/database/{database}/grant"
+	localVarPath = strings.Replace(localVarPath, "{"+"user"+"}", _neturl.QueryEscape(parameterToString(user, "")), -1)
+
+	localVarPath = strings.Replace(localVarPath, "{"+"database"+"}", _neturl.QueryEscape(parameterToString(database, "")), -1)
+
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}

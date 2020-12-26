@@ -2,8 +2,12 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 
+	"github.com/blaqkube/mysql-operator/mysql-operator/agent"
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
+	"github.com/prometheus/common/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -64,7 +68,7 @@ func (gm *GrantManager) CreateGrant(grant *mysqlv1alpha1.Grant) error {
 	if user.Spec.Instance != database.Spec.Instance {
 		return ErrUserDatabaseMismatch
 	}
-	_, err = a.GetAPI(
+	api, err := a.GetAPI(
 		gm.Context,
 		types.NamespacedName{
 			Name:      user.Spec.Instance,
@@ -74,6 +78,25 @@ func (gm *GrantManager) CreateGrant(grant *mysqlv1alpha1.Grant) error {
 	if err != nil {
 		return err
 	}
-	// TODO: call the agent to create the user
-	return ErrNotImplemented
+	_, response, err := api.MysqlApi.CreateGrantForUserDatabase(
+		gm.Context,
+		database.Spec.Name,
+		user.Spec.Username,
+		agent.Grant{
+			AccessMode: string(grant.Spec.AccessMode),
+		},
+		nil)
+	if err != nil || response == nil {
+		msg := "NoResponse"
+		if err != nil {
+			msg = err.Error()
+		}
+		log.Info(fmt.Sprintf("Could not access agent, error: %s", msg))
+		return ErrAgentAccessFailed
+	}
+	if response.StatusCode != http.StatusCreated {
+		log.Info("Agent returned unexpected response", "httpcode", response.StatusCode)
+		return ErrAgentRequestFailed
+	}
+	return nil
 }
