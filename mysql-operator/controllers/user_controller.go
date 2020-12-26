@@ -22,6 +22,7 @@ type UserReconciler struct {
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
+// +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=instances,verbs=get;list;watch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=users/finalizers,verbs=update

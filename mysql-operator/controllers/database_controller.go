@@ -22,7 +22,7 @@ type DatabaseReconciler struct {
 }
 
 // +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
-// +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=instances,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=instances,verbs=get;list;watch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=databases,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=databases/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=databases/finalizers,verbs=update

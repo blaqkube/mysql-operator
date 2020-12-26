@@ -1,0 +1,6 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Grant
+metadata:
+  name: grant-sample
+status:
+  reason: "UserAccessError"

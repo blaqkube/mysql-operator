@@ -20,11 +20,20 @@ const (
 )
 
 var (
+	// ErrUserDatabaseMismatch is reported when the user and database do not match for a Grant
+	ErrUserDatabaseMismatch = errors.New("UserDatabaseMismatch")
+
 	// ErrDatabaseNotFound is reported when a database is not found
 	ErrDatabaseNotFound = errors.New("DatabaseNotFound")
 
 	// ErrDatabaseNotReady is reported when a database is not ready
 	ErrDatabaseNotReady = errors.New("DatabaseNotReady")
+
+	// ErrUserNotFound is reported when a user is not found
+	ErrUserNotFound = errors.New("UserNotFound")
+
+	// ErrUserNotReady is reported when a user is not ready
+	ErrUserNotReady = errors.New("UserNotReady")
 
 	// ErrInstanceNotFound is reported when an instance is not found
 	ErrInstanceNotFound = errors.New("InstanceNotFound")
@@ -76,4 +85,36 @@ func (a *APIReconciler) GetAPI(ctx context.Context, instanceName types.Namespace
 	cfg.BasePath = url
 	return agent.NewAPIClient(cfg), nil
 
+}
+
+// GetUser gets a user from the name and namespace
+func (a *APIReconciler) GetUser(ctx context.Context, userName types.NamespacedName) (*mysqlv1alpha1.User, error) {
+	log := a.Log.WithValues("namespace", userName.Namespace, "user", userName.Name)
+
+	user := &mysqlv1alpha1.User{}
+	if err := a.Client.Get(ctx, userName, user); err != nil {
+		log.Info("Unable to fetch user")
+		return nil, ErrUserNotFound
+	}
+	if user.Status.Reason != mysqlv1alpha1.UserSucceeded {
+		log.Info("User is not ready yet")
+		return nil, ErrUserNotReady
+	}
+	return user, nil
+}
+
+// GetDatabase gets a database from the name and namespace
+func (a *APIReconciler) GetDatabase(ctx context.Context, databaseName types.NamespacedName) (*mysqlv1alpha1.Database, error) {
+	log := a.Log.WithValues("namespace", databaseName.Namespace, "database", databaseName.Name)
+
+	database := &mysqlv1alpha1.Database{}
+	if err := a.Client.Get(ctx, databaseName, database); err != nil {
+		log.Info("Unable to fetch database")
+		return nil, ErrDatabaseNotFound
+	}
+	if database.Status.Reason != mysqlv1alpha1.DatabaseSucceeded {
+		log.Info("Database is not ready yet")
+		return nil, ErrDatabaseNotReady
+	}
+	return database, nil
 }

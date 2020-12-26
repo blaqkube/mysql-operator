@@ -20,6 +20,11 @@ spec:
       kind: Database
       name: databases.mysql.blaqkube.io
       version: v1alpha1
+    - description: Grant is the Schema for the grants API
+      displayName: Grant
+      kind: Grant
+      name: grants.mysql.blaqkube.io
+      version: v1alpha1
     - description: Instance is the Schema for the instances API
       displayName: Instance
       kind: Instance
