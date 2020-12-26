@@ -25,8 +25,7 @@ type StoreManager struct {
 }
 
 func (sm *StoreManager) setStoreCondition(store *mysqlv1alpha1.Store, condition metav1.Condition) (ctrl.Result, error) {
-	if condition.Reason == store.Status.Reason &&
-		condition.Reason == mysqlv1alpha1.StoreCheckFailed {
+	if condition.Reason == store.Status.Reason {
 		c := len(store.Status.Conditions) - 1
 		d := sm.TimeManager.Next(store.Status.Conditions[c].LastTransitionTime.Time)
 		return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
