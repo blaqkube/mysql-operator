@@ -1,7 +1,10 @@
 package backup
 
 import (
+	"fmt"
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/blaqkube/mysql-operator/agent/backend"
 	"github.com/blaqkube/mysql-operator/agent/backend/mock"
@@ -24,19 +27,46 @@ func (s *BackupServiceSuite) SetupSuite() {
 		"blackhole": mock.NewStorage(),
 	}
 	s.Service = NewService(backup, storages)
+	s.Service.M.Lock()
+	defer s.Service.M.Unlock()
+	key := "abcd"
+	s.Service.States[key] = openapi.Backup{
+		Bucket:     "bucket",
+		Location:   "location",
+		Identifier: "abcd",
+		StartTime:  time.Now(),
+		Status:     "Succeeded",
+	}
+	s.Service.CurrState = key
 }
 
-func (s *BackupServiceSuite) Test_GetBackups() {
-	_, _, err := s.Service.GetBackups("apikey")
+func (s *BackupServiceSuite) Test_GetBackupByIDFailed() {
+	b, code, err := s.Service.GetBackupByID("abce", "apikey")
 	require.NoError(s.T(), err)
+	require.Equal(s.T(), code, http.StatusNotFound)
+	switch v := b.(type) {
+	case *openapi.Backup:
+		require.Equal(s.T(), v.Bucket, "")
+	case nil:
+		require.Nil(s.T(), b)
+	default:
+		require.Equal(s.T(), fmt.Sprintf("%T", b), "unknown type")
+	}
 }
 
 func (s *BackupServiceSuite) Test_CreateBackup() {
-	_, err := s.Service.CreateBackup(
+	b, code, err := s.Service.CreateBackup(
 		openapi.BackupRequest{Backend: "s3", Bucket: "bucket", Location: "file"},
 		"apikey",
 	)
 	require.NoError(s.T(), err)
+	require.Equal(s.T(), http.StatusCreated, code)
+	switch v := b.(type) {
+	case *openapi.Backup:
+		require.Equal(s.T(), v.Bucket, "bucket")
+	default:
+		require.Equal(s.T(), fmt.Sprintf("%T", b), "unknown type")
+	}
 }
 
 func TestBackupSuite(t *testing.T) {

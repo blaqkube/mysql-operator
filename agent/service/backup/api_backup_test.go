@@ -13,11 +13,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetBackupsSuccess(t *testing.T) {
+func TestGetBackupByIDSuccess(t *testing.T) {
 	c := NewController(&mockService{})
 
 	next := openapi.NewRouter(c)
-	r := httptest.NewRequest("GET", "/backup", nil)
+	r := httptest.NewRequest("GET", "/backup/abcd", nil)
 
 	r.Header.Set("apiKey", "test1")
 
@@ -29,11 +29,31 @@ func TestGetBackupsSuccess(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	u := &openapi.BackupList{}
+	u := &openapi.Backup{}
 	err = json.Unmarshal(bodyBytes, u)
 	assert.Equal(t, err, nil, "Should succeed")
 	assert.Equal(t, http.StatusOK, response.StatusCode, "result should succeed")
-	assert.Equal(t, "s3://bucket/loc/backup-1.dmp", u.Items[0].Location, "Query Size should be 1")
+	assert.Equal(t, "/loc/backup-1.dmp", u.Location, "Should return location")
+}
+
+func TestGetBackupByIDFailure(t *testing.T) {
+	c := NewController(&mockService{})
+
+	next := openapi.NewRouter(c)
+	r := httptest.NewRequest("GET", "/backup/abcd", nil)
+
+	r.Header.Set("apiKey", "test2")
+
+	w := httptest.NewRecorder()
+	next.ServeHTTP(w, r)
+	response := w.Result()
+
+	_, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+	assert.Equal(t, err, nil, "Should succeed")
+	assert.Equal(t, http.StatusInternalServerError, response.StatusCode, "result should succeed")
 }
 
 func TestCreateBackupSuccess(t *testing.T) {
