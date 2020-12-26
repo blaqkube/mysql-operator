@@ -51,13 +51,7 @@ func (s *Suite) Test_CreateMissingUser() {
 		WithArgs().
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	s.mock.ExpectExec(regexp.QuoteMeta(
-		"GRANT ALL PRIVILEGES ON me.* TO 'me'@'%'",
-	)).
-		WithArgs().
-		WillReturnResult(sqlmock.NewResult(0, 1))
-
-	_, err := s.testService.CreateUser(openapi.User{Username: "me", Password: "me", Grants: []openapi.Grant{{Database: "me"}}}, "test1")
+	_, err := s.testService.CreateUser(openapi.User{Username: "me", Password: "me"}, "test1")
 	require.NoError(s.T(), err)
 }
 
@@ -68,7 +62,7 @@ func (s *Suite) Test_CreateUserWithError1() {
 		WithArgs(name).
 		WillReturnError(errors.New("error"))
 
-	_, err := s.testService.CreateUser(openapi.User{Username: "me", Password: "me", Grants: []openapi.Grant{{Database: "me"}}}, "test1")
+	_, err := s.testService.CreateUser(openapi.User{Username: "me", Password: "me"}, "test1")
 	require.Error(s.T(), err)
 }
 
@@ -84,29 +78,7 @@ func (s *Suite) Test_CreateUserWithError2() {
 		WithArgs().
 		WillReturnError(errors.New("error"))
 
-	_, err := s.testService.CreateUser(openapi.User{Username: "me", Password: "me", Grants: []openapi.Grant{{Database: "me"}}}, "test1")
-	require.Error(s.T(), err)
-}
-
-func (s *Suite) Test_CreateUserWithError3() {
-	name := "me"
-	s.mock.ExpectQuery(regexp.QuoteMeta(
-		"SELECT user FROM mysql.user where user=?")).
-		WithArgs(name).
-		WillReturnError(sql.ErrNoRows)
-	s.mock.ExpectExec(regexp.QuoteMeta(
-		"create user 'me'@'%' identified by 'me'",
-	)).
-		WithArgs().
-		WillReturnResult(sqlmock.NewResult(0, 1))
-
-	s.mock.ExpectExec(regexp.QuoteMeta(
-		"GRANT ALL PRIVILEGES ON me.* TO 'me'@'%'",
-	)).
-		WithArgs().
-		WillReturnError(errors.New("error"))
-
-	_, err := s.testService.CreateUser(openapi.User{Username: "me", Password: "me", Grants: []openapi.Grant{{Database: "me"}}}, "test1")
+	_, err := s.testService.CreateUser(openapi.User{Username: "me", Password: "me"}, "test1")
 	require.Error(s.T(), err)
 }
 

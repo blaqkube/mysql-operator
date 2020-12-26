@@ -17,7 +17,6 @@ import (
 	"net/http"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 // MysqlUserService is a service that implents the logic for the MysqlUserServicer
@@ -56,15 +55,6 @@ func (s *MysqlUserService) CreateUser(user openapi.User, apiKey string) (interfa
 	if err != nil {
 		fmt.Printf("Error %v\n", err)
 		return nil, err
-	}
-	for _, v := range user.Grants {
-		sql = fmt.Sprintf("GRANT ALL PRIVILEGES ON %s.* TO '%s'@'%%'", v.Database, user.Username)
-		fmt.Println(sql)
-		_, err = s.DB.Exec(sql)
-		if err != nil {
-			fmt.Printf("Error granting privileges; %v\n", err)
-			return nil, err
-		}
 	}
 	return user, nil
 }

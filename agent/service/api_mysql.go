@@ -18,6 +18,7 @@ import (
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	"github.com/blaqkube/mysql-operator/agent/service/backup"
 	"github.com/blaqkube/mysql-operator/agent/service/database"
+	"github.com/blaqkube/mysql-operator/agent/service/grant"
 	"github.com/blaqkube/mysql-operator/agent/service/user"
 )
 
@@ -26,6 +27,7 @@ type MysqlAPIController struct {
 	backup   backup.Router
 	database database.MysqlDatabaseRouter
 	user     user.MysqlUserRouter
+	grant    grant.MysqlGrantRouter
 }
 
 // NewMysqlAPIController creates a default api controller
@@ -37,10 +39,12 @@ func NewMysqlAPIController(
 	b := backup.NewService(bck, strs)
 	d := database.NewMysqlDatabaseService(db)
 	u := user.NewMysqlUserService(db)
+	g := grant.NewMysqlGrantService(db)
 	return &MysqlAPIController{
 		backup:   backup.NewController(b),
 		database: database.NewMysqlDatabaseController(d),
 		user:     user.NewMysqlUserController(u),
+		grant:    grant.NewMysqlGrantController(g),
 	}
 }
 
@@ -50,5 +54,6 @@ func (c *MysqlAPIController) Routes() openapi.Routes {
 	routes = append(routes, c.backup.Routes()...)
 	routes = append(routes, c.database.Routes()...)
 	routes = append(routes, c.user.Routes()...)
+	routes = append(routes, c.grant.Routes()...)
 	return routes
 }

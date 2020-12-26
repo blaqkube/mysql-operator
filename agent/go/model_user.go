@@ -14,6 +14,4 @@ type User struct {
 	Username string `json:"username"`
 
 	Password string `json:"password"`
-
-	Grants []Grant `json:"grants,omitempty"`
 }
