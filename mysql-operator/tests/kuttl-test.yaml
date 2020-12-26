@@ -6,6 +6,7 @@ testDirs:
 - ./e2e/database
 - ./e2e/user
 - ./e2e/grant
+- ./e2e/backup
 startKIND: false
 timeout: 120
 parallel: 1

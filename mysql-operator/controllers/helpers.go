@@ -26,6 +26,12 @@ var (
 	// ErrUserDatabaseMismatch is reported when the user and database do not match for a Grant
 	ErrUserDatabaseMismatch = errors.New("UserDatabaseMismatch")
 
+	// ErrStoreNotFound is reported when a store is not found
+	ErrStoreNotFound = errors.New("StoreNotFound")
+
+	// ErrStoreNotReady is reported when a store is not ready
+	ErrStoreNotReady = errors.New("StoreNotReady")
+
 	// ErrDatabaseNotFound is reported when a database is not found
 	ErrDatabaseNotFound = errors.New("DatabaseNotFound")
 
@@ -120,4 +126,20 @@ func (a *APIReconciler) GetDatabase(ctx context.Context, databaseName types.Name
 		return nil, ErrDatabaseNotReady
 	}
 	return database, nil
+}
+
+// GetStore gets a store from the name and namespace
+func (a *APIReconciler) GetStore(ctx context.Context, storeName types.NamespacedName) (*mysqlv1alpha1.Store, error) {
+	log := a.Log.WithValues("namespace", storeName.Namespace, "store", storeName.Name)
+
+	store := &mysqlv1alpha1.Store{}
+	if err := a.Client.Get(ctx, storeName, store); err != nil {
+		log.Info("Unable to fetch store")
+		return nil, ErrStoreNotFound
+	}
+	if store.Status.Reason != mysqlv1alpha1.StoreCheckSucceeded {
+		log.Info("Store is not ready yet")
+		return nil, ErrStoreNotReady
+	}
+	return store, nil
 }
