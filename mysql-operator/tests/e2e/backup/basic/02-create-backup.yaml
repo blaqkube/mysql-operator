@@ -5,5 +5,4 @@ metadata:
 spec:
   store: store
   instance: instance
-  prefix: /backups
 ---

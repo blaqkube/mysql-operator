@@ -3,4 +3,4 @@ kind: Store
 metadata:
   name: store
 status:
-  reason: Succeeded
+  reason: CheckSucceeded
