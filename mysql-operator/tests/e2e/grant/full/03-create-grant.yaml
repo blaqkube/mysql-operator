@@ -4,6 +4,6 @@ metadata:
   name: instance-demo-red
 spec:
   database: instance-red
-  user: instance-user1
+  user: instance-demo
   accessMode: readWrite
 ---
