@@ -9,12 +9,12 @@ Once installed, you should be able, from a simple manifest, to:
 
 - Create a MySQL instance 👌
 - Add databases to the newly created instance 🏋
-- Add new users and grant accesses to databases 🎅
-- Create a backup store 💯
+- Add new users 🎅 to a MySQL instance
+- Grant access 🕳 to databases for a user
+- Create a backup store 💯 in S3 and GCP storage
 - Generate a backup in the store 💥
-- Automate daily backups 🤘
 - Create a new instance from a backup ❤
 
-To use the MySQL operator, check the [Installation](/usage/installation)
-section as well as the [Resource](/usage/resources). After that, you are
+To use the MySQL operator, check the [Installation](/users/installation.md)
+section as well as the [Resource](/users/resources.md). After that, you are
 ready 🚀

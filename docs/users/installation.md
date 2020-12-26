@@ -119,10 +119,7 @@ cd mysql-operator
 Once done, you should install the CRDs like below:
 
 ```shell
-cd $(git rev-parse --show-toplevel)/deploy/crds
-kubectl apply -f mysql.blaqkube.io_backups_crd.yaml
-kubectl apply -f mysql.blaqkube.io_stores_crd.yaml
-kubectl apply -f mysql.blaqkube.io_instances_crd.yaml
+make install
 ```
 
 ### Permissions and Controller
@@ -139,5 +136,5 @@ kubectl apply -f operator.yaml
 ```
 
 Once done with the installation, you can create the resources as described in
-[next section](resources) of the documentation
+[next section](resources.md) of the documentation
 

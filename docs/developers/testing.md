@@ -49,7 +49,7 @@ export HTTP_PROXY=http://localhost:3128
 make run ENABLE_WEBHOOKS=false
 ```
 
-## Using kuttl
+## kuttl for testing
 
 The project embeds kuttl tests. In order to run those tests, there are
 a few things to consider.
@@ -67,21 +67,41 @@ curl -Lo kubectl-kuttl \
   $DOWNLOAD/v${KUTTL}/kubectl-kuttl_${KUTTL}_linux_x86_64
 ```
 
-`kuttl` provides integration tests. The problem with integration tests is that
-you require consistent data. To proceed, create a bucket. Then create some S3 credentials that you should store in the `store-sample` secret:
+`kuttl` provides different tests. To run those tests, you should have your
+operator up and running:
 
 ```shell
-cat <<EOF | kubectl apply -f -
-apiVersion: v1
-kind: Secret
-metadata:
-  name: store-sample
-type: Opaque
-stringData:
-  AWS_ACCESS_KEY_ID: AKIA...
-  AWS_SECRET_ACCESS_KEY: secret...
-  AWS_REGION: us-east-1
-EOF
+cd $(git rev-parse --show-toplevel)
+cd mysql-operator
+make install
+kubectl apply -f .ci/squid.yaml
+kubectl port-forward squid 3128 &
+export http_proxy=http://localhost:3128
+make run ENABLE_WEBHOOKS=false
+```
+
+Running `kuttl` tests should be as simple as 
+
+```shell
+cd $(git rev-parse --show-toplevel)
+cd mysql-operator/tests
+kubectl kuttl test
+```
+
+## Integration tests with kuttl
+
+We also provide some integration tests that you can also run with `kuttl`. In
+order for those tests to work, you should set a secret with your AWS/GCP
+credentials. The associated secrets are in 
+`mysql-operator/tests/integration/store/secrets.yaml`. Change them to meet your
+requirements.
+
+You can simply apply those:
+
+```shell
+cd $(git rev-parse --show-toplevel)
+cd mysql-operator/tests
+kybectl apply -f integration/store/secrets.yaml
 ```
 
 Then, you need to change the bucket from the kuttl manifests. You can do it
@@ -90,9 +110,11 @@ of your choice:
 
 ```shell
 cd $(git rev-parse --show-toplevel)
-cd mysql-operator
-export MYBUCKET=logs.blaqkube.io
-sed -i s/logs.blaqkube.io/$MYBUCKET/ integration/store/00-install.yaml
+cd mysql-operator/tests
+export MYBUCKET=yours3bucket
+sed -i s/bucket\.blaqkube\.io/$MYBUCKET/ integration/store/s3/00-install.yaml
+export MYBUCKET=yourgcpbucket
+sed -i s/bucket\.blaqkube\.io/$MYBUCKET/ integration/store/gcp/00-install.yaml
 ```
 
 You can now start the operator with your cluster:
@@ -103,7 +125,7 @@ cd mysql-operator
 make install
 kubectl apply -f .ci/squid.yaml
 kubectl port-forward squid 3128 &
-export HTTP_PROXY=http://localhost:3128
+export http_proxy=http://localhost:3128
 make run ENABLE_WEBHOOKS=false
 ```
 
@@ -111,6 +133,9 @@ Running the test should then be as easy as running:
 
 ```shell
 cd $(git rev-parse --show-toplevel)
-cd mysql-operator
-kubectl kuttl test
+cd mysql-operator/tests
+kubectl kuttl test integration/store --test s3
 ```
+
+Testing is key to the project. There is a lot to improve so do not hesitate to
+provide some feedback.
