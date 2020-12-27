@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	// "time"
+	"time"
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
 )
@@ -29,14 +30,16 @@ type BackupJob struct {
 	client.Client
 	Instance types.NamespacedName
 	Log      logr.Logger
+	Scheme   *runtime.Scheme
 }
 
 // NewBackupJob creates a BackupJob to schedule it
-func NewBackupJob(client client.Client, instance types.NamespacedName, log logr.Logger) *BackupJob {
+func NewBackupJob(client client.Client, instance types.NamespacedName, log logr.Logger, scheme *runtime.Scheme) *BackupJob {
 	return &BackupJob{
 		Client:   client,
 		Instance: instance,
 		Log:      log,
+		Scheme:   scheme,
 	}
 }
 
@@ -49,7 +52,26 @@ func (b *BackupJob) Run() {
 		return
 	}
 	b.Log.Info(fmt.Sprintf("job for %s/%s succeeded...", b.Instance.Namespace, b.Instance.Name))
-	fmt.Println("Running running running...")
+	backupName := fmt.Sprintf("%s-backup-%s", instance.Name, time.Now().Format("20060102-150405"))
+	backup := &mysqlv1alpha1.Backup{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      backupName,
+			Namespace: instance.Namespace,
+		},
+		Spec: mysqlv1alpha1.BackupSpec{
+			Store:    instance.Spec.BackupSchedule.Store,
+			Instance: instance.Name,
+		},
+	}
+	if err := controllerutil.SetControllerReference(&instance, backup, b.Scheme); err != nil {
+		b.Log.Info(fmt.Sprintf("Error registering backup %s/%s with instance %s", instance.Namespace, backupName, instance.Name))
+		return
+	}
+	if err := b.Client.Create(ctx, backup); err != nil {
+		b.Log.Info(fmt.Sprintf("Error creating backup %s/%s for instance %s", instance.Namespace, backupName, instance.Name))
+		return
+	}
+	b.Log.Info(fmt.Sprintf("Backup %s/%s for instance %s successfully created", instance.Namespace, backupName, instance.Name))
 }
 
 // Crontab provides a simple struct to manage cron EntryID for instances
@@ -127,7 +149,7 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if instance.Spec.BackupSchedule.Schedule != "" {
 			crontab.M.Lock()
 			defer crontab.M.Unlock()
-			entry, err := crontab.Cron.AddJob(instance.Spec.BackupSchedule.Schedule, NewBackupJob(r.Client, req.NamespacedName, log))
+			entry, err := crontab.Cron.AddJob(instance.Spec.BackupSchedule.Schedule, NewBackupJob(r.Client, req.NamespacedName, log, r.Scheme))
 			if err == nil {
 				log.Info("Backup scheduler job for instance added")
 				crontab.Schedulers[int(entry)] = fmt.Sprintf("%s/%s", req.NamespacedName.Namespace, req.NamespacedName.Name)
@@ -258,5 +280,6 @@ func (r *InstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&mysqlv1alpha1.Instance{}).
 		Owns(&corev1.Secret{}).
 		Owns(&appsv1.StatefulSet{}).
+		Owns(&mysqlv1alpha1.Backup{}).
 		Complete(r)
 }
