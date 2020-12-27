@@ -6,10 +6,10 @@ metadata:
 spec:
   backend: gcp
   bucket: bucket.blaqkube.io
-  prefix: /tmp
+  prefix: /backup/blaq
   envs:
   - name: GOOGLE_APPLICATION_CREDENTIALS
     valueFrom:
       secretKeyRef:
-        name: store-sample
+        name: gcp-sample
         key: GOOGLE_APPLICATION_CREDENTIALS
