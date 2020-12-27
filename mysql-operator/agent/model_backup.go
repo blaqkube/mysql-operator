@@ -22,5 +22,5 @@ type Backup struct {
 	StartTime  time.Time  `json:"start_time"`
 	EndTime    *time.Time `json:"end_time,omitempty"`
 	// backup status
-	Status string `json:"status,omitempty"`
+	Status string `json:"status"`
 }

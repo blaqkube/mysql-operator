@@ -22,37 +22,8 @@ tags:
   name: mysql
 paths:
   /backup:
-    get:
-      description: Returns a backup list
-      operationId: getBackups
-      parameters:
-      - explode: false
-        in: header
-        name: api_key
-        required: false
-        schema:
-          type: string
-        style: simple
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BackupList'
-          description: successful operation
-        "400":
-          content: {}
-          description: Invalid Backup supplied
-        "404":
-          content: {}
-          description: Backup not found
-      security:
-      - api_key: []
-      summary: Get backup properties
-      tags:
-      - mysql
     post:
-      operationId: createBackup
+      operationId: CreateBackup
       parameters:
       - explode: false
         in: header
@@ -75,12 +46,58 @@ paths:
               schema:
                 $ref: '#/components/schemas/Backup'
           description: Backup Created
-        "405":
-          content: {}
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
           description: Invalid input
       security:
       - api_key: []
       summary: create an on-demand backup
+      tags:
+      - mysql
+  /backup/{uuid}:
+    get:
+      operationId: GetBackupByID
+      parameters:
+      - explode: false
+        in: header
+        name: api_key
+        required: false
+        schema:
+          type: string
+        style: simple
+      - description: Backup Internal ID
+        explode: false
+        in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
+          description: Get Backup
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
+          description: Invalid input
+      security:
+      - api_key: []
+      summary: Get a backup on demand
       tags:
       - mysql
   /database:
@@ -466,6 +483,23 @@ components:
       - identifier
       - location
       - start_time
+      - status
+      type: object
+    BackupList:
+      description: The List of backups
+      example:
+        size: 1
+        items:
+        - bucket: bucket
+          location: /blue/mybackup.dmp
+          id: abc
+      properties:
+        size:
+          type: integer
+        items:
+          items:
+            $ref: '#/components/schemas/Backup'
+          type: array
       type: object
     BackupRequest:
       example:
@@ -490,23 +524,9 @@ components:
             $ref: '#/components/schemas/EnvVar'
           type: array
       required:
+      - backend
       - bucket
-      - path
-      type: object
-    BackupList:
-      example:
-        size: 1
-        items:
-        - bucket: backup.blaqkube.io
-          location: /blue/mybackup.dmp
-          id: abc
-      properties:
-        size:
-          type: integer
-        items:
-          items:
-            $ref: '#/components/schemas/Backup'
-          type: array
+      - location
       type: object
     Database:
       example:

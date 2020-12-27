@@ -3,4 +3,4 @@ kind: Backup
 metadata:
   name: backup1
 status:
-  reason: AgentNotFound
+  reason: Succeeded

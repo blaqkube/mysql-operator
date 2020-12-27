@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -16,6 +17,14 @@ import (
 const (
 	maxBackupConditions   = 10
 	backupPollingInterval = 30 * time.Second
+)
+
+var (
+	// ErrBackupFailed is reported the backup has failed
+	ErrBackupFailed = errors.New("BackupFailed")
+
+	// ErrBackupRunning is reported the backup is always running
+	ErrBackupRunning = errors.New("BackupRunning")
 )
 
 // BackupManager provides methods to manage the backup subcomponents
@@ -34,7 +43,9 @@ func (bm *BackupManager) setBackupCondition(backup *mysqlv1alpha1.Backup, condit
 		d := bm.TimeManager.Next(backup.Status.Conditions[c].LastTransitionTime.Time)
 		return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
 	}
-
+	if details != nil {
+		backup.Status.Details = details
+	}
 	backup.Status.Ready = condition.Status
 	backup.Status.Reason = condition.Reason
 	backup.Status.Message = condition.Message
@@ -54,7 +65,11 @@ func (bm *BackupManager) setBackupCondition(backup *mysqlv1alpha1.Backup, condit
 
 // MonitorBackup watch backup progress and update results
 func (bm *BackupManager) MonitorBackup(backup *mysqlv1alpha1.Backup) (*mysqlv1alpha1.BackupDetails, error) {
-	_ = bm.Reconciler.Log.WithValues("Namespace", backup.Namespace, "backup", backup.Name)
+	log := bm.Reconciler.Log.WithValues("Namespace", backup.Namespace, "backup", backup.Name)
+	if backup.Status.Details == nil {
+		log.Info("Missing backup details, monitoring fails")
+		return &mysqlv1alpha1.BackupDetails{}, ErrBackupFailed
+	}
 	b := backup.Status.Details
 
 	a := &APIReconciler{
@@ -62,7 +77,7 @@ func (bm *BackupManager) MonitorBackup(backup *mysqlv1alpha1.Backup) (*mysqlv1al
 		Log:    bm.Reconciler.Log,
 	}
 
-	_, err := a.GetAPI(
+	api, err := a.GetAPI(
 		bm.Context,
 		types.NamespacedName{
 			Name:      backup.Spec.Instance,
@@ -72,7 +87,37 @@ func (bm *BackupManager) MonitorBackup(backup *mysqlv1alpha1.Backup) (*mysqlv1al
 	if err != nil {
 		return b, err
 	}
-	return b, ErrNotImplemented
+	log.Info(fmt.Sprintf("Calling GetBackupByID with ID: %s", backup.Status.Details.Identifier))
+	data, code, err := api.MysqlApi.GetBackupByID(bm.Context, backup.Status.Details.Identifier, nil)
+	if err != nil {
+		log.Info(fmt.Sprintf("Error calling GetBackupByID, err: %v", err))
+		v := metav1.Now()
+		b.EndTime = &v
+		return b, ErrBackupFailed
+	}
+	if code.StatusCode != http.StatusOK || data.Status == "Failed" {
+		log.Info(fmt.Sprintf("Wrong status/data from GetBackupByID, Code: %d, Status: %s", code.StatusCode, data.Status))
+		v := metav1.Now()
+		b.EndTime = &v
+		return b, ErrBackupFailed
+	}
+	if data.Status == "Running" || data.Status == "Waiting" {
+		return b, ErrBackupRunning
+	}
+	details := &mysqlv1alpha1.BackupDetails{
+		Identifier: data.Identifier,
+		Bucket:     data.Bucket,
+		StartTime:  &metav1.Time{Time: data.StartTime},
+		Location:   data.Location,
+	}
+	if data.EndTime != nil {
+		b.EndTime = &metav1.Time{Time: *data.EndTime}
+	}
+	if data.Status == "Succeeded" {
+		return details, nil
+	}
+	log.Info(fmt.Sprintf("Not implemented, backup status: %s", data.Status))
+	return details, ErrNotImplemented
 }
 
 // CreateBackup is the script that creates a user
@@ -138,6 +183,9 @@ func (bm *BackupManager) CreateBackup(backup *mysqlv1alpha1.Backup) (*mysqlv1alp
 	}
 	return &mysqlv1alpha1.BackupDetails{
 		Identifier: b.Identifier,
+		Bucket:     b.Bucket,
+		StartTime:  &metav1.Time{Time: b.StartTime},
+		Location:   b.Location,
 	}, nil
 }
 
