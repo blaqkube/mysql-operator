@@ -42,13 +42,14 @@ func NewBackupJob(client client.Client, instance types.NamespacedName, log logr.
 
 // Run implement the Job interface to use with Cron AddFunc()
 func (b *BackupJob) Run() {
-	ctx := context.Background()
-	instance := mysqlv1alpha1.Instance{}
-	if err := b.Client.Get(ctx, b.Instance, &instance); err != nil {
-		b.Log.Info(fmt.Sprintf("job for %s/%s failed. Could not access instance...", b.Instance.Namespace, b.Instance.Name))
-		return
-	}
-	b.Log.Info(fmt.Sprintf("job for %s/%s succeeded...", b.Instance.Namespace, b.Instance.Name))
+	// ctx := context.Background()
+	// instance := mysqlv1alpha1.Instance{}
+	// if err := b.Client.Get(ctx, b.Instance, &instance); err != nil {
+	// 	b.Log.Info(fmt.Sprintf("job for %s/%s failed. Could not access instance...", b.Instance.Namespace, b.Instance.Name))
+	// 	return
+	// }
+	// b.Log.Info(fmt.Sprintf("job for %s/%s succeeded...", b.Instance.Namespace, b.Instance.Name))
+	fmt.Println("Running running running...")
 }
 
 // Crontab provides a simple struct to manage cron EntryID for instances
