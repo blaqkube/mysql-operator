@@ -1,0 +1,15 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Store
+metadata:
+  name: store-sample
+  namespace: default
+spec:
+  backend: gcp
+  bucket: bucket.blaqkube.io
+  prefix: /backup/blaq
+  envs:
+  - name: GOOGLE_APPLICATION_CREDENTIALS
+    valueFrom:
+      secretKeyRef:
+        name: gcp-sample
+        key: GOOGLE_APPLICATION_CREDENTIALS

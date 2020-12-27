@@ -51,12 +51,14 @@ const (
 	BackendS3 Backend = "s3"
 	// BackendBlackhole for blackhole. A backend used to perform tests
 	BackendBlackhole Backend = "blackhole"
+	// BackendGCP for GCP. A backend used to perform tests
+	BackendGCP Backend = "gcp"
 )
 
 // StoreSpec defines the desired state of Store
 type StoreSpec struct {
 	// Defines the type of backend to be used for the store.
-	// +kubebuilder:validation:Enum=s3;blackhole
+	// +kubebuilder:validation:Enum=s3;blackhole;gcp
 	Backend Backend `json:"backend,omitempty"`
 	// the store bucket
 	Bucket string `json:"bucket"`

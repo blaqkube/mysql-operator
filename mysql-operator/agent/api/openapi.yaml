@@ -514,6 +514,7 @@ components:
           enum:
           - s3
           - blackhole
+          - gcp
           type: string
         bucket:
           type: string

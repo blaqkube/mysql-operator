@@ -108,6 +108,7 @@ var _ = Describe("Store Controller", func() {
 				Storages: map[string]backend.Storage{
 					"s3":        NewStorage(test["status"]),
 					"blackhole": NewStorage(test["status"]),
+					"gcp":       NewStorage(test["status"]),
 				},
 			}
 
@@ -190,6 +191,7 @@ var _ = Describe("Store Controller", func() {
 			Storages: map[string]backend.Storage{
 				"s3":        NewStorage(storeMockStatusWithKeys),
 				"blackhole": NewStorage(storeMockStatusWithKeys),
+				"gcp":       NewStorage(storeMockStatusWithKeys),
 			},
 		}
 
@@ -270,6 +272,7 @@ var _ = Describe("Store Controller", func() {
 			Storages: map[string]backend.Storage{
 				"s3":        NewStorage(storeMockStatusWithKeys),
 				"blackhole": NewStorage(storeMockStatusWithKeys),
+				"gcp":       NewStorage(storeMockStatusWithKeys),
 			},
 		}
 
@@ -334,6 +337,7 @@ var _ = Describe("Store Controller", func() {
 			Storages: map[string]backend.Storage{
 				"s3":        NewStorage(storeMockStatusWithKeys),
 				"blackhole": NewStorage(storeMockStatusWithKeys),
+				"gcp":       NewStorage(storeMockStatusWithKeys),
 			},
 		}
 

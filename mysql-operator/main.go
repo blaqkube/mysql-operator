@@ -10,6 +10,7 @@ import (
 
 	"github.com/blaqkube/mysql-operator/agent/backend"
 	bhstorage "github.com/blaqkube/mysql-operator/agent/backend/blackhole"
+	gcpstorage "github.com/blaqkube/mysql-operator/agent/backend/gcp"
 	s3storage "github.com/blaqkube/mysql-operator/agent/backend/s3"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -30,7 +31,7 @@ var (
 
 const (
 	// DefaultAgentVersion is the current defaut agent version
-	DefaultAgentVersion = "e0ae60e81c44753d"
+	DefaultAgentVersion = "11112f27e3301847"
 
 	// DefaultMySQLVersion is the current defaut MySQL version
 	DefaultMySQLVersion = "8.0.22"
@@ -98,8 +99,9 @@ func main() {
 		Log:    ctrl.Log.WithName("controllers").WithName("Store"),
 		Scheme: mgr.GetScheme(),
 		Storages: map[string]backend.Storage{
-			"s3":        s3storage.NewStorage(),
 			"blackhole": bhstorage.NewStorage(),
+			"gcp":       gcpstorage.NewStorage(),
+			"s3":        s3storage.NewStorage(),
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Store")
