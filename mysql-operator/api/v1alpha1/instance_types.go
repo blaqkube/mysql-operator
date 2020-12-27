@@ -44,6 +44,15 @@ type RestoreSpec struct {
 	Location string `json:"location,omitempty"`
 }
 
+// BackupScheduleSpec defines the backup schedule properties
+type BackupScheduleSpec struct {
+	// The backup store to use for backups
+	Store string `json:"store,omitempty"`
+
+	// The backup schedule to use for backups
+	Schedule string `json:"schedule,omitempty"`
+}
+
 // InstanceSpec defines the desired state of Instance
 type InstanceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -52,8 +61,23 @@ type InstanceSpec struct {
 	// Restore when starting from an existing configuration
 	Restore RestoreSpec `json:"restore,omitempty"`
 
+	// Defines the backup schedules
+	BackupSchedule BackupScheduleSpec `json:"backupSchedule,omitempty"`
+
 	// Database is the default database name for the instance
 	Database string `json:"database,omitempty"`
+}
+
+// BackupScheduleStatus defines the backup schedule properties
+type BackupScheduleStatus struct {
+	// The backup schedule that 
+	Schedule string `json:"schedule,omitempty"`
+	// The Scheduler incarnation managed by the operator
+	// +kubebuilder:default:="00000000-0000-0000-0000-000000000000"
+	Incarnation string `json:"incarnation,omitempty"`
+	// The BackupJob ID in the Scheduler
+	// +kubebuilder:default:=-1
+	EntryID int `json:"entryID,omitempty"`
 }
 
 // InstanceStatus defines the observed state of Instance
@@ -72,7 +96,9 @@ type InstanceStatus struct {
 	// this condition.
 	Message string `json:"message,omitempty"`
 	// Conditions provides informations about the the last conditions
-	Conditions []metav1.Condition `json:"Conditions,omitempty"`
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	// BackupSchedule provides information about the current running backup
+	BackupSchedule BackupScheduleStatus `json:"backupSchedule,omitempty"`
 }
 
 // +kubebuilder:object:root=true
