@@ -13,6 +13,7 @@ type Router interface {
 	Routes() openapi.Routes
 	CreateBackup(http.ResponseWriter, *http.Request)
 	GetBackupByID(http.ResponseWriter, *http.Request)
+	GetBackups(http.ResponseWriter, *http.Request)
 }
 
 // Servicer defines the api actions for the Backup service
@@ -22,4 +23,5 @@ type Router interface {
 type Servicer interface {
 	CreateBackup(openapi.BackupRequest, string) (interface{}, int, error)
 	GetBackupByID(string, string) (interface{}, int, error)
+	GetBackups(string) (interface{}, int, error)
 }

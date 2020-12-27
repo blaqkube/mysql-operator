@@ -40,6 +40,18 @@ func (s *BackupServiceSuite) SetupSuite() {
 	s.Service.CurrState = key
 }
 
+func (s *BackupServiceSuite) Test_GetBackupByIDSucceed() {
+	b, code, err := s.Service.GetBackupByID("abcd", "apikey")
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), code, http.StatusOK)
+	switch v := b.(type) {
+	case *openapi.Backup:
+		require.Equal(s.T(), v.Bucket, "bucket")
+	default:
+		require.Equal(s.T(), fmt.Sprintf("%T", b), "unknown type")
+	}
+}
+
 func (s *BackupServiceSuite) Test_GetBackupByIDFailed() {
 	b, code, err := s.Service.GetBackupByID("abce", "apikey")
 	require.NoError(s.T(), err)
@@ -49,6 +61,20 @@ func (s *BackupServiceSuite) Test_GetBackupByIDFailed() {
 		require.Equal(s.T(), v.Bucket, "")
 	case nil:
 		require.Nil(s.T(), b)
+	default:
+		require.Equal(s.T(), fmt.Sprintf("%T", b), "unknown type")
+	}
+}
+
+func (s *BackupServiceSuite) Test_GetBackupsSucceed() {
+	b, code, err := s.Service.GetBackups("apikey")
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), code, http.StatusOK)
+	switch v := b.(type) {
+	case *openapi.BackupList:
+		require.Equal(s.T(), v.Size, int32(2))
+		require.Equal(s.T(), v.Items[0].Bucket, "bucket")
+		require.Equal(s.T(), v.Items[1].Bucket, "bucket")
 	default:
 		require.Equal(s.T(), fmt.Sprintf("%T", b), "unknown type")
 	}

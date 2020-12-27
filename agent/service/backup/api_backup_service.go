@@ -88,6 +88,22 @@ func (s *Service) GetBackupByID(uuid, apiKey string) (interface{}, int, error) {
 	return &openapi.Backup{}, http.StatusNotFound, nil
 }
 
+// GetBackups - Get backups
+func (s *Service) GetBackups(apikey string) (interface{}, int, error) {
+	s.M.Lock()
+	defer s.M.Unlock()
+	size := int32(0)
+	backups := []openapi.Backup{}
+	for _, v := range s.States {
+		backups = append(backups, v)
+		size++
+	}
+	return &openapi.BackupList{
+		Size: size,
+		Items: backups,
+	}, http.StatusOK, nil
+}
+
 // runBackup is the routine that runs the backup
 func runBackup(b *Service, request openapi.BackupRequest, backup openapi.Backup) {
 	b.Backup.Run(fmt.Sprintf("%s.dmp", backup.Identifier))
