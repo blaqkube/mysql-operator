@@ -69,6 +69,7 @@ workflows:
   tagged-build:
     jobs:
       - bundle:
+          context: QUAY
           filters:
             branches:
               ignore: /.*/
