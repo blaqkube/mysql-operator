@@ -1,6 +1,6 @@
 // +build integration
 
-package s3
+package gcp
 
 import (
 	"errors"
@@ -41,7 +41,7 @@ func validFile(filename, content string) error {
 		return err
 	}
 
-	c1 := fmt.Sprintf("[%s]", content)
+	c1 := fmt.Sprintf("[test.txt]")
 	c2 := string(dat)
 	if c2 != c1 {
 		return errors.New("wrong file")
@@ -53,7 +53,8 @@ func deleteFile(filename string) error {
 	return os.Remove(filename)
 }
 
-func (s *StorageSuite) TestS3Success() {
+func (s *StorageSuite) TestGCPStorageSuccess() {
+
 	_ = godotenv.Load()
 
 	b := openapi.BackupRequest{
@@ -61,16 +62,8 @@ func (s *StorageSuite) TestS3Success() {
 		Location: os.Getenv("BACKUP_LOCATION"),
 		Envs: []openapi.EnvVar{
 			{
-				Name:  "AWS_ACCESS_KEY_ID",
-				Value: os.Getenv("BACKUP_AWS_ACCESS_KEY_ID"),
-			},
-			{
-				Name:  "AWS_SECRET_ACCESS_KEY",
-				Value: os.Getenv("BACKUP_AWS_SECRET_ACCESS_KEY"),
-			},
-			{
-				Name:  "AWS_REGION",
-				Value: os.Getenv("BACKUP_AWS_REGION"),
+				Name:  "GOOGLE_APPLICATION_CREDENTIALS",
+				Value: os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"),
 			},
 		},
 	}
@@ -81,10 +74,10 @@ func (s *StorageSuite) TestS3Success() {
 	err = s.Storage.Push(&b, "test.txt")
 	assert.NoError(s.T(), err, "No Error")
 
-	err = deleteFile("test.txt")
+	err = s.Storage.Pull(&b, "test2.txt")
 	assert.NoError(s.T(), err, "No Error")
 
-	err = s.Storage.Pull(&b, "test2.txt")
+	err = deleteFile("test.txt")
 	assert.NoError(s.T(), err, "No Error")
 
 	err = s.Storage.Delete(&b)
@@ -95,10 +88,10 @@ func (s *StorageSuite) TestS3Success() {
 
 	err = deleteFile("test2.txt")
 	assert.NoError(s.T(), err, "No Error")
-
 }
 
-func (s *StorageSuite) TestFailed() {
+func (s *StorageSuite) TestGCPStorageFail() {
+
 	_ = godotenv.Load()
 
 	b := openapi.BackupRequest{
@@ -106,16 +99,8 @@ func (s *StorageSuite) TestFailed() {
 		Location: os.Getenv("BACKUP_LOCATION"),
 		Envs: []openapi.EnvVar{
 			{
-				Name:  "AWS_ACCESS_KEY_ID",
-				Value: os.Getenv("BACKUP_AWS_ACCESS_KEY_ID"),
-			},
-			{
-				Name:  "AWS_SECRET_ACCESS_KEY",
-				Value: os.Getenv("BACKUP_AWS_SECRET_ACCESS_KEY"),
-			},
-			{
-				Name:  "AWS_REGION",
-				Value: os.Getenv("BACKUP_AWS_REGION"),
+				Name:  "GOOGLE_APPLICATION_CREDENTIALS",
+				Value: os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"),
 			},
 		},
 	}
@@ -125,12 +110,8 @@ func (s *StorageSuite) TestFailed() {
 		Location: os.Getenv("BACKUP_LOCATION"),
 		Envs: []openapi.EnvVar{
 			{
-				Name:  "AWS_PROFILE",
+				Name:  "GOOGLE_APPLICATION_CREDENTIALS",
 				Value: "unknown",
-			},
-			{
-				Name:  "AWS_REGION",
-				Value: "",
 			},
 		},
 	}
@@ -140,10 +121,11 @@ func (s *StorageSuite) TestFailed() {
 
 	err = s.Storage.Push(&b, "test.txt")
 	assert.Error(s.T(), err, "Error")
-	assert.Regexp(s.T(), "AccessDenied.*", err.Error(), "AccessDenied")
+	assert.Regexp(s.T(), "Writer.Close.*", err.Error(), "Writer.Close")
 
 	err = s.Storage.Push(&c, "test.txt")
 	assert.Error(s.T(), err, "Error")
+	assert.Regexp(s.T(), "Cannot get Client.*", err.Error(), "Cannot get Client")
 
 	err = s.Storage.Push(&b, "test2.txt")
 	assert.Error(s.T(), err, "Error")
@@ -151,7 +133,7 @@ func (s *StorageSuite) TestFailed() {
 
 	err = s.Storage.Pull(&b, "test2.txt")
 	assert.Error(s.T(), err, "Error")
-	assert.Regexp(s.T(), "AccessDenied.*", err.Error(), "AccessDenied")
+	assert.Regexp(s.T(), "Object.*", err.Error(), "AccessDenied")
 
 	err = deleteFile("test.txt")
 	assert.NoError(s.T(), err, "No Error")

@@ -13,7 +13,7 @@ type mockService struct{}
 func (s *mockService) CreateBackup(o openapi.BackupRequest, apikey string) (interface{}, int, error) {
 	if apikey == "test1" {
 		return openapi.Backup{
-			Location:   "s3://bucket/loc/backup-1.dmp",
+			Location:   "/loc/backup-1.dmp",
 			Bucket:     "bucket",
 			Status:     "running",
 			StartTime:  time.Now(),

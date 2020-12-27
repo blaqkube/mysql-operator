@@ -23,8 +23,9 @@ type BackupServiceSuite struct {
 func (s *BackupServiceSuite) SetupSuite() {
 	backup := mock.NewBackup()
 	storages := map[string]backend.Storage{
-		"s3":        mock.NewStorage(),
 		"blackhole": mock.NewStorage(),
+		"gcp":       mock.NewStorage(),
+		"s3":        mock.NewStorage(),
 	}
 	s.Service = NewService(backup, storages)
 	s.Service.M.Lock()
