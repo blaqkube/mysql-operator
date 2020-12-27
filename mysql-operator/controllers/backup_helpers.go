@@ -87,8 +87,16 @@ func (bm *BackupManager) MonitorBackup(backup *mysqlv1alpha1.Backup) (*mysqlv1al
 	if err != nil {
 		return b, err
 	}
+	log.Info(fmt.Sprintf("Calling GetBackupByID with ID: %s", backup.Status.Details.Identifier))
 	data, code, err := api.MysqlApi.GetBackupByID(bm.Context, backup.Status.Details.Identifier, nil)
-	if err != nil || code.StatusCode != http.StatusOK || data.Status == "Failed" {
+	if err != nil {
+		log.Info(fmt.Sprintf("Error calling GetBackupByID, err: %v", err))
+		v := metav1.Now()
+		b.EndTime = &v
+		return b, ErrBackupFailed
+	}
+	if code.StatusCode != http.StatusOK || data.Status == "Failed" {
+		log.Info(fmt.Sprintf("Wrong status/data from GetBackupByID, Code: %d, Status: %s", code.StatusCode, data.Status))
 		v := metav1.Now()
 		b.EndTime = &v
 		return b, ErrBackupFailed
