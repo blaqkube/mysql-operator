@@ -5,6 +5,5 @@ metadata:
 spec:
   database: blue
   backupSchedule:
-    store: s3
+    store: store1
     schedule: "* * * * *"
----

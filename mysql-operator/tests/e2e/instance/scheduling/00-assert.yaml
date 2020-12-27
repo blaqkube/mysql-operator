@@ -1,7 +1,6 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
-kind: Instance
+kind: Store
 metadata:
-  name: instance1
+  name: store1
 status:
-  ready: "True"
-  reason: StatefulSetReady
+  reason: "CheckSucceeded"

@@ -1,0 +1,11 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Store
+metadata:
+  name: store1
+spec:
+  backend: blackhole
+  bucket: bucket1
+  prefix: /backup/black    
+  envs:
+  - name: NAME
+    value: VALUE
