@@ -56,6 +56,49 @@ func TestGetBackupByIDFailure(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, response.StatusCode, "result should succeed")
 }
 
+func TestGetBackupsSucceed(t *testing.T) {
+	c := NewController(&mockService{})
+
+	next := openapi.NewRouter(c)
+	r := httptest.NewRequest("GET", "/backup", nil)
+
+	r.Header.Set("apiKey", "test1")
+
+	w := httptest.NewRecorder()
+	next.ServeHTTP(w, r)
+	response := w.Result()
+
+	bodyBytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+	u := &openapi.BackupList{}
+	err = json.Unmarshal(bodyBytes, u)
+	assert.Equal(t, err, nil, "Should succeed")
+	assert.Equal(t, http.StatusOK, response.StatusCode, "result should succeed")
+	assert.Equal(t, int32(1), u.Size, "result should be 1")
+}
+
+func TestGetBackupsNoData(t *testing.T) {
+	c := NewController(&mockService{})
+
+	next := openapi.NewRouter(c)
+	r := httptest.NewRequest("GET", "/backup", nil)
+
+	r.Header.Set("apiKey", "test2")
+
+	w := httptest.NewRecorder()
+	next.ServeHTTP(w, r)
+	response := w.Result()
+
+	_, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+	assert.Equal(t, err, nil, "Should succeed")
+	assert.Equal(t, http.StatusOK, response.StatusCode, "result should succeed")
+}
+
 func TestCreateBackupSuccess(t *testing.T) {
 	c := NewController(&mockService{})
 

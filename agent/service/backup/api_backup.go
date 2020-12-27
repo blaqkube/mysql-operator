@@ -29,6 +29,12 @@ func (c *Controller) Routes() openapi.Routes {
 			HandlerFunc: c.CreateBackup,
 		},
 		{
+			Name:        "GetBackups",
+			Method:      strings.ToUpper("Get"),
+			Pattern:     "/backup",
+			HandlerFunc: c.GetBackups,
+		},
+		{
 			Name:        "GetBackupByID",
 			Method:      strings.ToUpper("Get"),
 			Pattern:     "/backup/{uuid}",
@@ -54,12 +60,23 @@ func (c *Controller) CreateBackup(w http.ResponseWriter, r *http.Request) {
 	openapi.EncodeJSONResponse(result, &code, w)
 }
 
-// GetBackupByID - Get backups
+// GetBackupByID - Get backup from UUID
 func (c *Controller) GetBackupByID(w http.ResponseWriter, r *http.Request) {
 	apiKey := r.Header.Get("apiKey")
 	params := mux.Vars(r)
 	uuid := params["uuid"]
 	result, code, err := c.service.GetBackupByID(uuid, apiKey)
+	if err != nil && code != 0 {
+		w.WriteHeader(500)
+		return
+	}
+	openapi.EncodeJSONResponse(result, &code, w)
+}
+
+// GetBackups - Get backups
+func (c *Controller) GetBackups(w http.ResponseWriter, r *http.Request) {
+	apiKey := r.Header.Get("apiKey")
+	result, code, err := c.service.GetBackups(apiKey)
 	if err != nil && code != 0 {
 		w.WriteHeader(500)
 		return

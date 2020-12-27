@@ -485,6 +485,22 @@ components:
       - start_time
       - status
       type: object
+    BackupList:
+      description: The List of backups
+      example:
+        size: 1
+        items:
+        - bucket: bucket
+          location: /blue/mybackup.dmp
+          id: abc
+      properties:
+        size:
+          type: integer
+        items:
+          items:
+            $ref: '#/components/schemas/Backup'
+          type: array
+      type: object
     BackupRequest:
       example:
         backend: s3
