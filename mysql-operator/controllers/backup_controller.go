@@ -71,8 +71,8 @@ func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				condition.Reason = mysqlv1alpha1.BackupRunning
 				condition.Message = "Backup is still running"
 			default:
-				condition.Reason = mysqlv1alpha1.BackupFailed
-				condition.Message = "Backup Failed due to agent or connection error"
+				condition.Reason = mysqlv1alpha1.BackupNotImplemented
+				condition.Message = "This is not implemented"
 			}
 			return bm.setBackupCondition(backup, condition, b)
 		}

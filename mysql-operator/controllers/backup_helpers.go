@@ -101,7 +101,7 @@ func (bm *BackupManager) MonitorBackup(backup *mysqlv1alpha1.Backup) (*mysqlv1al
 		b.EndTime = &v
 		return b, ErrBackupFailed
 	}
-	if data.Status == "Running" {
+	if data.Status == "Running" || data.Status == "Waiting" {
 		return b, ErrBackupRunning
 	}
 	details := &mysqlv1alpha1.BackupDetails{
@@ -116,6 +116,7 @@ func (bm *BackupManager) MonitorBackup(backup *mysqlv1alpha1.Backup) (*mysqlv1al
 	if data.Status == "Succeeded" {
 		return details, nil
 	}
+	log.Info(fmt.Sprintf("Not implemented, backup status: %s", data.Status))
 	return details, ErrNotImplemented
 }
 
