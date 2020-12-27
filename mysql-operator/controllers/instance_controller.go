@@ -77,6 +77,8 @@ func (c *Crontab) isBackupScheduleRunning(instance mysqlv1alpha1.Instance) bool 
 	if entry == -1 {
 		return false
 	}
+	c.M.Lock()
+	defer c.M.Unlock()
 	if c.Cron == nil {
 		c.Schedulers = map[int]string{}
 		c.Cron = cron.New()
@@ -84,8 +86,6 @@ func (c *Crontab) isBackupScheduleRunning(instance mysqlv1alpha1.Instance) bool 
 		c.Incarnation = uuid.New().String()
 		return false
 	}
-	c.M.Lock()
-	defer c.M.Unlock()
 	if c.Incarnation != instance.Status.BackupSchedule.Incarnation {
 		return false
 	}
@@ -123,6 +123,7 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if !crontab.isBackupScheduleRunning(*instance) {
+		update := false
 		if instance.Spec.BackupSchedule.Schedule != "" {
 			crontab.M.Lock()
 			defer crontab.M.Unlock()
@@ -135,16 +136,18 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					EntryID:     int(entry),
 					Incarnation: crontab.Incarnation,
 				}
-				if err := r.Status().Update(ctx, instance); err != nil {
-					log.Info(fmt.Sprintf("Error updating crontab, err: %v", err))
-					return ctrl.Result{}, nil
-				}
-				log.Info("crontab updated with success...")
+				update = true
+			} else {
+				log.Info(fmt.Sprintf("Backup scheduler job for instance failed, error: %v", err))
+			}
+		}
+		if update {
+			if err := r.Status().Update(ctx, instance); err != nil {
+				log.Info(fmt.Sprintf("Error updating Status.BackupSchedule, err: %v", err))
 				return ctrl.Result{}, nil
 			}
-			if err != nil {
-				log.Info("Backup scheduler job for instance failed, error: %v", err)
-			}
+			log.Info("Success updating Status.BackupSchedule")
+			return ctrl.Result{}, nil
 		}
 	}
 

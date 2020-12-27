@@ -4,8 +4,7 @@ metadata:
   name: instance1
 spec:
   database: blue
-
   backupSchedule:
     store: s3
-    schedule: "* * * * 1/3"
+    schedule: "* * * * *"
 ---
