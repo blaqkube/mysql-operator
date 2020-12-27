@@ -126,5 +126,5 @@ func TestCreateBackupSuccess(t *testing.T) {
 	err = json.Unmarshal(bodyBytes, u)
 	assert.Equal(t, err, nil, "Should succeed")
 	assert.Equal(t, http.StatusCreated, response.StatusCode, "result should succeed")
-	assert.Equal(t, "s3://bucket/loc/backup-1.dmp", u.Location, "Query Size should be 1")
+	assert.Equal(t, "/loc/backup-1.dmp", u.Location, "Query Size should be 1")
 }
