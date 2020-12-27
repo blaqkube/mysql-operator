@@ -79,6 +79,7 @@ func (c *Crontab) isBackupScheduleRunning(instance mysqlv1alpha1.Instance) bool 
 	if c.Cron == nil {
 		c.Schedulers = map[int]string{}
 		c.Cron = cron.New()
+		c.Cron.Start()
 		c.Incarnation = uuid.New().String()
 		return false
 	}

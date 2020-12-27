@@ -70,7 +70,7 @@ type InstanceSpec struct {
 
 // BackupScheduleStatus defines the backup schedule properties
 type BackupScheduleStatus struct {
-	// The backup schedule that 
+	// The backup schedule that
 	Schedule string `json:"schedule,omitempty"`
 	// The Scheduler incarnation managed by the operator
 	// +kubebuilder:default:="00000000-0000-0000-0000-000000000000"
