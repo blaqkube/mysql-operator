@@ -60,7 +60,7 @@ type Crontab struct {
 }
 
 var (
-	crontab *Crontab
+	crontab = &Crontab{}
 )
 
 // InstanceReconciler reconciles a Instance object
@@ -76,14 +76,14 @@ func (c *Crontab) isBackupScheduleRunning(instance mysqlv1alpha1.Instance) bool 
 	if entry == -1 {
 		return false
 	}
-	c.M.Lock()
-	defer c.M.Unlock()
 	if c.Cron == nil {
 		c.Schedulers = map[int]string{}
 		c.Cron = cron.New()
 		c.Incarnation = uuid.New().String()
 		return false
 	}
+	c.M.Lock()
+	defer c.M.Unlock()
 	if c.Incarnation != instance.Status.BackupSchedule.Incarnation {
 		return false
 	}
