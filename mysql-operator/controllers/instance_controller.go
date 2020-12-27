@@ -128,16 +128,16 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			if err == nil {
 				log.Info("Backup scheduler job for instance added")
 				crontab.Schedulers[int(entry)] = fmt.Sprintf("%s/%s", req.NamespacedName.Namespace, req.NamespacedName.Name)
-				instance.Status.BackupSchedule.Schedule = instance.Spec.BackupSchedule.Schedule
-				instance.Status.BackupSchedule.EntryID = int(entry)
-				{
-					crontab.M.Lock()
-					defer crontab.M.Unlock()
-					instance.Status.BackupSchedule.Incarnation = crontab.Incarnation
+				instance.Status.BackupSchedule = mysqlv1alpha1.BackupScheduleStatus{
+					Schedule: instance.Spec.BackupSchedule.Schedule,
+					EntryID : int(entry),
+					Incarnation: crontab.Incarnation,
 				}
 				if err := r.Status().Update(ctx, instance); err != nil {
 					log.Info("Error updating crontab, err: %v", err)
+					return ctrl.Result{}, nil
 				}
+				log.Info("Error updating crontab, err: %v", err)
 				return ctrl.Result{}, nil
 			}
 			if err != nil {
