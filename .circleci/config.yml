@@ -22,6 +22,28 @@ jobs:
             docker login -u $DOCKER_USER -p $DOCKER_PASSWORD quay.io
             cd ~/mysql-operator
             gally build
+  bundle:
+    docker:
+      - image: quay.io/blaqkube/docker-gally:7c274e2bc696da0d
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "9d:c2:3a:49:b6:9c:b0:20:6e:61:2a:8d:30:fe:20:b4"
+      - run:
+          name: Clone repository
+          command: |
+            mkdir -p ~/.ssh
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+            git clone git@github.com:blaqkube/mysql-operator.git ~/mysql-operator
+            cd ~/mysql-operator
+            git checkout -b ci $CIRCLE_SHA1
+      - setup_remote_docker
+      - run:
+          name: Build agent with docker
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASSWORD quay.io
+            cd ~/mysql-operator
+            gally bundle
   build:
     machine: true
     steps:
@@ -33,7 +55,7 @@ jobs:
             if grep false .circleci/integration; then
                 exit 0;
             fi
-            docker run -d --name kube --privileged -p 8443:8443 -p 10080:10080 bsycorp/kind:v1.18.6
+            docker run -d --name kube --privileged -p 8443:8443 -p 10080:10080 bsycorp/kind:v1.19.4
             until curl -s --fail http://127.0.0.1:10080/kubernetes-ready; do
               sleep 1;
             done
@@ -44,3 +66,9 @@ workflows:
     jobs:
       - test:
           context: QUAY
+  tagged-build:
+    jobs:
+      - bundle:
+          filters:
+            tags:
+              only: /^v.*/
