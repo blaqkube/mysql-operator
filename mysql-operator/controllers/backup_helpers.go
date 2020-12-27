@@ -43,7 +43,9 @@ func (bm *BackupManager) setBackupCondition(backup *mysqlv1alpha1.Backup, condit
 		d := bm.TimeManager.Next(backup.Status.Conditions[c].LastTransitionTime.Time)
 		return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
 	}
-
+	if details != nil {
+		backup.Status.Details = details
+	}
 	backup.Status.Ready = condition.Status
 	backup.Status.Reason = condition.Reason
 	backup.Status.Message = condition.Message
@@ -63,7 +65,11 @@ func (bm *BackupManager) setBackupCondition(backup *mysqlv1alpha1.Backup, condit
 
 // MonitorBackup watch backup progress and update results
 func (bm *BackupManager) MonitorBackup(backup *mysqlv1alpha1.Backup) (*mysqlv1alpha1.BackupDetails, error) {
-	_ = bm.Reconciler.Log.WithValues("Namespace", backup.Namespace, "backup", backup.Name)
+	log := bm.Reconciler.Log.WithValues("Namespace", backup.Namespace, "backup", backup.Name)
+	if backup.Status.Details == nil {
+		log.Info("Missing backup details, monitoring fails")
+		return &mysqlv1alpha1.BackupDetails{}, ErrBackupFailed
+	}
 	b := backup.Status.Details
 
 	a := &APIReconciler{
