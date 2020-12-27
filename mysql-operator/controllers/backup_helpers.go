@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -16,6 +17,14 @@ import (
 const (
 	maxBackupConditions   = 10
 	backupPollingInterval = 30 * time.Second
+)
+
+var (
+	// ErrBackupFailed is reported the backup has failed
+	ErrBackupFailed = errors.New("BackupFailed")
+
+	// ErrBackupRunning is reported the backup is always running
+	ErrBackupRunning = errors.New("BackupRunning")
 )
 
 // BackupManager provides methods to manage the backup subcomponents
@@ -62,7 +71,7 @@ func (bm *BackupManager) MonitorBackup(backup *mysqlv1alpha1.Backup) (*mysqlv1al
 		Log:    bm.Reconciler.Log,
 	}
 
-	_, err := a.GetAPI(
+	api, err := a.GetAPI(
 		bm.Context,
 		types.NamespacedName{
 			Name:      backup.Spec.Instance,
@@ -72,7 +81,28 @@ func (bm *BackupManager) MonitorBackup(backup *mysqlv1alpha1.Backup) (*mysqlv1al
 	if err != nil {
 		return b, err
 	}
-	return b, ErrNotImplemented
+	data, code, err := api.MysqlApi.GetBackupByID(bm.Context, backup.Status.Details.Identifier, nil)
+	if err != nil || code.StatusCode != http.StatusOK || data.Status == "Failed" {
+		v := metav1.Now()
+		b.EndTime = &v
+		return b, ErrBackupFailed
+	}
+	if data.Status == "Running" {
+		return b, ErrBackupRunning
+	}
+	details := &mysqlv1alpha1.BackupDetails{
+		Identifier: data.Identifier,
+		Bucket:     data.Bucket,
+		StartTime:  &metav1.Time{Time: data.StartTime},
+		Location:   data.Location,
+	}
+	if data.EndTime != nil {
+		b.EndTime = &metav1.Time{Time: *data.EndTime}
+	}
+	if data.Status == "Succeeded" {
+		return details, nil
+	}
+	return details, ErrNotImplemented
 }
 
 // CreateBackup is the script that creates a user
@@ -138,6 +168,9 @@ func (bm *BackupManager) CreateBackup(backup *mysqlv1alpha1.Backup) (*mysqlv1alp
 	}
 	return &mysqlv1alpha1.BackupDetails{
 		Identifier: b.Identifier,
+		Bucket:     b.Bucket,
+		StartTime:  &metav1.Time{Time: b.StartTime},
+		Location:   b.Location,
 	}, nil
 }
 

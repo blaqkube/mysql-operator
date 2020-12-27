@@ -57,23 +57,28 @@ func (r *BackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	if backup.Status.Reason == mysqlv1alpha1.BackupRunning {
 		b, err := bm.MonitorBackup(backup)
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionFalse,
+			LastTransitionTime: metav1.Now(),
+		}
 		if err != nil {
-			condition := metav1.Condition{
-				Type:               "available",
-				Status:             metav1.ConditionFalse,
-				LastTransitionTime: metav1.Now(),
-				Reason:             mysqlv1alpha1.BackupNotImplemented,
-				Message:            "Monitoring not implemented for now",
+			switch err {
+			case ErrBackupFailed:
+				condition.Reason = mysqlv1alpha1.BackupFailed
+				condition.Message = "Backup Failed, check agent logs for details"
+			case ErrBackupRunning:
+				condition.Reason = mysqlv1alpha1.BackupRunning
+				condition.Message = "Backup is still running"
+			default:
+				condition.Reason = mysqlv1alpha1.BackupFailed
+				condition.Message = "Backup Failed due to agent or connection error"
 			}
 			return bm.setBackupCondition(backup, condition, b)
 		}
-		condition := metav1.Condition{
-			Type:               "available",
-			Status:             metav1.ConditionTrue,
-			LastTransitionTime: metav1.Now(),
-			Reason:             mysqlv1alpha1.BackupNotImplemented,
-			Message:            "Monitoring not implemented for now",
-		}
+		condition.Reason = mysqlv1alpha1.BackupSucceeded
+		condition.Message = "Backup Succeeded"
+		condition.Status = metav1.ConditionTrue
 		return bm.setBackupCondition(backup, condition, b)
 	}
 

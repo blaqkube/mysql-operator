@@ -111,6 +111,15 @@ func (a *MysqlApiService) CreateBackup(ctx _context.Context, backupRequest Backu
 			body:  localVarBody,
 			error: localVarHTTPResponse.Status,
 		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Backup
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.model = v
+		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
 
@@ -606,31 +615,33 @@ func (a *MysqlApiService) DeleteUser(ctx _context.Context, user string, localVar
 	return localVarHTTPResponse, nil
 }
 
-// GetBackupsOpts Optional parameters for the method 'GetBackups'
-type GetBackupsOpts struct {
+// GetBackupByIDOpts Optional parameters for the method 'GetBackupByID'
+type GetBackupByIDOpts struct {
 	ApiKey optional.String
 }
 
 /*
-GetBackups Get backup properties
-Returns a backup list
+GetBackupByID Get a backup on demand
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param optional nil or *GetBackupsOpts - Optional Parameters:
+ * @param uuid Backup Internal ID
+ * @param optional nil or *GetBackupByIDOpts - Optional Parameters:
  * @param "ApiKey" (optional.String) -
-@return BackupList
+@return Backup
 */
-func (a *MysqlApiService) GetBackups(ctx _context.Context, localVarOptionals *GetBackupsOpts) (BackupList, *_nethttp.Response, error) {
+func (a *MysqlApiService) GetBackupByID(ctx _context.Context, uuid string, localVarOptionals *GetBackupByIDOpts) (Backup, *_nethttp.Response, error) {
 	var (
 		localVarHTTPMethod   = _nethttp.MethodGet
 		localVarPostBody     interface{}
 		localVarFormFileName string
 		localVarFileName     string
 		localVarFileBytes    []byte
-		localVarReturnValue  BackupList
+		localVarReturnValue  Backup
 	)
 
 	// create path and map variables
-	localVarPath := a.client.cfg.BasePath + "/backup"
+	localVarPath := a.client.cfg.BasePath + "/backup/{uuid}"
+	localVarPath = strings.Replace(localVarPath, "{"+"uuid"+"}", _neturl.QueryEscape(parameterToString(uuid, "")), -1)
+
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
 	localVarFormParams := _neturl.Values{}
@@ -687,6 +698,25 @@ func (a *MysqlApiService) GetBackups(ctx _context.Context, localVarOptionals *Ge
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 404 {
+			var v Backup
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHTTPResponse, newErr
+		}
+		if localVarHTTPResponse.StatusCode == 500 {
+			var v Backup
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+			newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
