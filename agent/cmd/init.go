@@ -80,5 +80,5 @@ func init() {
 	initCmd.Flags().BoolP("restore", "r", false, "restore a dump file")
 	initCmd.Flags().StringP("location", "l", "", "file location on bucket")
 	initCmd.Flags().StringP("bucket", "b", "", "dump file bucket")
-	initCmd.Flags().StringP("type", "t", "", "type of backend (s3, blackhole)")
+	initCmd.Flags().StringP("type", "t", "", "type of backend (s3, gcp, blackhole)")
 }

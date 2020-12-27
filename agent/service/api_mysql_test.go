@@ -25,8 +25,9 @@ func (s *Suite) SetupSuite() {
 	var err error
 	s.db, s.mock, err = sqlmock.New()
 	storages := map[string]backend.Storage{
-		"s3":        bmock.NewStorage(),
 		"blackhole": bmock.NewStorage(),
+		"gcp":        bmock.NewStorage(),
+		"s3":        bmock.NewStorage(),
 	}
 	backup := bmock.NewBackup()
 	require.NoError(s.T(), err)

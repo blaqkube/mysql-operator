@@ -512,7 +512,7 @@ components:
       properties:
         backend:
           type: string
-          enum: [s3, blackhole]
+          enum: [s3, blackhole, gcp]
         bucket:
           type: string
         location:
