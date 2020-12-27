@@ -67,7 +67,7 @@ func (r *StoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		if store.Spec.Backend != "" {
 			storage = string(store.Spec.Backend)
 		}
-		if storage == "s3" || storage == "blackhole" {
+		if storage == "s3" || storage == "blackhole" || storage == "gcp" {
 			store.Status.CheckRequested = false
 			envs, err := sm.GetEnvVars(store)
 			if err != nil {

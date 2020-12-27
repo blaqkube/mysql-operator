@@ -89,6 +89,7 @@ var _ = Describe("Instance Controller", func() {
 			Storages: map[string]backend.Storage{
 				"s3":        NewStorage(storeMockStatusSucceed),
 				"blackhole": NewStorage(storeMockStatusSucceed),
+				"gcp":       NewStorage(storeMockStatusSucceed),
 			},
 		}
 
@@ -222,6 +223,7 @@ var _ = Describe("Instance Controller", func() {
 			Storages: map[string]backend.Storage{
 				"s3":        NewStorage(storeMockStatusSucceed),
 				"blackhole": NewStorage(storeMockStatusSucceed),
+				"gcp":       NewStorage(storeMockStatusSucceed),
 			},
 		}
 
