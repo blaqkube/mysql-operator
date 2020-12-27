@@ -8,5 +8,5 @@ testDirs:
 - ./e2e/grant
 - ./e2e/backup
 startKIND: false
-timeout: 120
+timeout: 180
 parallel: 1

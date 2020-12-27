@@ -36,6 +36,16 @@ spec:
           spec:
             description: InstanceSpec defines the desired state of Instance
             properties:
+              backupSchedule:
+                description: Defines the backup schedules
+                properties:
+                  schedule:
+                    description: The backup schedule to use for backups
+                    type: string
+                  store:
+                    description: The backup store to use for backups
+                    type: string
+                type: object
               database:
                 description: Database is the default database name for the instance
                 type: string
@@ -51,7 +61,23 @@ spec:
           status:
             description: InstanceStatus defines the observed state of Instance
             properties:
-              Conditions:
+              backupSchedule:
+                description: BackupSchedule provides information about the current
+                  running backup
+                properties:
+                  entryID:
+                    default: -1
+                    description: The BackupJob ID in the Scheduler
+                    type: integer
+                  incarnation:
+                    default: 00000000-0000-0000-0000-000000000000
+                    description: The Scheduler incarnation managed by the operator
+                    type: string
+                  schedule:
+                    description: The backup schedule that
+                    type: string
+                type: object
+              conditions:
                 description: Conditions provides informations about the the last conditions
                 items:
                   description: "Condition contains details for one aspect of the current
