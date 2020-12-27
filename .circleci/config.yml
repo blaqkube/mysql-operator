@@ -43,7 +43,7 @@ jobs:
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASSWORD quay.io
             cd ~/mysql-operator
-            gally bundle
+            gally run bundle
   build:
     machine: true
     steps:
@@ -70,5 +70,7 @@ workflows:
     jobs:
       - bundle:
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /^v.*/
