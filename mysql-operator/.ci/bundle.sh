@@ -22,11 +22,11 @@ if [[ "${AGENT_CODE}" != "${AGENT_VERSION}" ]]; then
   exit 1
 fi
 
-# export EXISTS=$(grep "  replaces: $PREV_VERSION" config/manifests/bases/mysql-operator.clusterserviceversion.yaml -c)
-# if [[ "${EXISTS}" != "1" ]]; then
-#   echo "Previous bundle version is not in CSV..."
-#   exit 1
-# fi
+export EXISTS=$(grep "  replaces: $PREV_VERSION" config/manifests/bases/mysql-operator.clusterserviceversion.yaml -c)
+if [[ "${EXISTS}" != "1" ]]; then
+  echo "Previous bundle version is not in CSV..."
+  exit 1
+fi
 
 export AGENT_IMG=quay.io/blaqkube/mysql-agent:${AGENT_CODE}
 docker pull $AGENT_IMG
@@ -42,11 +42,8 @@ make bundle-build
 docker push $BUNDLE_IMG
 
 docker pull quay.io/blaqkube/mysql-operator:$VERSION
-# opm index add --container-tool docker \
-#   --bundles quay.io/blaqkube/mysql-operator:$VERSION \
-#   --from-index quay.io/blaqkube/operators-index:$PREV_VERSION
-#   --tag quay.io/blaqkube/operators-index:$VERSION
 opm index add --container-tool docker \
   --bundles quay.io/blaqkube/mysql-operator:$VERSION \
+  --from-index quay.io/blaqkube/operators-index:$PREV_VERSION \
   --tag quay.io/blaqkube/operators-index:$VERSION
 docker push quay.io/blaqkube/operators-index:$VERSION
