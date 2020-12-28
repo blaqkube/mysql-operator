@@ -16,7 +16,7 @@ echo "Building version v${VERSION}..."
 cd $GALLY_PROJECT_ROOT
 export AGENT_CODE=$(grep "DefaultAgentVersion =" main.go | cut -d '"' -f2)
 export AGENT_VERSION=$(gally list -p agent | grep GALLY_PROJECT_VERSION | cut -d'"' -f4)
-if [[ "${AGENT_CODE}" == "${AGENT_VERSION}" ]]; then
+if [[ "${AGENT_CODE}" != "${AGENT_VERSION}" ]]; then
   echo "Agent version does not match code(${AGENT_CODE}) != main(${AGENT_VERSION})..."
   exit 1
 fi
