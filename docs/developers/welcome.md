@@ -15,15 +15,17 @@ used to install backup and restore MySQL databases.
 The project contains a number of components that are used to manage the
 MySQL instances.
 
-- `docker-gally` contains an artifact used on CircleCI to build and deploy
-  the right component
 - `agent` contains a MySQL agent that are installed within the MySQL
   StatefulSet as a sidecar and is used by the controller to perform
   database commands like backups
-- `mysql-operator` contains both the APIs in `api` and the controller in the
-  `controller` subdirectory.
-- `registry` contains the registry for the application
-- `docs` contains the documentation
+- `docker-gally` is an artifact used on CircleCI to build and deploy
+  the right component. It is based on
+  [missena-corp/gally](https://github.com/missena-corp/gally)
+- `docs` contains the project documentation that is available online
+  one [docs.blaqkube.io](https://docs.blaqkube.io/)
+- `mysql-operator` contains everything related to the operator; this
+  includes controllers, API, tests, artifact builds and more.
+- `registry` contains a registry for the application
 
 ## Development environment
 
@@ -46,7 +48,7 @@ the command below:
 ```shell
 kubectl apply -f .ci/squid.yaml
 kubectl port-forward squid 3128
-export HTTP_PROXY=http://localhost:3128
+export http_proxy=http://localhost:3128
 ```
 
 ## Running the operator manually
