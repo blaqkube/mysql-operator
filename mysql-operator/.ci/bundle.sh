@@ -22,6 +22,7 @@ if [[ "${AGENT_CODE}" != "${AGENT_VERSION}" ]]; then
 fi
 
 export AGENT_IMG=quay.io/blaqkube/mysql-agent:${AGENT_CODE}
+docker pull $AGENT_IMG
 docker tag $AGENT_IMG quay.io/blaqkube/mysql-agent:$VERSION
 docker push quay.io/blaqkube/mysql-agent:$VERSION
 export IMG=quay.io/blaqkube/mysql-controller:$VERSION
