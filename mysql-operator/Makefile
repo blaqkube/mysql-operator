@@ -76,7 +76,7 @@ generate: controller-gen
 
 # Build the docker image
 docker-build: test
-	docker build --build-arg agent_version=${AGENT_VERSION} . -t ${IMG} .
+	docker build --build-arg agent_version=${AGENT_VERSION} -t ${IMG} .
 
 # Push the docker image
 docker-push:
