@@ -17,24 +17,54 @@ There are 4 components to release as part of the operator:
 > and the change to be correclty reviewed and tested. As a result only
 > project owners can trigger a new release.
 
-## Build and release the agent
+## Building the agent
 
-To build the agent, you should execute `make build` in the `agent` directory.
-Once the agent is built, you must change the reference in the
-`operator/pkg/controller/instance/instance_controller.go` file. Search for
-the `tag := "` in the file and replace the tag with the new one.
+The agent is built as part the CI. There is nothing to do to make it happen.
 
-## Build and release Controllers
+## Releasing the agent
 
-see `make controller` in the `mysql-operator` directory. This command builds 
-the image with the controller and pushes to quay.io. Once done, it also change
-the `operator.yaml` file with the new controller version.
+Releasing the agent is actually part of the operator built process. As a matter
+of fact, the agent is referenced in the `mysql-operator/main.go` file. To
+proceed:
 
-## Build and release the Operator
+- Change the agent client part in the `mysql-operator/agent` directory
+- Change the agent version in the `mysql-operator/main.go`.
 
-see `make bundle` in the `mysql-operator` directory. This command updates
-the CRDS and build an image of the operator that references the controller. It
-also push the image to `quay.io`
+There is a Makefile script that does the change for you. To run that script,
+
+```shell
+cd $(git rev-parse --show-toplevel)
+cd mysql-operator/agent
+make api
+```
+
+## Building Controllers
+
+The controller is built as part the CI. Just pay attention to the fact that,
+unless you have explicitly release the agent, it will be built with the last
+release agent version.
+
+## Releasing Controllers
+
+Controllers are released with the operator.
+
+## Building and Releasing the Operator
+
+Building and releasing the operator is part of the same process that also
+embeds the releasing of Controllers. To proceed, you should plan it.
+
+### Preparation
+
+- Update VERSION in .gally.yml
+- CHANGELOG
+- RUN ALL the tests
+- Make sure the agent latest version is used
+- Merge to Master
+
+### Releasing
+
+Tag v${VERSION} on main
+
 
 ## Build and release the Registry
 
