@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: quay.io/blaqkube/docker-gally:7c274e2bc696da0d
+      - image: quay.io/blaqkube/docker-gally:ac75c429413c9e0b
     steps:
       - add_ssh_keys:
           fingerprints:
@@ -15,23 +15,16 @@ jobs:
             git clone git@github.com:blaqkube/mysql-operator.git ~/mysql-operator
             cd ~/mysql-operator
             git checkout -b ci $CIRCLE_SHA1
-      - run:
-          name: Download OPM
-          command: |
-            curl -Lo /bin/opm https://github.com/operator-framework/operator-registry/releases/download/v1.15.3/linux-amd64-opm
-            chmod +x /bin/opm
       - setup_remote_docker
       - run:
           name: Build agent with docker
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASSWORD quay.io
             cd ~/mysql-operator
-            docker pull quay.io/blaqkube/mysql-operator:0.3.0
-            opm index add --container-tool docker --bundles quay.io/blaqkube/mysql-operator:0.3.0 --tag quay.io/blaqkube/mysql-registry:0.3.0
-            docker push quay.io/blaqkube/mysql-registry:0.3.0
+            gally build
   bundle:
     docker:
-      - image: quay.io/blaqkube/docker-gally:7c274e2bc696da0d
+      - image: quay.io/blaqkube/docker-gally:ac75c429413c9e0b
     steps:
       - add_ssh_keys:
           fingerprints:
