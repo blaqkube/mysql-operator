@@ -1,5 +1,5 @@
 # Current Operator version
-VERSION ?= 0.0.10
+VERSION ?= 0.3.0
 SHELL = bash
 # Default bundle image tag
 BUNDLE_IMG ?= controller-bundle:$(VERSION)

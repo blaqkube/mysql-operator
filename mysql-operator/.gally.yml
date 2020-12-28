@@ -11,5 +11,7 @@ tag: false
 env:
   - name: VERSION
     value: "0.3.0"
+  - name: PREVIOUS_VERSION
+    value: "0.0.10"
   - name: TAG
     value: quay.io/blaqkube/mysql-controller

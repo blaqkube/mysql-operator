@@ -94,7 +94,7 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.3.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: mysql-operator.v0.0.10
+  name: mysql-operator.v0.3.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -443,10 +443,11 @@ spec:
   - mysql
   - operator
   links:
-  - name: Mysql Operator
-    url: https://mysql-operator.domain
+  - name: MySQL Operator
+    url: https://docs.blaqkube.io
   maturity: alpha
   provider:
     name: blaqkube
     url: https://blaqkube.io
-  version: 0.0.10
+  replaces: 0.3.0
+  version: 0.3.0

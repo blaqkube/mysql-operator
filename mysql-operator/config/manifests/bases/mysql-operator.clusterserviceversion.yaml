@@ -62,8 +62,8 @@ spec:
   - mysql
   - operator
   links:
-  - name: Mysql Operator
-    url: https://mysql-operator.domain
+  - name: mysql-operator documentation
+    url: https://docs.blaqkube.io
   maturity: alpha
   provider:
     name: blaqkube
