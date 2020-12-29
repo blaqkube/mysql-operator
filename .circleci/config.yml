@@ -71,7 +71,7 @@ workflows:
       - bundle:
           context: QUAY
           filters:
-            branches:
-              ignore: /.*/
+#            branches:
+#              ignore: /.*/
             tags:
               only: /^v.*/

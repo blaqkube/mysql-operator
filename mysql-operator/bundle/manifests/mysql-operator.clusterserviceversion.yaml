@@ -449,5 +449,4 @@ spec:
   provider:
     name: blaqkube
     url: https://blaqkube.io
-  replaces: 0.3.0
   version: 0.3.1
