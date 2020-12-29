@@ -24,15 +24,14 @@ MySQL instances.
 - `docs` contains the project documentation that is available online
   one [docs.blaqkube.io](https://docs.blaqkube.io/)
 - `mysql-operator` contains everything related to the operator; this
-  includes controllers, API, tests, artifact builds and more.
-- `registry` contains a registry for the application
+  includes controllers, API, tests, artifact builds and more. 
 
 ## Development environment
 
 You need a number of tools to develop. They include `go`, `operator-sdk`,
-`kubectl`, `gcc`, `make`, `bash` 4+, GNU `sed` and a Kubernetes cluster, like
-`kind` or `minikube`. We will assume you have setup and configured all those
-tools so that you can run `kubectl` and you can manage the cluster.
+`kubectl`, `gcc`, `make`, `bash` 4+, GNU `sed`, `npm` and a Kubernetes cluster,
+like `kind` or `minikube`. We will assume you have setup and configured all
+those tools so that you can run `kubectl` and you can manage the cluster.
 
 > **Note**: If you use a Mac, pay attention to install bash 4+ and GNU sed and
 > make sure they are first in your PATH.
@@ -61,7 +60,7 @@ To run it from outside of the cluster, for development purpose:
 - Go into the operator subdirectory `cd mysql-operator/mysql-operator`
 - Install the CRDs to your default namespace `make install`
 - Make sure you have installed an HTTP proxy as described in the previous
-  section
+  section `export http_proxy=http://localhost:3128`
 - Run controllers outside of your cluster `make run ENABLE_WEBHOOKS=false`
 
 The operator should start. Once done, you can create a MySQL instance with a

@@ -16,5 +16,5 @@ Once installed, you should be able, from a simple manifest, to:
 - Create a new instance from a backup ❤
 
 To use the MySQL operator, check the [Installation](/users/installation.md)
-section as well as the [Resource](/users/resources.md). After that, you are
+section as well as the [Resources](/users/resources.md). After that, you are
 ready 🚀

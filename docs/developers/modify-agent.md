@@ -2,7 +2,7 @@
 
 The `mysql-agent` is an OpenAPI 3.0 API that is used by the MySQL operator
 to interact with the MySQL database. It is attached to each instances as a
-sidecar and has access to the latest mysql tools. The 
+sidecar and has access to the latest MySQL tools.
 
 ## How to modify the mysql-agent API?
 
@@ -17,8 +17,16 @@ like the command below:
 ```shell
 cd $(git rev-parse --show-toplevel)
 cd agent
-make api
+make generate
 ```
 
-> **Note**: the command actually run a `make api` in the
-> `mysql-operator/agent` directory to implement the agent client too.
+A typical use of openapi-generator, assuming you've installed it with `npm`
+look like the command below:
+
+```shell
+cd mysql-agent
+npx openapi-generator generate \
+  -i mysql-agent.yaml -g go-server -o . \
+  --git-user-id blaqkube \
+  --git-repo-id mysql-operator/agent
+```
