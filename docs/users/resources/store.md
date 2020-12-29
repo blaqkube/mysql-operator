@@ -35,7 +35,7 @@ The properties are the following:
 - `backend` defines the backend. It supports S3 and GCP storage
 - `bucket` defines the bucket to store backups
 - `prefix` defines the prefix used to prefix backups. It should start with
-    `/` and ended without any.
+  `/` and ended without any.
 - `envs` contains a set of environment variables that can be used to connect to
   the bucket. It can reference a `name`/`value` pair or a `name`/`valueFrom` 
   pair with a `secretKeyRef` definition.
