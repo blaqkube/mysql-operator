@@ -41,7 +41,9 @@ git status -s | cat
 make bundle-build
 docker push $BUNDLE_IMG
 
-docker pull quay.io/blaqkube/mysql-operator:$VERSION
+docker pull quay.io/blaqkube/mysql-operator:$PREV_VERSION
+docker pull quay.io/blaqkube/operators-index:$PREV_VERSION
+
 opm index add --container-tool docker \
   --bundles quay.io/blaqkube/mysql-operator:$VERSION \
   --from-index quay.io/blaqkube/operators-index:$PREV_VERSION \
