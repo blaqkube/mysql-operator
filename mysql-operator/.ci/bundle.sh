@@ -6,6 +6,7 @@ echo "no bundle for $GALLY_PROJECT_NAME"
 echo "  * CIRCLE_TAG:  $CIRCLE_TAG"
 echo "  * CIRCLE_SHA1: $CIRCLE_SHA1"
 echo "  * VERSION:     $VERSION"
+echo "  * PREVIOUS:    $PREV_VERSION"
 
 #if [[ "v${VERSION}" != "$CIRCLE_TAG" ]]; then
 #  echo "Error, only tag v${VERSION} is allowed"
