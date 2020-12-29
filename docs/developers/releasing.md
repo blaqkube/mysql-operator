@@ -1,4 +1,4 @@
-# Releasing the operator
+# Releasing the Operator
 
 There are 4 components to release as part of the operator:
 
@@ -19,13 +19,13 @@ In adidtion to these components, the project also includes:
   release the other components
 - A set of documentation
 
-## Building the agent
+## Building the Agent
 
 The agent is built as part the CI. There is nothing to do to make it happen.
 Every change to the `agent` directory generates a version that is tagged with
 a part of the Git commit on the directory.
 
-## Releasing the agent
+## Releasing the Agent
 
 Releasing the agent is actually part of the operator built process. As a matter
 of fact, the agent is referenced in the `mysql-operator/main.go` file. To
@@ -99,12 +99,12 @@ branch to Github. CircleCI does the rest.
 The documentation website is part of a separate repository, even if all the
 content is actually from `docs`. There is a separate process.
 
-## Build and release the Index
+## Build and Release the Index
 
 The `index` is available as an OCI image. It is built with the operator. It
 is released as part of a separate process allowing to perform additional tests. 
 
-## Check the Operator gets updated
+## Check the Operator
 
 Once the new registry published, you can check your subscription and control
 the Operator has been updated. The subscription should show the version is

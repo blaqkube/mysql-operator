@@ -1,4 +1,4 @@
-# Getting started
+# Getting Started
 
 blaqkube MySQL operator provides a set of extensions for Kubernetes to manage
 community-based MySQL instances. Built with the
