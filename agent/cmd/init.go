@@ -20,6 +20,12 @@ var initCmd = &cobra.Command{
    - recovery a backup when specified
    - create a user for the api commands`,
 	Run: func(cmd *cobra.Command, args []string) {
+		workdir, err := cmd.Flags().GetString("workdir")
+		if err == nil {
+			log.Printf("Moving WORKDIR to %s", workdir)
+			os.Chdir(workdir)
+		}
+
 		restore, _ := cmd.Flags().GetBool("restore")
 		if !restore {
 			fmt.Printf("nothing to restore\n")
@@ -80,5 +86,6 @@ func init() {
 	initCmd.Flags().BoolP("restore", "r", false, "restore a dump file")
 	initCmd.Flags().StringP("location", "l", "", "file location on bucket")
 	initCmd.Flags().StringP("bucket", "b", "", "dump file bucket")
+	initCmd.Flags().StringP("workdir", "w", "", "working directory")
 	initCmd.Flags().StringP("type", "t", "", "type of backend (s3, gcp, blackhole)")
 }
