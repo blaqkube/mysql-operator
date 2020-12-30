@@ -1,9 +1,6 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Instance
 metadata:
-  name: instance-sample
+  name: red
 spec:
-  database: blue
-  restore:
-    filePath: /backup/2020-12-08/blue-backup.dmp
-    store: store-sample
+  database: red

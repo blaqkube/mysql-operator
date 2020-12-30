@@ -1,7 +1,7 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Backup
 metadata:
-  name: backup-sample
+  name: red-simple-backup
 spec:
-  instance: instance-sample
-  store: store-sample
+  instance: red
+  store: red-store

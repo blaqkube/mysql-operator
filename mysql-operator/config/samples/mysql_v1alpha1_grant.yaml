@@ -1,8 +1,8 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Grant
 metadata:
-  name: grant-sample
+  name: red-demo-blue
 spec:
-  user: user1
-  database: database1
+  user: red-demo
+  database: red-blue
   accessMode: readWrite

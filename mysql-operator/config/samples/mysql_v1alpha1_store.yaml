@@ -1,15 +1,11 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Store
 metadata:
-  name: store-sample
+  name: red-store
 spec:
-  backend: s3
-  bucket: bucket-sample
-  prefix: /backup/instance-sample/backup-123.dmp    
+  backend: blackhole
+  bucket: sample
+  prefix: /backup  
   envs:
-  - name: AWS_ACCESS_KEY_ID
-    value: AKIAXXX
-  - name: AWS_SECRET_ACCESS_KEY
-    value: aSzx...
-  - name: AWS_REGION
-    value: eu-west-1
+  - name: KEY
+    value: 1

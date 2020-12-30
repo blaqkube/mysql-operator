@@ -1,7 +1,7 @@
 apiVersion: mysql.blaqkube.io/v1alpha1
 kind: Database
 metadata:
-  name: instance-sample-mydb
+  name: red-blue
 spec:
-  name: mydb
-  instance: instance-sample
+  name: blue
+  instance: red
