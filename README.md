@@ -1,4 +1,4 @@
-`blaqkube/mysql-operator` is a Kubernetes operator for MySQL. 
+`blaqkube/mysql-operator` is a Kubernetes 0perator for MySQL Community Server.
 
 [![mysql-operator](https://circleci.com/gh/blaqkube/mysql-operator.svg?style=svg)](https://circleci.com/gh/blaqkube/mysql-operator)
 

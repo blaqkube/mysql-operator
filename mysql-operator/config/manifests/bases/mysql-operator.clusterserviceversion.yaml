@@ -8,7 +8,7 @@ metadata:
     certified: "false"
     containerImage: quay.io/blaqkube/mysql-operator:0.4.0
     createdAt: "2020-12-30T06:00:00Z"
-    description: An operator for MySQL Community Edition
+    description: An operator for MySQL Community Server
     repository: https://github.com/blaqkube/mysql-operator
     support: blaqkube.io
   name: mysql-operator.v0.0.0
@@ -60,7 +60,12 @@ spec:
     - Generate a backup in the store 💥
     - Create a new instance from a backup ❤
     
-    ## Getting Started
+    ## Before you Start
+
+    There is not much to know, you must have the latest release of OLM,
+    Kubernetes 1.17+ with an Internet Access.
+
+    ## Starting...
     
     To create your first instance, once the operator is properly installed
     and configured, create a new instance with a manifest like the one below:
@@ -74,10 +79,24 @@ spec:
       database: red
     ```
     
-    ## Continue
+    To create a database on that instance, apply:
 
+    ```yaml
+    apiVersion: mysql.blaqkube.io/v1alpha1
+    kind: Database
+    metadata:
+      name: red-blue
+    spec:
+      database: blue
+      instance: red
+    ```
+     
+    ## Continue
+    
     If you want to know more, check the [documentation](https://docs.blaqkube.io)
     or open an issue on the [Github repository](https://github.com/blaqkube/mysql-operator)
+    
+
   displayName: Blaqkube MySQL Operator
   icon:
   - base64data: >-
