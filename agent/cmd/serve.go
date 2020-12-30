@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	"github.com/blaqkube/mysql-operator/agent/service"
@@ -20,6 +21,12 @@ var serveCmd = &cobra.Command{
 		if err != nil {
 			port = 8080
 		}
+		workdir, err := cmd.Flags().GetString("workdir")
+		if err == nil {
+			log.Printf("Moving WORKDIR to %s", workdir)
+			os.Chdir(workdir)
+		}
+
 		// TODO: recreate the exporter user
 
 		log.Fatal(
@@ -34,4 +41,5 @@ var serveCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(serveCmd)
 	serveCmd.Flags().IntP("port", "p", 8080, "agent api port")
+	serveCmd.Flags().StringP("workdir", "w", "", "working directory")
 }
