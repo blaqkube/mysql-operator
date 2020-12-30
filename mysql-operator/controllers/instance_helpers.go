@@ -237,6 +237,10 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 				Name:  "AGT_FILENAME",
 				Value: "/docker-entrypoint-initdb.d/init-script.sql",
 			})
+			env = append(env, corev1.EnvVar{
+				Name:  "AGT_WORKDIR",
+				Value: "/docker-entrypoint-initdb.d",
+			})
 			initContainers = []corev1.Container{
 				{
 					Name:  "restore",
@@ -333,6 +337,12 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 							Command: []string{
 								"./mysql-agent",
 								"serve",
+							},
+							Env: []corev1.EnvVar{
+								{
+									Name:  "AGT_WORKDIR",
+									Value: "/docker-entrypoint-initdb.d",
+								},
 							},
 						},
 						{
