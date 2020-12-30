@@ -5,6 +5,7 @@ import (
 	"os"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
+	"github.com/gobuffalo/packr/v2"
 )
 
 // NewStorage takes a S3 connection and creates a default storage
@@ -45,7 +46,13 @@ func (s *Storage) Pull(request *openapi.BackupRequest, filename string) error {
 		return err
 	}
 	defer file.Close()
-	_, err = file.WriteString("select '1';\n")
+	dumps := packr.New("dumps", "./dumps")
+	blue, err := dumps.FindString("blue.sql")
+	if err != nil {
+		return err
+	}
+
+	_, err = file.WriteString(blue)
 	if err != nil {
 		return err
 	}

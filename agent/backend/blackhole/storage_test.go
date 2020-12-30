@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
+	"github.com/gobuffalo/packr/v2"
 )
 
 type StorageSuite struct {
@@ -38,9 +39,13 @@ func validFile(filename, content string) error {
 		return err
 	}
 
-	c1 := fmt.Sprintf("select '1';\n")
+	dumps := packr.New("dumps", "./dumps")
+	blue, err := dumps.FindString("blue.sql")
+	if err != nil {
+		return err
+	}
 	c2 := string(dat)
-	if c2 != c1 {
+	if c2 != blue {
 		return errors.New("wrong file")
 	}
 	return nil
