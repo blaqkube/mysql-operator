@@ -60,7 +60,7 @@ previously. The `OperatorGroup` does not have to be referenced, there should
 only be one per namespace:
 
 ```shell
-cat <<EOF | kubectl delete -f -
+cat <<EOF | kubectl apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -99,5 +99,25 @@ spec:
 EOF
 ```
 
-It should create a statefulset with your instance. To delete the instance, run
-`kubectl delete instance red`.
+If you need to create a database to the instance, apply another manifest like
+the one below:
+
+```shell
+cat <<EOF | kubectl apply -f -
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Database
+metadata:
+  name: red-blue
+spec:
+  name: blue
+  instance: red
+EOF
+```
+
+It should create a statefulset with your instance and add a database to it. To
+delete the instance and database, run:
+
+```shell
+kubectl delete instance red
+kubectl delete database red-blue
+```
