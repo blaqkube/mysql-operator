@@ -15,22 +15,23 @@ used to install backup and restore MySQL databases.
 The project contains a number of components that are used to manage the
 MySQL instances.
 
-- `docker-gally` contains an artifact used on CircleCI to build and deploy
-  the right component
 - `agent` contains a MySQL agent that are installed within the MySQL
   StatefulSet as a sidecar and is used by the controller to perform
   database commands like backups
-- `mysql-operator` contains both the APIs in `api` and the controller in the
-  `controller` subdirectory.
-- `registry` contains the registry for the application
-- `docs` contains the documentation
+- `docker-gally` is an artifact used on CircleCI to build and deploy
+  the right component. It is based on
+  [missena-corp/gally](https://github.com/missena-corp/gally)
+- `docs` contains the project documentation that is available online
+  one [docs.blaqkube.io](https://docs.blaqkube.io/)
+- `mysql-operator` contains everything related to the operator; this
+  includes controllers, API, tests, artifact builds and more. 
 
 ## Development environment
 
 You need a number of tools to develop. They include `go`, `operator-sdk`,
-`kubectl`, `gcc`, `make`, `bash` 4+, GNU `sed` and a Kubernetes cluster, like
-`kind` or `minikube`. We will assume you have setup and configured all those
-tools so that you can run `kubectl` and you can manage the cluster.
+`kubectl`, `gcc`, `make`, `bash` 4+, GNU `sed`, `npm` and a Kubernetes cluster,
+like `kind` or `minikube`. We will assume you have setup and configured all
+those tools so that you can run `kubectl` and you can manage the cluster.
 
 > **Note**: If you use a Mac, pay attention to install bash 4+ and GNU sed and
 > make sure they are first in your PATH.
@@ -46,7 +47,7 @@ the command below:
 ```shell
 kubectl apply -f .ci/squid.yaml
 kubectl port-forward squid 3128
-export HTTP_PROXY=http://localhost:3128
+export http_proxy=http://localhost:3128
 ```
 
 ## Running the operator manually
@@ -59,7 +60,7 @@ To run it from outside of the cluster, for development purpose:
 - Go into the operator subdirectory `cd mysql-operator/mysql-operator`
 - Install the CRDs to your default namespace `make install`
 - Make sure you have installed an HTTP proxy as described in the previous
-  section
+  section `export http_proxy=http://localhost:3128`
 - Run controllers outside of your cluster `make run ENABLE_WEBHOOKS=false`
 
 The operator should start. Once done, you can create a MySQL instance with a
