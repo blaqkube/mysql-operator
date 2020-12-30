@@ -1,24 +1,15 @@
 # Installation
 
-To install the MySQL operator from blaqkube, you can perform a manual
-installation from the repository or you can rely on the Operator Lifecycle
-Manager (OLM). The later option is the preferred way to proceed as it will not
-only proceed with the installation but will also help with upgrading the tool
-later on.
+To install the MySQL operator, you should rely on the Operator Lifecycle
+Manager (OLM) and, at least for now, a `CatalogSource` that references
+the blaqkube registry. OLM provides an easy way to discover operators and
+helps with release management.
 
-## Installation with OLM
+## Operator-sdk Lifecycle Manager (OLM)
 
-To install `blaqkube/mysql-operator` with OLM, you should have it installed on
-your cluster. Once done, you should be able to connect to the blaqkube registry
-and subscribe to the Operator.
-
-### Installing OLM
-
-The simplest way to install OLM on your cluster is:
-
-- to [Install the Operator SDK CLI](https://sdk.operatorframework.io/docs/install-operator-sdk/)
-- Make sure your can access a Kubernetes cluster with cluster admin role
-- Run `operator-sdk olm` like below
+The simplest way to install OLM on your cluster is to follow the
+[Install the Operator SDK CLI](https://sdk.operatorframework.io/docs/installation/)
+section of the documentation. Once done, run `operator-sdk olm` like below:
 
 ```shell
 operator-sdk olm install
@@ -29,14 +20,11 @@ operator-sdk olm status
 > use OLM 0.15+. This is due to issue
 > [#1347](https://github.com/operator-framework/operator-lifecycle-manager/issues/1347)
 
-### Connecting to the registry
+## Declare the CatalogSource
 
-In the following section, we will assume we work in the default namespace. If you want
-to use an other namespace, change the configuration accordingly.
-
-Once OLM installed, create a `CatalogSource` that references the blaqkube registry. The
-registry contains the references to the operator. To create the `CatalogSource`, run
-the command below:
+Once OLM installed, create a `CatalogSource` that references the blaqkube
+registry. The registry contains references to the operator. To create the
+`CatalogSource`, run the command below:
 
 ```shell
 cat <<EOF | kubectl apply -f -
@@ -46,18 +34,17 @@ metadata:
   name: blaqkube-catalog
 spec:
   sourceType: grpc
-  displayName: blaqkube Operators
+  displayName: blaqkube
   address: registry.blaqkube.io:50051
   publisher: blaqkube.io
 EOF
 ```
 
-### Subscribing to the operator
+### Subscribe to the operator
 
-You are almost ready to install the Operator. Before you proceed, you should
-create a `OperatorGroup` that specify which namespaces the Operator can
-manage. Here again, we assume the targeted namespace is the default one and
-you can change it to fit your needs:
+Before you proceed, with installing the operator, you should create an
+`OperatorGroup` that defines the fact the operator works at the cluster
+level as it is the only supported scope for now:
 
 ```shell
 cat <<EOF | kubectl apply -f -
@@ -65,18 +52,15 @@ apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: mysql-operatorgroup
-spec:
-  targetNamespaces:
-  - default
 EOF
 ```
 
-To subscribe to the operator, create a `Subscription` with `mysql-operator`
-and the `CatalogSource` created previously. The `OperatorGroup` does not
-have to be referenced, there should only be one per namespace:
+Create a `Subscription` with `mysql-operator` and the `CatalogSource` created
+previously. The `OperatorGroup` does not have to be referenced, there should
+only be one per namespace:
 
 ```shell
-cat <<EOF | kubectl apply -f -
+cat <<EOF | kubectl delete -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -99,42 +83,21 @@ EOF
 Once done with the installation, you can create the resources as described in
 [next section](resources) of the documentation
 
-## Manual Installation
+## Verify the configuration
 
-Manual installation consists in cloning the git repository first; install the
-Custom Resource Definitions, grant the required permission and starting the
-controller.
-
-### Cloning the project
-
-Use `git` to clone the project like below:
+An easy way to verify the configuration is to create an instance with the
+command below:
 
 ```shell
-git clone https://github.com/blaqkube/mysql-operator.git
-cd mysql-operator
+cat <<EOF | kubectl apply -f -
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Instance
+metadata:
+  name: red
+spec:
+  database: red
+EOF
 ```
 
-### Installing CRDs
-
-Once done, you should install the CRDs like below:
-
-```shell
-make install
-```
-
-### Permissions and Controller
-
-You should then be able to create a role with the right permissions and deploy
-the operator:
-
-```shell
-cd $(git rev-parse --show-toplevel)/deploy/crds
-kubectl apply -f role.yaml
-kubectl apply -f role_binding.yaml
-kubectl apply -f service_account.yaml
-kubectl apply -f operator.yaml
-```
-
-Once done with the installation, you can create the resources as described in
-[next section](resources.md) of the documentation
-
+It should create a statefulset with your instance. To delete the instance, run
+`kubectl delete instance red`.
