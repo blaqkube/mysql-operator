@@ -15,6 +15,6 @@ Once installed, you should be able, from a simple manifest, to:
 - Generate a backup in the store 💥
 - Create a new instance from a backup ❤
 
-To use the MySQL operator, check the [Installation](/users/installation.md)
-section as well as the [Resources](/users/resources.md). After that, you are
+To use the MySQL operator, check the [Installation](users/installation.md)
+section as well as the [Resources](users/resources.md). After that, you are
 ready 🚀
