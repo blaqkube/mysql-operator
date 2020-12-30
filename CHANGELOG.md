@@ -1,16 +1,21 @@
 # Changelog
 
-## v0.3.2 (Unreleased)
+## v0.4.0 (Unreleased)
+
+This release contains enhancements and bug fixes.
 
 #### Enhancements:
 
-- Add CHANGELOG, CODE_OF_CONDUCT and CONTRIBUTING
+- Add CHANGELOG, CODE_OF_CONDUCT and CONTRIBUTING documentation.
 - Improve the documentation, incl. `resources.md`, `releasing.md` and
-  `testing.md`
+  `testing.md`.
+- Releasing operator and index is now managed by CircleCI. The previous
+  registry project, that was relying on package manifest, has been deleted
+  and replace by a bundle/semver approach
 
 #### Bug Fixes:
 
-*No Bugfix for this Release.*
+*No Bugfix for this Release for now.*
 
 ---
 
