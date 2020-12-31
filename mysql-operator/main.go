@@ -31,7 +31,7 @@ var (
 
 const (
 	// DefaultAgentVersion is the current defaut agent version
-	DefaultAgentVersion = "dcec6ade42b77efa"
+	DefaultAgentVersion = "82b0cb5563eb886d"
 
 	// DefaultMySQLVersion is the current defaut MySQL version
 	DefaultMySQLVersion = "8.0.22"
