@@ -1,7 +1,7 @@
 package blackhole
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
@@ -21,15 +21,17 @@ type Storage struct {
 func (s *Storage) Push(request *openapi.BackupRequest, filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
+		log.Printf("Could not open file %s, error: %v", filename, err)
 		return err
 	}
 	defer file.Close()
 	fileInfo, err := file.Stat()
 	if err != nil {
+		log.Printf("Could not get file %s info, error: %v", filename, err)
 		return err
 	}
 	var size int64 = fileInfo.Size()
-	fmt.Printf(
+	log.Printf(
 		"Copying file %s (size: %d) to %s:%s",
 		filename,
 		size,
@@ -43,6 +45,7 @@ func (s *Storage) Push(request *openapi.BackupRequest, filename string) error {
 func (s *Storage) Pull(request *openapi.BackupRequest, filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
+		log.Printf("Could not create file %s, error: %v", filename, err)
 		return err
 	}
 	defer file.Close()
@@ -54,13 +57,25 @@ func (s *Storage) Pull(request *openapi.BackupRequest, filename string) error {
 
 	_, err = file.WriteString(blue)
 	if err != nil {
+		log.Printf("Could not write file %s, error: %v", filename, err)
 		return err
 	}
 	err = file.Sync()
+	log.Printf(
+		"Pulling file %s from %s:%s",
+		filename,
+		request.Bucket,
+		request.Location,
+	)
 	return err
 }
 
 // Delete deletes a file from the blackhole
 func (s *Storage) Delete(request *openapi.BackupRequest) error {
+	log.Printf(
+		"Deleting file %s:%s",
+		request.Bucket,
+		request.Location,
+	)
 	return nil
 }

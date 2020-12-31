@@ -9,6 +9,7 @@ import (
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	"github.com/blaqkube/mysql-operator/agent/service"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // serveCmd represents the serve command
@@ -23,8 +24,13 @@ var serveCmd = &cobra.Command{
 		}
 		workdir, err := cmd.Flags().GetString("workdir")
 		if err == nil {
-			log.Printf("Moving WORKDIR to %s", workdir)
-			os.Chdir(workdir)
+			if workdir == "" {
+				workdir = viper.GetString("workdir")
+			}
+			if workdir != "" {
+				log.Printf("Moving WORKDIR to %s", workdir)
+				os.Chdir(workdir)
+			}
 		}
 
 		// TODO: recreate the exporter user

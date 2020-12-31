@@ -2,6 +2,7 @@ package s3
 
 import (
 	"bytes"
+	"log"
 	"net/http"
 	"os"
 
@@ -28,10 +29,12 @@ func (s *Storage) Push(request *openapi.BackupRequest, filename string) error {
 	}
 	sess, err := session.NewSession()
 	if err != nil {
+		log.Printf("Could not open session, error: %v", err)
 		return err
 	}
 	file, err := os.Open(filename)
 	if err != nil {
+		log.Printf("Could not open file %s, error: %v", filename, err)
 		return err
 	}
 	defer file.Close()
@@ -50,6 +53,9 @@ func (s *Storage) Push(request *openapi.BackupRequest, filename string) error {
 		ContentType:        aws.String(http.DetectContentType(buffer)),
 		ContentDisposition: aws.String("attachment"),
 	})
+	if err != nil {
+		log.Printf("Error pushing %s to %s:%s, error: %v", filename, request.Bucket, request.Location, err)
+	}
 	return err
 }
 
