@@ -1,21 +1,22 @@
 # Changelog
 
-## v0.4.0 (Unreleased)
+## v0.4.0 (Jan 1, 2021)
 
 This release contains enhancements and bug fixes.
 
 #### Enhancements:
 
-- Add CHANGELOG, CODE_OF_CONDUCT and CONTRIBUTING documentation.
 - Improve the documentation, incl. `resources.md`, `releasing.md` and
   `testing.md`.
-- Releasing operator and index is now managed by CircleCI. The previous
-  registry project, that was relying on package manifest, has been deleted
-  and replace by a bundle/semver approach
+- The registry works with a bundle/semver approach
+- The release is now fully managed by CircleCI, not just the build
+- Add CHANGELOG, CODE_OF_CONDUCT and CONTRIBUTING documentation.
+- Add templates for issues and pull requests.
 
 #### Bug Fixes:
 
-- <https://github.com/blaqkube/mysql-operator/issues/127|127> Create a dedicated exporter user for better security
+- [#127](https://github.com/blaqkube/mysql-operator/issues/127) Create a
+  dedicated exporter user for better security
 
 ---
 
