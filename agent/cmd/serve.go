@@ -6,11 +6,52 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/blaqkube/mysql-operator/agent/backend/mysql"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	"github.com/blaqkube/mysql-operator/agent/service"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+const numberOfDBChecks = 24
+
+func createExporterUser(expUsername, expPassword string) error {
+	if expUsername == "" || expPassword == "" {
+		log.Printf("Skipping exporter creation")
+	}
+
+	log.Printf("Creating exporter user %s, starting", expUsername)
+	i := mysql.NewInstance(resources.DB)
+	err := i.Check(numberOfDBChecks)
+	if err != nil {
+		log.Printf("Could not connect to the database after %d retries", numberOfDBChecks)
+		return err
+	}
+
+	_, err = resources.DB.Exec(
+		fmt.Sprintf(
+			`CREATE USER '%s'@'%%' IDENTIFIED BY '%s' WITH MAX_USER_CONNECTIONS 3`,
+			expUsername,
+			expPassword,
+		),
+	)
+	if err != nil {
+		log.Printf("Error creating exporter user: %v", err)
+		return err
+	}
+	_, err = resources.DB.Exec(
+		fmt.Sprintf(
+			`GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO '%s'@'%%'`,
+			expUsername,
+		),
+	)
+	if err != nil {
+		log.Printf("Error granting privileges to exporter: %v", err)
+		return err
+	}
+	log.Printf("Creating exporter user %s, done", expUsername)
+	return nil
+}
 
 // serveCmd represents the serve command
 var serveCmd = &cobra.Command{
@@ -33,7 +74,9 @@ var serveCmd = &cobra.Command{
 			}
 		}
 
-		// TODO: recreate the exporter user
+		expUsername := viper.GetString("exporter_username")
+		expPassword := viper.GetString("exporter_password")
+		createExporterUser(expUsername, expPassword)
 
 		log.Fatal(
 			http.ListenAndServe(
