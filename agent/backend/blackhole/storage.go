@@ -3,7 +3,7 @@ package blackhole
 import (
 	"fmt"
 	"os"
-
+"log"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	"github.com/gobuffalo/packr/v2"
 )
@@ -21,6 +21,7 @@ type Storage struct {
 func (s *Storage) Push(request *openapi.BackupRequest, filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
+		log.Printf("Could not open file %s, error: %v", filename, err)
 		return err
 	}
 	defer file.Close()
@@ -43,6 +44,7 @@ func (s *Storage) Push(request *openapi.BackupRequest, filename string) error {
 func (s *Storage) Pull(request *openapi.BackupRequest, filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
+		log.Printf("Could not create file %s, error: %v", filename, err)
 		return err
 	}
 	defer file.Close()
@@ -54,6 +56,7 @@ func (s *Storage) Pull(request *openapi.BackupRequest, filename string) error {
 
 	_, err = file.WriteString(blue)
 	if err != nil {
+		log.Printf("Could not write file %s, error: %v", filename, err)
 		return err
 	}
 	err = file.Sync()

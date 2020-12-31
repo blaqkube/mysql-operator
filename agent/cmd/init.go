@@ -22,8 +22,13 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		workdir, err := cmd.Flags().GetString("workdir")
 		if err == nil {
-			log.Printf("Moving WORKDIR to %s", workdir)
-			os.Chdir(workdir)
+			if workdir == "" {
+				workdir = viper.GetString("workdir")
+			}
+			if workdir != "" {
+				log.Printf("Moving WORKDIR to %s", workdir)
+				os.Chdir(workdir)
+			}
 		}
 
 		restore, _ := cmd.Flags().GetBool("restore")
@@ -77,6 +82,7 @@ var initCmd = &cobra.Command{
 			log.Printf("error pulling %s: %v", localfile, err)
 			os.Exit(1)
 		}
+		log.Printf("File %s loaded in %s with success", localfile, workdir)
 		return
 	},
 }
