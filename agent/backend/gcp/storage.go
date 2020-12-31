@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"time"
 
@@ -50,6 +51,7 @@ func (s *Storage) Push(request *openapi.BackupRequest, filename string) error {
 	ctx := context.Background()
 	client, err := getClient(ctx)
 	if err != nil {
+		log.Printf("Error push/gcp %s to %s:%s, error: %v", filename, request.Bucket, request.Location, err)
 		return fmt.Errorf("Cannot get Client: %v", err)
 	}
 	defer client.Close()
@@ -57,6 +59,7 @@ func (s *Storage) Push(request *openapi.BackupRequest, filename string) error {
 	// Open local file.
 	f, err := os.Open(filename)
 	if err != nil {
+		log.Printf("Error push/opening %s to %s:%s, error: %v", filename, request.Bucket, request.Location, err)
 		return fmt.Errorf("os.Open: %v", err)
 	}
 	defer f.Close()
@@ -69,12 +72,14 @@ func (s *Storage) Push(request *openapi.BackupRequest, filename string) error {
 	}
 	wc := client.Bucket(request.Bucket).Object(location).NewWriter(ctx)
 	if _, err = io.Copy(wc, f); err != nil {
+		log.Printf("Error push/writer %s to %s:%s, error: %v", filename, request.Bucket, request.Location, err)
 		return fmt.Errorf("io.Copy: %v", err)
 	}
 	if err := wc.Close(); err != nil {
+		log.Printf("Error push/close %s to %s:%s, error: %v", filename, request.Bucket, request.Location, err)
 		return fmt.Errorf("Writer.Close: %v", err)
 	}
-	fmt.Printf("Blob %v uploaded.\n", location)
+	log.Printf("Pushing %s to %s:%s, succeeded", filename, request.Bucket, request.Location)
 	return nil
 }
 
@@ -86,6 +91,7 @@ func (s *Storage) Pull(request *openapi.BackupRequest, filename string) error {
 	ctx := context.Background()
 	client, err := getClient(ctx)
 	if err != nil {
+		log.Printf("Error pull/gcp %s from %s:%s, error: %v", filename, request.Bucket, request.Location, err)
 		return fmt.Errorf("Cannot get Client: %v", err)
 	}
 	defer client.Close()
@@ -99,6 +105,7 @@ func (s *Storage) Pull(request *openapi.BackupRequest, filename string) error {
 	}
 	rc, err := client.Bucket(request.Bucket).Object(location).NewReader(ctx)
 	if err != nil {
+		log.Printf("Error pull/reader %s from %s:%s, error: %v", filename, request.Bucket, request.Location, err)
 		return fmt.Errorf("Object(%s).NewReader: %v", location, err)
 	}
 	defer rc.Close()
@@ -106,6 +113,7 @@ func (s *Storage) Pull(request *openapi.BackupRequest, filename string) error {
 	buf := make([]byte, 1024)
 	fo, err := os.Create(filename)
 	if err != nil {
+		log.Printf("Error pull/create %s from %s:%s, error: %v", filename, request.Bucket, request.Location, err)
 		return err
 	}
 	defer fo.Close()
@@ -114,14 +122,16 @@ func (s *Storage) Pull(request *openapi.BackupRequest, filename string) error {
 		// read a chunk
 		n, err := rc.Read(buf)
 		if err != nil && err != io.EOF {
-			panic(err)
+			log.Printf("Error pull/read chunk %s from %s:%s, error: %v", filename, request.Bucket, request.Location, err)
+			return err
 		}
 		if n == 0 {
 			break
 		}
 		// write a chunk
 		if _, err := fo.Write(buf[:n]); err != nil {
-			panic(err)
+			log.Printf("Error pull/write chunk %s from %s:%s, error: %v", filename, request.Bucket, request.Location, err)
+			return err
 		}
 	}
 	return nil
@@ -135,6 +145,7 @@ func (s *Storage) Delete(request *openapi.BackupRequest) error {
 	ctx := context.Background()
 	client, err := getClient(ctx)
 	if err != nil {
+		log.Printf("Error delete/getClient for %s:%s, error: %v", request.Bucket, request.Location, err)
 		return fmt.Errorf("Cannot get Client: %v", err)
 	}
 	defer client.Close()
@@ -148,8 +159,9 @@ func (s *Storage) Delete(request *openapi.BackupRequest) error {
 	}
 	o := client.Bucket(request.Bucket).Object(location)
 	if err := o.Delete(ctx); err != nil {
-		return fmt.Errorf("Object(%q).Delete: %v", location, err)
+		log.Printf("Error delete/Delete for %s:%s, error: %v", request.Bucket, request.Location, err)
+		return fmt.Errorf("Object(%q).Delete: %v", request.Location, err)
 	}
-	fmt.Printf("Blob %v deleted.\n", location)
+	fmt.Printf("Delete for %s:%s deleted.\n", request.Bucket, request.Location)
 	return nil
 }

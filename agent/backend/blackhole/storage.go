@@ -1,9 +1,9 @@
 package blackhole
 
 import (
-	"fmt"
+	"log"
 	"os"
-"log"
+
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	"github.com/gobuffalo/packr/v2"
 )
@@ -27,10 +27,11 @@ func (s *Storage) Push(request *openapi.BackupRequest, filename string) error {
 	defer file.Close()
 	fileInfo, err := file.Stat()
 	if err != nil {
+		log.Printf("Could not get file %s info, error: %v", filename, err)
 		return err
 	}
 	var size int64 = fileInfo.Size()
-	fmt.Printf(
+	log.Printf(
 		"Copying file %s (size: %d) to %s:%s",
 		filename,
 		size,
@@ -60,10 +61,21 @@ func (s *Storage) Pull(request *openapi.BackupRequest, filename string) error {
 		return err
 	}
 	err = file.Sync()
+	log.Printf(
+		"Pulling file %s from %s:%s",
+		filename,
+		request.Bucket,
+		request.Location,
+	)
 	return err
 }
 
 // Delete deletes a file from the blackhole
 func (s *Storage) Delete(request *openapi.BackupRequest) error {
+	log.Printf(
+		"Deleting file %s:%s",
+		request.Bucket,
+		request.Location,
+	)
 	return nil
 }
