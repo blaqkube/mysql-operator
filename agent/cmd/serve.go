@@ -6,11 +6,14 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/blaqkube/mysql-operator/agent/backend/mysql"
 	openapi "github.com/blaqkube/mysql-operator/agent/go"
 	"github.com/blaqkube/mysql-operator/agent/service"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+const numberOfDBChecks = 24
 
 func createExporterUser(expUsername, expPassword string) error {
 	if expUsername == "" || expPassword == "" {
@@ -18,7 +21,14 @@ func createExporterUser(expUsername, expPassword string) error {
 	}
 
 	log.Printf("Creating exporter user %s, starting", expUsername)
-	_, err := resources.DB.Exec(
+	i := mysql.NewInstance(resources.DB)
+	err := i.Check(numberOfDBChecks)
+	if err != nil {
+		log.Printf("Could not connect to the database after %d retries", numberOfDBChecks)
+		return err
+	}
+
+	_, err = resources.DB.Exec(
 		fmt.Sprintf(
 			`CREATE USER '%s'@'%%' IDENTIFIED BY '%s' WITH MAX_USER_CONNECTIONS 3`,
 			expUsername,
