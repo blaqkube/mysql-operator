@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
+	"github.com/google/uuid"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -76,7 +77,7 @@ func (im *InstanceManager) getExporterSecret(instance *mysqlv1alpha1.Instance) (
 
 func (im *InstanceManager) createExporterSecret(instance *mysqlv1alpha1.Instance) (ctrl.Result, error) {
 	log := im.Reconciler.Log.WithValues("function", "createExporterSecret", "namespace", instance.Namespace, "instance", instance.Name)
-
+	password := uuid.New()
 	labels := map[string]string{
 		"app": instance.Name,
 	}
@@ -87,7 +88,9 @@ func (im *InstanceManager) createExporterSecret(instance *mysqlv1alpha1.Instance
 			Labels:    labels,
 		},
 		StringData: map[string]string{
-			".my.cnf": "[client]\nuser=exporter\npassword=exporter\nhost=localhost\n",
+			".my.cnf":  fmt.Sprintf("[client]\nuser=exporter\npassword=%s\nhost=localhost\n", password),
+			"username": "exporter",
+			"password": fmt.Sprintf("%s", password),
 		},
 	}
 	if err := controllerutil.SetControllerReference(instance, secret, im.Reconciler.Scheme); err != nil {
@@ -234,8 +237,8 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 				Value: b,
 			})
 			env = append(env, corev1.EnvVar{
-				Name:  "AGT_FILENAME",
-				Value: "/docker-entrypoint-initdb.d/init-script.sql",
+				Name:  "AGT_WORKDIR",
+				Value: "/docker-entrypoint-initdb.d",
 			})
 			initContainers = []corev1.Container{
 				{
@@ -333,6 +336,34 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 							Command: []string{
 								"./mysql-agent",
 								"serve",
+							},
+							Env: []corev1.EnvVar{
+								{
+									Name:  "AGT_WORKDIR",
+									Value: "/docker-entrypoint-initdb.d",
+								},
+								{
+									Name: "AGT_EXPORTER_USERNAME",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: instance.Name + "-exporter",
+											},
+											Key: "username",
+										},
+									},
+								},
+								{
+									Name: "AGT_EXPORTER_PASSWORD",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: instance.Name + "-exporter",
+											},
+											Key: "password",
+										},
+									},
+								},
 							},
 						},
 						{
