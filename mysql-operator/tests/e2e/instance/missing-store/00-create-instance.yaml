@@ -3,7 +3,7 @@ kind: Instance
 metadata:
   name: instance2
 spec:
-  database: blue
+  database: red
   restore:
     store: store1
     location: /backup/black/data.sql

@@ -234,10 +234,6 @@ func (s *StatefulSetProperties) NewStatefulSetForInstance(instance *mysqlv1alpha
 				Value: b,
 			})
 			env = append(env, corev1.EnvVar{
-				Name:  "AGT_FILENAME",
-				Value: "/docker-entrypoint-initdb.d/init-script.sql",
-			})
-			env = append(env, corev1.EnvVar{
 				Name:  "AGT_WORKDIR",
 				Value: "/docker-entrypoint-initdb.d",
 			})
