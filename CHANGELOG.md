@@ -15,7 +15,7 @@ This release contains enhancements and bug fixes.
 
 #### Bug Fixes:
 
-*No Bugfix for this Release for now.*
+- <https://github.com/blaqkube/mysql-operator/issues/127|127> Create a dedicated exporter user for better security
 
 ---
 
