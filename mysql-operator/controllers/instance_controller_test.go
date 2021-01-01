@@ -56,8 +56,8 @@ var _ = Describe("Instance Controller", func() {
 		secret := corev1.Secret{}
 		secretName := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name + "-exporter"}
 		Expect(k8sClient.Get(ctx, secretName, &secret)).To(Succeed())
-		Expect("[client]\nuser=exporter\npassword=exporter\nhost=localhost\n").
-			To(Equal(string(secret.Data[".my.cnf"])), "Data should match")
+		Expect(string(secret.Data[".my.cnf"])).
+			Should(MatchRegexp(`\[client\].*`), "Data should match the password")
 
 		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
 
@@ -143,8 +143,8 @@ var _ = Describe("Instance Controller", func() {
 		secret := corev1.Secret{}
 		secretName := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name + "-exporter"}
 		Expect(k8sClient.Get(ctx, secretName, &secret)).To(Succeed())
-		Expect("[client]\nuser=exporter\npassword=exporter\nhost=localhost\n").
-			To(Equal(string(secret.Data[".my.cnf"])), "Data should match")
+		Expect(string(secret.Data[".my.cnf"])).
+			Should(MatchRegexp(`\[client\].*`), "Data should match the password")
 
 		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
 
@@ -196,8 +196,8 @@ var _ = Describe("Instance Controller", func() {
 		secret := corev1.Secret{}
 		secretName := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name + "-exporter"}
 		Expect(k8sClient.Get(ctx, secretName, &secret)).To(Succeed())
-		Expect("[client]\nuser=exporter\npassword=exporter\nhost=localhost\n").
-			To(Equal(string(secret.Data[".my.cnf"])), "Data should match")
+		Expect(string(secret.Data[".my.cnf"])).
+			Should(MatchRegexp(`\[client\].*`), "Data should match the password")
 
 		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
 

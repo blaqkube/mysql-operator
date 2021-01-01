@@ -17,6 +17,8 @@ This release contains enhancements and bug fixes.
 
 - [#127](https://github.com/blaqkube/mysql-operator/issues/127) Create a
   dedicated exporter user for better security
+- [#132](https://github.com/blaqkube/mysql-operator/issues/132) `make test`
+  missing from operator build
 
 ---
 
