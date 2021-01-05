@@ -5,6 +5,7 @@ go 1.15
 require (
 	cloud.google.com/go v0.74.0 // indirect
 	cloud.google.com/go/storage v1.12.0 // indirect
+	github.com/ahmetb/gen-crd-api-reference-docs v0.2.1-0.20201224172655-df869c1245d4
 	github.com/antihax/optional v1.0.0
 	github.com/blaqkube/mysql-operator/agent v0.0.0-20201227134435-11112f27e330
 	github.com/go-logr/logr v0.3.0

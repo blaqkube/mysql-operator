@@ -17,4 +17,7 @@ The properties are the following:
 
 _ `instance` defines the instance the user is created in
 - `username` defines the user name
-- `password` set the user password
+- A password that can be made either from:
+  - `password` set the user password in plain text (do not do that)
+  - `passwordFrom` that allow to reference a `secretKeyRef` like for the 
+    environment variables of a pod
