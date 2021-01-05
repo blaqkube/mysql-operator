@@ -293,6 +293,8 @@ spec:
   - mysql
   - operator
   - database
+  labels:
+    operator: mysql-operator
   links:
   - name: documentation
     url: https://docs.blaqkube.io
@@ -302,8 +304,10 @@ spec:
     url: https://github.com/blaqkube/mysql-operator
   - name: OCI Images
     url: https://quay.io/repository/blaqkube/mysql-operator
+  maintainers:
+  - email: contact@blaqkube.io
+    name: blaqkube
   maturity: alpha
   provider:
     name: blaqkube
-    url: https://blaqkube.io
   version: 0.0.0
