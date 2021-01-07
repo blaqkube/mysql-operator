@@ -82,6 +82,7 @@ metadata:
     capabilities: Basic Install
     categories: Database
     certified: "false"
+    containerImage: quay.io/blaqkube/mysql-operator:0.4.0
     createdAt: "2020-12-30T06:00:00Z"
     description: An operator for MySQL Community Server
     operators.operatorframework.io/builder: operator-sdk-v1.3.0
