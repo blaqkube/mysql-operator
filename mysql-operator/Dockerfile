@@ -18,7 +18,7 @@ COPY agent/ agent/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
 
-FROM alpine:v3.13
+FROM alpine:3.13
 
 ARG agent_version=0
 ENV AGENT_VERSION=$agent_version

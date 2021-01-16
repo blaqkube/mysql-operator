@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.5.0 (**Not Released yet**)
+## v0.5.0 (**Not Released Yet**)
 
 This release contains enhancements and bug fixes.
 
@@ -10,7 +10,7 @@ This release contains enhancements and bug fixes.
 
 #### Bug Fixes:
 
-- None
+- [#139](https://github.com/blaqkube/mysql-operator/issues/139) Store check fails due to manager OCI filesystem cannot be accessed
 
 ## v0.4.0 (Jan 1, 2021)
 
