@@ -74,6 +74,7 @@ type GrantStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.ready",description="Grant status"
 
 // Grant is the Schema for the grants API
 type Grant struct {

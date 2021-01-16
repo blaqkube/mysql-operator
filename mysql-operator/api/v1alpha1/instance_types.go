@@ -103,6 +103,7 @@ type InstanceStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.ready",description="Instance status"
 
 // Instance is the Schema for the instances API
 type Instance struct {

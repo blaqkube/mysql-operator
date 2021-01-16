@@ -90,6 +90,7 @@ type StoreStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.ready",description="Store status"
 
 // Store is the Schema for the stores API
 type Store struct {
