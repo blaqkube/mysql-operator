@@ -67,6 +67,8 @@ type UserStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.ready",description="User ready"
+// +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.reason",description="User phase"
 
 // User is the Schema for the users API
 type User struct {

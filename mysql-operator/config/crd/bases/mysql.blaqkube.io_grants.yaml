@@ -16,7 +16,16 @@ spec:
     singular: grant
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Grant ready
+      jsonPath: .status.ready
+      name: Ready
+      type: string
+    - description: Grant phase
+      jsonPath: .status.reason
+      name: Phase
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Grant is the Schema for the grants API

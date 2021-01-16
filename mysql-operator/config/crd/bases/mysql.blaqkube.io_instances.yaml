@@ -16,7 +16,16 @@ spec:
     singular: instance
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Instance ready
+      jsonPath: .status.ready
+      name: Ready
+      type: string
+    - description: Instance phase
+      jsonPath: .status.reason
+      name: Phase
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Instance is the Schema for the instances API

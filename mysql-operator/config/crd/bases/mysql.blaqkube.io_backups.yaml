@@ -16,7 +16,16 @@ spec:
     singular: backup
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Backup ready
+      jsonPath: .status.ready
+      name: Ready
+      type: string
+    - description: Backup phase
+      jsonPath: .status.reason
+      name: Phase
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Backup is the Schema for the backups API

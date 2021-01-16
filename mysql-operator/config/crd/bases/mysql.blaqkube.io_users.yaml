@@ -16,7 +16,16 @@ spec:
     singular: user
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: User ready
+      jsonPath: .status.ready
+      name: Ready
+      type: string
+    - description: User phase
+      jsonPath: .status.reason
+      name: Phase
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: User is the Schema for the users API
