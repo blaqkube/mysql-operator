@@ -17,8 +17,12 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - description: Backup status
+    - description: Backup ready
       jsonPath: .status.ready
+      name: Ready
+      type: string
+    - description: Backup phase
+      jsonPath: .status.Reason
       name: Phase
       type: string
     name: v1alpha1

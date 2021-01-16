@@ -17,8 +17,12 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - description: Store status
+    - description: Store ready
       jsonPath: .status.ready
+      name: Ready
+      type: string
+    - description: Store phase
+      jsonPath: .status.Reason
       name: Phase
       type: string
     name: v1alpha1
