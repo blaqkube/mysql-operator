@@ -16,7 +16,12 @@ spec:
     singular: store
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Store status
+      jsonPath: .status.ready
+      name: Phase
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Store is the Schema for the stores API
