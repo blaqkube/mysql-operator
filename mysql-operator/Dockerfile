@@ -16,14 +16,15 @@ COPY controllers/ controllers/
 COPY agent/ agent/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
+RUN mkdir /app
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o /app/manager main.go
 
-FROM alpine:3.13
+FROM gcr.io/distroless/static:nonroot
 
 ARG agent_version=0
 ENV AGENT_VERSION=$agent_version
+
 WORKDIR /app
-RUN chown 65532 /app
-COPY --from=builder /workspace/manager .
+COPY --from=builder --chown=nonroot:nonroot /app /app
 
 ENTRYPOINT ["/app/manager"]
