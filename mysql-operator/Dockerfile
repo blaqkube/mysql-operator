@@ -22,7 +22,8 @@ FROM alpine:3.13
 
 ARG agent_version=0
 ENV AGENT_VERSION=$agent_version
-WORKDIR /
+WORKDIR /app
+RUN chown 65532 /app
 COPY --from=builder /workspace/manager .
 
 ENTRYPOINT ["./manager"]

@@ -49,6 +49,29 @@ export HTTP_PROXY=http://localhost:3128
 make run ENABLE_WEBHOOKS=false
 ```
 
+## Running the Operator in a Container 
+
+Assuming an OCI image for the controller has been created in the CI, you can test it
+instead of running the manager outside the cluster. To proceed:
+
+- Clone the project with `git clone https://github.com/blaqkube/mysql-operator`
+- Go into the operator subdirectory `cd mysql-operator/mysql-operator`
+- Install the CRDs to your default namespace `make install`
+- Set `IMG` with the version of the controller OCI that is expected
+- Run controllers in your cluster `make deploy`
+
+The script below does the steps above:
+
+```shell
+cd $(git rev-parse --show-toplevel)
+cd mysql-operator
+make install
+export IMG=quay.io/blaqkube/mysql-controller:$(\
+    git log --format='%H' -1 . | cut -c1-16)
+echo $IMG
+make deploy
+```
+
 ## kuttl for testing
 
 The project embeds kuttl tests. In order to run those tests, there are
