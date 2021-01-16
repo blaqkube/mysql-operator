@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.5.0 (**Not Released yet**)
+
+This release contains enhancements and bug fixes.
+
+#### Enhancements:
+
+- [#138](https://github.com/blaqkube/mysql-operator/pull/138) Print `Phase` to as part of `kubectl get` columns
+
+#### Bug Fixes:
+
+- None
+
 ## v0.4.0 (Jan 1, 2021)
 
 This release contains enhancements and bug fixes.
