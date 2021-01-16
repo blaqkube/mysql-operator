@@ -373,7 +373,7 @@ spec:
                 - --metrics-bind-address=127.0.0.1:8080
                 - --leader-elect
                 command:
-                - /manager
+                - /app/manager
                 image: quay.io/blaqkube/mysql-controller:0.4.0
                 livenessProbe:
                   httpGet:
