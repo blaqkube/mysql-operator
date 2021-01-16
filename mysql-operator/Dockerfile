@@ -19,12 +19,13 @@ COPY agent/ agent/
 RUN mkdir /app
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o /app/manager main.go
 
-FROM gcr.io/distroless/static:nonroot
+FROM alpine:3.13
 
 ARG agent_version=0
 ENV AGENT_VERSION=$agent_version
 
 WORKDIR /app
-COPY --from=builder --chown=65532 /app /app
+COPY --from=builder /app/manager .
+RUN chown -R 65532 /app
 
 ENTRYPOINT ["/app/manager"]
