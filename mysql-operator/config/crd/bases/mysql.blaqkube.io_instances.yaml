@@ -22,7 +22,7 @@ spec:
       name: Ready
       type: string
     - description: Instance phase
-      jsonPath: .status.Reason
+      jsonPath: .status.reason
       name: Phase
       type: string
     name: v1alpha1
