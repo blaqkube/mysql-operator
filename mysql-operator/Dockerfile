@@ -25,6 +25,6 @@ ARG agent_version=0
 ENV AGENT_VERSION=$agent_version
 
 WORKDIR /app
-COPY --from=builder --chown=nonroot:nonroot /app /app
+COPY --from=builder --chown=65532 /app /app
 
 ENTRYPOINT ["/app/manager"]
