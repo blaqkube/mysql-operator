@@ -26,4 +26,4 @@ WORKDIR /app
 RUN chown 65532 /app
 COPY --from=builder /workspace/manager .
 
-ENTRYPOINT ["./manager"]
+ENTRYPOINT ["/app/manager"]
