@@ -103,7 +103,7 @@ operator-sdk olm status
 > use OLM 0.15+. This is due to issue
 > [#1347](https://github.com/operator-framework/operator-lifecycle-manager/issues/1347)
 
-### Subscribe from the OperatorHub Catalog
+### Subscribe to OperatorHub
 
 Before you proceed, with installing the operator, you should create an
 `OperatorGroup` that defines the fact the operator works at the cluster
