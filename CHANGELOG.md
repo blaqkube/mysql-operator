@@ -7,6 +7,7 @@ This release contains enhancements and bug fixes.
 #### Enhancements:
 
 - [#138](https://github.com/blaqkube/mysql-operator/pull/138) Print `Phase` to as part of `kubectl get` columns
+- [#143](https://github.com/blaqkube/mysql-operator/pull/143) Improve the documentation
 
 #### Bug Fixes:
 

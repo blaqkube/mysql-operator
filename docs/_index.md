@@ -13,7 +13,7 @@ Once installed, you should be able, from a simple manifest, to:
 - Grant access 🕳 to databases for a user
 - Create a backup store 💯 in S3 and GCP storage
 - Generate a backup in the store 💥
-- Create a new instance from a backup ❤
+- Create a new instance from a backup ❤, i.e. clone an instance
 
 To use the MySQL operator, check the [Installation](users/installation.md)
 section as well as the [Resources](users/resources.md). After that, you are
