@@ -141,16 +141,17 @@ Once done with the installation, you can create the resources as described in
 
 ## Manual Installation
 
-To install OLM manually, you need to have `make`, `kustomize`, `kubectl` and `git` installed. We assume the controller has been
-built and is available from `quay.io/blaqkube/mysql-controller`.
+To install OLM manually, you need to have `make`, `kustomize`, `kubectl`, `git`
+and `go` installed. We assume the controller has been built and is available
+from `quay.io/blaqkube/mysql-controller`. If you are using another registry and
+versioning scheme, you would have to change the `IMG` value accordingly.
 
 To deploy the operator, run:
 
 ```shell
 git clone https://github.com/blaqkube/mysql-operator.git
-git checkout main
 cd mysql-operator/mysql-operator
-make install
+# checkout the version of your choice
 export IMG=quay.io/blaqkube/mysql-controller:$(\
     git log --format='%H' -1 . | cut -c1-16)
 echo $IMG

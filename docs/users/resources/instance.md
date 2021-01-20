@@ -25,5 +25,6 @@ The properties are the following:
 - `backupSchedule` is used to define automatic backups. It should include 2
   parameters:
   - `store` names the store the backup are stored in
-  - `schedule` defines the cron-like scheduled expression. Pay attention to the fact the timezone is UTC
-  
+  - `schedule` is a cron-like scheduled expression that defines when backups
+  are scheduled. For instance, use "0 2 * * *" to schedule a backup at 2am. Pay
+  attention to the fact the timezone is UTC
