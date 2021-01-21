@@ -3,9 +3,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"sync"
-
-	"time"
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
@@ -13,77 +10,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/google/uuid"
-
-	"github.com/robfig/cron/v3"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	mysqlv1alpha1 "github.com/blaqkube/mysql-operator/mysql-operator/api/v1alpha1"
-)
-
-// BackupJob is a struct that manages Jobs for backups
-type BackupJob struct {
-	client.Client
-	Instance types.NamespacedName
-	Log      logr.Logger
-	Scheme   *runtime.Scheme
-}
-
-// NewBackupJob creates a BackupJob to schedule it
-func NewBackupJob(client client.Client, instance types.NamespacedName, log logr.Logger, scheme *runtime.Scheme) *BackupJob {
-	return &BackupJob{
-		Client:   client,
-		Instance: instance,
-		Log:      log,
-		Scheme:   scheme,
-	}
-}
-
-// Run implement the Job interface to use with Cron AddFunc()
-func (b *BackupJob) Run() {
-	ctx := context.Background()
-	instance := mysqlv1alpha1.Instance{}
-	if err := b.Client.Get(ctx, b.Instance, &instance); err != nil {
-		b.Log.Info(fmt.Sprintf("job for %s/%s failed. Could not access instance...", b.Instance.Namespace, b.Instance.Name))
-		return
-	}
-	b.Log.Info(fmt.Sprintf("job for %s/%s succeeded...", b.Instance.Namespace, b.Instance.Name))
-	backupName := fmt.Sprintf("%s-backup-%s", instance.Name, time.Now().Format("20060102-150405"))
-	backup := &mysqlv1alpha1.Backup{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      backupName,
-			Namespace: instance.Namespace,
-		},
-		Spec: mysqlv1alpha1.BackupSpec{
-			Store:    instance.Spec.BackupSchedule.Store,
-			Instance: instance.Name,
-		},
-	}
-	if err := controllerutil.SetControllerReference(&instance, backup, b.Scheme); err != nil {
-		b.Log.Info(fmt.Sprintf("Error registering backup %s/%s with instance %s", instance.Namespace, backupName, instance.Name))
-		return
-	}
-	if err := b.Client.Create(ctx, backup); err != nil {
-		b.Log.Info(fmt.Sprintf("Error creating backup %s/%s for instance %s", instance.Namespace, backupName, instance.Name))
-		return
-	}
-	b.Log.Info(fmt.Sprintf("Backup %s/%s for instance %s successfully created", instance.Namespace, backupName, instance.Name))
-}
-
-// Crontab provides a simple struct to manage cron EntryID for instances
-type Crontab struct {
-	M           sync.Mutex
-	Schedulers  map[int]string
-	Cron        *cron.Cron
-	Incarnation string
-}
-
-var (
-	crontab = &Crontab{}
 )
 
 // InstanceReconciler reconciles a Instance object
@@ -92,37 +24,6 @@ type InstanceReconciler struct {
 	Log        logr.Logger
 	Scheme     *runtime.Scheme
 	Properties *StatefulSetProperties
-}
-
-func (c *Crontab) isBackupScheduleRunning(instance mysqlv1alpha1.Instance) bool {
-	entry := instance.Status.BackupSchedule.EntryID
-	if entry == -1 {
-		return false
-	}
-	c.M.Lock()
-	defer c.M.Unlock()
-	if c.Cron == nil {
-		c.Schedulers = map[int]string{}
-		c.Cron = cron.New()
-		c.Cron.Start()
-		c.Incarnation = uuid.New().String()
-		return false
-	}
-	if c.Incarnation != instance.Status.BackupSchedule.Incarnation {
-		return false
-	}
-	v, ok := c.Schedulers[entry]
-	if !ok {
-		return false
-	}
-	if v != fmt.Sprintf("%s/%s", instance.Namespace, instance.Name) {
-		return false
-	}
-	if instance.Spec.BackupSchedule.Schedule != instance.Spec.BackupSchedule.Schedule {
-		c.Cron.Remove(cron.EntryID(entry))
-		return false
-	}
-	return true
 }
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
@@ -144,33 +45,13 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if !crontab.isBackupScheduleRunning(*instance) {
-		update := false
-		if instance.Spec.BackupSchedule.Schedule != "" {
-			crontab.M.Lock()
-			defer crontab.M.Unlock()
-			entry, err := crontab.Cron.AddJob(instance.Spec.BackupSchedule.Schedule, NewBackupJob(r.Client, req.NamespacedName, log, r.Scheme))
-			if err == nil {
-				log.Info("Backup scheduler job for instance added")
-				crontab.Schedulers[int(entry)] = fmt.Sprintf("%s/%s", req.NamespacedName.Namespace, req.NamespacedName.Name)
-				instance.Status.BackupSchedule = mysqlv1alpha1.BackupScheduleStatus{
-					Schedule:    instance.Spec.BackupSchedule.Schedule,
-					EntryID:     int(entry),
-					Incarnation: crontab.Incarnation,
-				}
-				update = true
-			} else {
-				log.Info(fmt.Sprintf("Backup scheduler job for instance failed, error: %v", err))
-			}
-		}
-		if update {
-			if err := r.Status().Update(ctx, instance); err != nil {
-				log.Info(fmt.Sprintf("Error updating Status.BackupSchedule, err: %v", err))
-				return ctrl.Result{}, nil
-			}
-			log.Info("Success updating Status.BackupSchedule")
+	if crontab.reScheduleAll(r.Client, instance, r.Log, r.Scheme) {
+		if err := r.Status().Update(ctx, instance); err != nil {
+			log.Info(fmt.Sprintf("Error rescheduling jobs, err: %v", err))
 			return ctrl.Result{}, nil
 		}
+		log.Info("Success rescheduling jobs")
+		return ctrl.Result{}, nil
 	}
 
 	im := &InstanceManager{

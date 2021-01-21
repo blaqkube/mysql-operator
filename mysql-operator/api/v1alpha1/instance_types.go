@@ -53,6 +53,16 @@ type BackupScheduleSpec struct {
 	Schedule string `json:"schedule,omitempty"`
 }
 
+// MaintenanceScheduleSpec defines the backup schedule properties
+type MaintenanceScheduleSpec struct {
+
+	// The maintenance schedule
+	Schedule string `json:"schedule,omitempty"`
+
+	// The maintenance schedule in minutes
+	Duration int `json:"duration,omitempty"`
+}
+
 // InstanceSpec defines the desired state of Instance
 type InstanceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -66,18 +76,36 @@ type InstanceSpec struct {
 
 	// Database is the default database name for the instance
 	Database string `json:"database,omitempty"`
+
+	// Defines the backup schedules
+	MaintenanceSchedule MaintenanceScheduleSpec `json:"maintenanceSchedule,omitempty"`
 }
 
-// BackupScheduleStatus defines the backup schedule properties
-type BackupScheduleStatus struct {
-	// The backup schedule that
+// ScheduleEntry defines schedule properties
+type ScheduleEntry struct {
+	// The backup schedule that last applied
 	Schedule string `json:"schedule,omitempty"`
-	// The Scheduler incarnation managed by the operator
-	// +kubebuilder:default:="00000000-0000-0000-0000-000000000000"
-	Incarnation string `json:"incarnation,omitempty"`
 	// The BackupJob ID in the Scheduler
 	// +kubebuilder:default:=-1
 	EntryID int `json:"entryID,omitempty"`
+}
+
+// ScheduleStatus defines the schedule properties
+type ScheduleStatus struct {
+	// The Scheduler incarnation managed by the operator
+	// +kubebuilder:default:="00000000-0000-0000-0000-000000000000"
+	Incarnation string `json:"incarnation,omitempty"`
+	// Properties for the backup schedule
+	Backup ScheduleEntry `json:"backup,omitempty"`
+
+	// Properties for the maintenance schedule
+	Maintenance ScheduleEntry `json:"maintenance,omitempty"`
+
+	// Properties to turn off the maintenance mode
+	MaintenanceOff ScheduleEntry `json:"maintenanceOff,omitempty"`
+
+	// When the maintenance mode should be turned off
+	MaintenanceEndTime *metav1.Time `json:"maintenanceEndTime,omitempty"`
 }
 
 // InstanceStatus defines the observed state of Instance
@@ -95,16 +123,19 @@ type InstanceStatus struct {
 	// A human readable message indicating details about why the store is in
 	// this condition.
 	Message string `json:"message,omitempty"`
+	// Defines if the database is currently in Maintenance Mode
+	MaintenanceMode bool `json:"maintenanceMode,omitempty"`
 	// Conditions provides informations about the the last conditions
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
-	// BackupSchedule provides information about the current running backup
-	BackupSchedule BackupScheduleStatus `json:"backupSchedule,omitempty"`
+	// Schedules provides information about the current running schedules, including backups and maintenance
+	Schedules ScheduleStatus `json:"schedules,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.ready",description="Instance ready"
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.reason",description="Instance phase"
+// +kubebuilder:printcolumn:name="Maintenance",type="boolean",JSONPath=".status.maintenanceMode",description="Instance currently in Maintenance"
 
 // Instance is the Schema for the instances API
 type Instance struct {

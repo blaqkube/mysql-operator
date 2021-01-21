@@ -25,6 +25,10 @@ spec:
       jsonPath: .status.reason
       name: Phase
       type: string
+    - description: Instance currently in Maintenance
+      jsonPath: .status.maintenanceMode
+      name: Maintenance
+      type: boolean
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -58,6 +62,16 @@ spec:
               database:
                 description: Database is the default database name for the instance
                 type: string
+              maintenanceSchedule:
+                description: Defines the backup schedules
+                properties:
+                  duration:
+                    description: The maintenance schedule in minutes
+                    type: integer
+                  schedule:
+                    description: The maintenance schedule
+                    type: string
+                type: object
               restore:
                 description: Restore when starting from an existing configuration
                 properties:
@@ -70,22 +84,6 @@ spec:
           status:
             description: InstanceStatus defines the observed state of Instance
             properties:
-              backupSchedule:
-                description: BackupSchedule provides information about the current
-                  running backup
-                properties:
-                  entryID:
-                    default: -1
-                    description: The BackupJob ID in the Scheduler
-                    type: integer
-                  incarnation:
-                    default: 00000000-0000-0000-0000-000000000000
-                    description: The Scheduler incarnation managed by the operator
-                    type: string
-                  schedule:
-                    description: The backup schedule that
-                    type: string
-                type: object
               conditions:
                 description: Conditions provides informations about the the last conditions
                 items:
@@ -193,6 +191,9 @@ spec:
                     description: 'UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids'
                     type: string
                 type: object
+              maintenanceMode:
+                description: Defines if the database is currently in Maintenance Mode
+                type: boolean
               message:
                 description: A human readable message indicating details about why
                   the store is in this condition.
@@ -203,6 +204,52 @@ spec:
               reason:
                 description: Defines if the store current Reason
                 type: string
+              schedules:
+                description: Schedules provides information about the current running
+                  schedules, including backups and maintenance
+                properties:
+                  backup:
+                    description: Properties for the backup schedule
+                    properties:
+                      entryID:
+                        default: -1
+                        description: The BackupJob ID in the Scheduler
+                        type: integer
+                      schedule:
+                        description: The backup schedule that last applied
+                        type: string
+                    type: object
+                  incarnation:
+                    default: 00000000-0000-0000-0000-000000000000
+                    description: The Scheduler incarnation managed by the operator
+                    type: string
+                  maintenance:
+                    description: Properties for the maintenance schedule
+                    properties:
+                      entryID:
+                        default: -1
+                        description: The BackupJob ID in the Scheduler
+                        type: integer
+                      schedule:
+                        description: The backup schedule that last applied
+                        type: string
+                    type: object
+                  maintenanceEndTime:
+                    description: When the maintenance mode should be turned off
+                    format: date-time
+                    type: string
+                  maintenanceOff:
+                    description: Properties to turn off the maintenance mode
+                    properties:
+                      entryID:
+                        default: -1
+                        description: The BackupJob ID in the Scheduler
+                        type: integer
+                      schedule:
+                        description: The backup schedule that last applied
+                        type: string
+                    type: object
+                type: object
               statefulset:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                   of cluster Important: Run "make" to regenerate code after modifying
