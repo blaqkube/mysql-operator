@@ -24,6 +24,7 @@ type InstanceReconciler struct {
 	Log        logr.Logger
 	Scheme     *runtime.Scheme
 	Properties *StatefulSetProperties
+	Crontab    Crontab
 }
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
@@ -45,7 +46,7 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if crontab.reScheduleAll(r.Client, instance, r.Log, r.Scheme) {
+	if r.Crontab.reScheduleAll(r.Client, instance, r.Log, r.Scheme) {
 		if err := r.Status().Update(ctx, instance); err != nil {
 			log.Info(fmt.Sprintf("Error rescheduling jobs, err: %v", err))
 			return ctrl.Result{}, nil

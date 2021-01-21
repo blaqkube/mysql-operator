@@ -72,15 +72,17 @@ type MaintenanceJob struct {
 	Instance types.NamespacedName
 	Log      logr.Logger
 	Scheme   *runtime.Scheme
+	Crontab  *Crontab
 }
 
 // NewMaintenanceJob creates a MaintenanceJob to schedule it
-func NewMaintenanceJob(client client.Client, instance types.NamespacedName, log logr.Logger, scheme *runtime.Scheme) *MaintenanceJob {
+func NewMaintenanceJob(client client.Client, instance types.NamespacedName, log logr.Logger, scheme *runtime.Scheme, crontab *Crontab) *MaintenanceJob {
 	return &MaintenanceJob{
 		Client:   client,
 		Instance: instance,
 		Log:      log,
 		Scheme:   scheme,
+		Crontab:  crontab,
 	}
 }
 
@@ -104,8 +106,8 @@ func (b *MaintenanceJob) Run() {
 		Namespace: instance.ObjectMeta.Namespace,
 		Name:      instance.ObjectMeta.Name,
 	}
-	cmd := NewUnMaintenanceJob(b.Client, nn, b.Log, b.Scheme)
-	crontab.schedule(b.Log, &instance, MaintenanceUnscheduling, fmt.Sprintf("%s *", t.Format("4 15 2 1")), cmd)
+	cmd := NewUnMaintenanceJob(b.Client, nn, b.Log, b.Scheme, b.Crontab)
+	b.Crontab.schedule(b.Log, &instance, MaintenanceUnscheduling, fmt.Sprintf("%s *", t.Format("4 15 2 1")), cmd)
 	if err := b.Client.Status().Update(ctx, &instance); err != nil {
 		b.Log.Info(fmt.Sprintf("Error updating Status.Maintenance, err: %v", err))
 		return
@@ -119,15 +121,17 @@ type UnMaintenanceJob struct {
 	Instance types.NamespacedName
 	Log      logr.Logger
 	Scheme   *runtime.Scheme
+	Crontab  *Crontab
 }
 
 // NewUnMaintenanceJob creates a MaintenanceJob to schedule it
-func NewUnMaintenanceJob(client client.Client, instance types.NamespacedName, log logr.Logger, scheme *runtime.Scheme) *UnMaintenanceJob {
+func NewUnMaintenanceJob(client client.Client, instance types.NamespacedName, log logr.Logger, scheme *runtime.Scheme, crontab *Crontab) *UnMaintenanceJob {
 	return &UnMaintenanceJob{
 		Client:   client,
 		Instance: instance,
 		Log:      log,
 		Scheme:   scheme,
+		Crontab:  crontab,
 	}
 }
 
@@ -146,7 +150,7 @@ func (b *UnMaintenanceJob) Run() {
 	if instance.Status.MaintenanceMode == true {
 		instance.Status.MaintenanceMode = false
 		instance.Status.Schedules.MaintenanceEndTime = nil
-		crontab.unSchedule(&instance, MaintenanceUnscheduling)
+		b.Crontab.unSchedule(&instance, MaintenanceUnscheduling)
 	}
 	if err := b.Client.Status().Update(ctx, &instance); err != nil {
 		b.Log.Info(fmt.Sprintf("Error updating Status.Maintenance, err: %v", err))
