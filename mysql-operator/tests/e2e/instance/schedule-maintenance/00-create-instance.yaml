@@ -4,7 +4,7 @@ metadata:
   name: instance1
 spec:
   database: blue
-  maintenance:
+  maintenanceSchedule:
     schedule: "* * * * *"
     duration: 120
 ---
