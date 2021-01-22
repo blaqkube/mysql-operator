@@ -102,15 +102,15 @@ func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1al
 		MaintenanceScheduling,
 		MaintenanceUnscheduling,
 	}
+	nn := types.NamespacedName{
+		Namespace: instance.ObjectMeta.Namespace,
+		Name:      instance.ObjectMeta.Name,
+	}
 	if instance.Status.Schedules.Incarnation != c.Incarnation {
 		log.Info("New incarnation", "incarnation", instance.Status.Schedules.Incarnation, "namespace", nn.Namespace, "instance", nn.Name)
 		instance.Status.Schedules.Incarnation = c.Incarnation
 		restarted = true
 		changed = true
-	}
-	nn := types.NamespacedName{
-		Namespace: instance.ObjectMeta.Namespace,
-		Name:      instance.ObjectMeta.Name,
 	}
 	for _, v := range sc {
 		switch v {
