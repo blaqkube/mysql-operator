@@ -111,20 +111,18 @@ func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1al
 		Namespace: instance.ObjectMeta.Namespace,
 		Name:      instance.ObjectMeta.Name,
 	}
-	log.Info("reScheduleAll", "namespace", nn.Namespace, "instance", nn.Name )
 	for _, v := range sc {
-		log.Info("reScheduleAll Checking schedule for", "type", v )
 		switch v {
 		case BackupScheduling:
-			log.Info("Checking backup schedule", "schedule", instance.Spec.BackupSchedule.Schedule )
 			if instance.Spec.BackupSchedule.Schedule != "" {
-				log.Info("Restarting backup schedule", "schedule", instance.Spec.BackupSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name )
 				if restarted {
+					log.Info("Backup schedule after restart", "schedule", instance.Spec.BackupSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name)
 					cmd := NewBackupJob(client, nn, log, scheme)
 					c.schedule(log, instance, v, instance.Spec.BackupSchedule.Schedule, cmd)
 					changed = true
 				}
 				if !restarted && instance.Spec.BackupSchedule.Schedule != instance.Status.Schedules.Backup.Schedule {
+					log.Info("Backup schedule after change", "schedule", instance.Spec.BackupSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name)
 					c.unSchedule(instance, BackupScheduling)
 					cmd := NewBackupJob(client, nn, log, scheme)
 					c.schedule(log, instance, v, instance.Spec.BackupSchedule.Schedule, cmd)
@@ -132,15 +130,15 @@ func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1al
 				}
 			}
 		case MaintenanceScheduling:
-			log.Info("Checking maintenance schedule", "schedule", instance.Spec.MaintenanceSchedule.Schedule )
 			if instance.Spec.MaintenanceSchedule.Schedule != "" {
-				log.Info("Restarting maintenance schedule", "schedule", instance.Spec.MaintenanceSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name )
 				if restarted {
+					log.Info("Maintenance schedule after restart", "schedule", instance.Spec.MaintenanceSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name)
 					cmd := NewMaintenanceJob(client, nn, log, scheme, c)
 					c.schedule(log, instance, v, instance.Spec.BackupSchedule.Schedule, cmd)
 					changed = true
 				}
 				if !restarted && instance.Spec.BackupSchedule.Schedule != instance.Status.Schedules.Backup.Schedule {
+					log.Info("Maintenance schedule modified", "schedule", instance.Spec.MaintenanceSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name)
 					c.unSchedule(instance, MaintenanceScheduling)
 					cmd := NewMaintenanceJob(client, nn, log, scheme, c)
 					c.schedule(log, instance, v, instance.Spec.BackupSchedule.Schedule, cmd)
@@ -148,9 +146,9 @@ func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1al
 				}
 			}
 		case MaintenanceUnscheduling:
-			log.Info(fmt.Sprintf("Checking maintenance off schedule, current mode is %t", instance.Status.MaintenanceMode) )
 			if instance.Status.MaintenanceMode == true {
 				if restarted {
+					log.Info("Maintenance off schedule after restart", "namespace", nn.Namespace, "instance", nn.Name)
 					if instance.Status.Schedules.MaintenanceEndTime == nil || instance.Status.Schedules.MaintenanceEndTime.Time.Before(time.Now()) {
 						instance.Status.MaintenanceMode = false
 						instance.Status.Schedules.MaintenanceEndTime = nil
