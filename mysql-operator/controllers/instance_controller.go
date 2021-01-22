@@ -51,7 +51,7 @@ func (r *InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			log.Info(fmt.Sprintf("Error rescheduling jobs, err: %v", err))
 			return ctrl.Result{}, nil
 		}
-		log.Info(fmt.Sprintf("Success rescheduling jobs, backup: %d, maintenance: %d", instance.Status.Backup.EntryID, instance.Status.Maintenance.EntryID))
+		log.Info(fmt.Sprintf("Success rescheduling jobs, backup: %d, maintenance: %d", instance.Status.Schedules.Backup.EntryID, instance.Status.Schedules.Maintenance.EntryID))
 		return ctrl.Result{}, nil
 	}
 
