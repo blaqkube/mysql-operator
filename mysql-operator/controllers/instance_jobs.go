@@ -37,6 +37,7 @@ func NewBackupJob(client client.Client, instance types.NamespacedName, log logr.
 
 // Run implement the Job interface to use with Cron AddFunc()
 func (b *BackupJob) Run() {
+	b.Log.Info(fmt.Sprintf("Kick off backup job for %s/%s...", b.Instance.Namespace, b.Instance.Name))
 	ctx := context.Background()
 	instance := mysqlv1alpha1.Instance{}
 	if err := b.Client.Get(ctx, b.Instance, &instance); err != nil {
@@ -88,6 +89,7 @@ func NewMaintenanceJob(client client.Client, instance types.NamespacedName, log 
 
 // Run implement the Job interface to use with Cron AddFunc()
 func (b *MaintenanceJob) Run() {
+	b.Log.Info(fmt.Sprintf("Kick off maintenance job for %s/%s...", b.Instance.Namespace, b.Instance.Name))
 	ctx := context.Background()
 	instance := mysqlv1alpha1.Instance{}
 	if err := b.Client.Get(ctx, b.Instance, &instance); err != nil {
@@ -137,6 +139,7 @@ func NewUnMaintenanceJob(client client.Client, instance types.NamespacedName, lo
 
 // Run implement the Job interface to use with Cron AddFunc()
 func (b *UnMaintenanceJob) Run() {
+	b.Log.Info(fmt.Sprintf("Kick off maintenance off job for %s/%s...", b.Instance.Namespace, b.Instance.Name))
 	ctx := context.Background()
 	instance := mysqlv1alpha1.Instance{}
 	if err := b.Client.Get(ctx, b.Instance, &instance); err != nil {

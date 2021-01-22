@@ -124,7 +124,7 @@ type InstanceStatus struct {
 	// this condition.
 	Message string `json:"message,omitempty"`
 	// Defines if the database is currently in Maintenance Mode
-	MaintenanceMode bool `json:"maintenanceMode,omitempty"`
+	MaintenanceMode bool `json:"maintenanceMode"`
 	// Conditions provides informations about the the last conditions
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 	// Schedules provides information about the current running schedules, including backups and maintenance

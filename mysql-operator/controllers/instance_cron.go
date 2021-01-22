@@ -115,6 +115,7 @@ func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1al
 		switch v {
 		case BackupScheduling:
 			if instance.Spec.BackupSchedule.Schedule != "" {
+				log.Info("Restarting backup schedule", "schedule", instance.Spec.BackupSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name )
 				if restarted {
 					cmd := NewBackupJob(client, nn, log, scheme)
 					c.schedule(log, instance, v, instance.Spec.BackupSchedule.Schedule, cmd)
@@ -129,6 +130,7 @@ func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1al
 			}
 		case MaintenanceScheduling:
 			if instance.Spec.MaintenanceSchedule.Schedule != "" {
+				log.Info("Restarting maintenance schedule", "schedule", instance.Spec.MaintenanceSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name )
 				if restarted {
 					cmd := NewMaintenanceJob(client, nn, log, scheme, c)
 					c.schedule(log, instance, v, instance.Spec.BackupSchedule.Schedule, cmd)
