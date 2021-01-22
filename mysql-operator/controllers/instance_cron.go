@@ -202,7 +202,7 @@ func (c *DefaultCrontab) schedule(log logr.Logger, instance *mysqlv1alpha1.Insta
 		}
 	case MaintenanceScheduling:
 		entry := instance.Status.Schedules.Maintenance.EntryID
-		log.Info("Schedule Maintenance", "entry", string(entry))
+		log.Info("Schedule Maintenance", "entry", fmt.Sprintf("%d", entry))
 		if entry != -1 && instance.Status.Schedules.Maintenance.Schedule != schedule {
 			c.Cron.Remove(cron.EntryID(entry))
 			instance.Status.Schedules.Maintenance = mysqlv1alpha1.ScheduleEntry{
@@ -217,7 +217,7 @@ func (c *DefaultCrontab) schedule(log logr.Logger, instance *mysqlv1alpha1.Insta
 					fmt.Sprintf("Error scheduling maintenance job: %s", err.Error()),
 				)
 			}
-			log.Info("Schedule Maintenance", "entry", string(int(eid)))
+			log.Info("Schedule Maintenance", "entry", fmt.Sprintf("%d", int(eid)))
 			instance.Status.Schedules.Maintenance = mysqlv1alpha1.ScheduleEntry{
 				EntryID:  int(eid),
 				Schedule: schedule,
