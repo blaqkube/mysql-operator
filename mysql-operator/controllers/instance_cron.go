@@ -23,14 +23,21 @@ const (
 	MaintenanceUnscheduling string = "removal"
 )
 
-// Crontab provides a simple struct to manage cron EntryID for instances
-type Crontab struct {
+type Crontab interface {
+	isScheduled(mysqlv1alpha1.Instance, string) bool
+	unSchedule(*mysqlv1alpha1.Instance, string) bool
+	reScheduleAll(client.Client, *mysqlv1alpha1.Instance, logr.Logger, *runtime.Scheme) bool
+	schedule(logr.Logger, *mysqlv1alpha1.Instance, string, string, cron.Job) bool
+}
+
+// DefaultCrontab provides a simple struct to manage cron EntryID for instances
+type DefaultCrontab struct {
 	Cron        *cron.Cron
 	Incarnation string
 }
 
-func NewCrontab() Crontab {
-	crontab := Crontab{
+func NewDefaultCrontab() Crontab {
+	crontab := &DefaultCrontab{
 		Cron:        cron.New(),
 		Incarnation: uuid.New().String(),
 	}
@@ -38,7 +45,7 @@ func NewCrontab() Crontab {
 	return crontab
 }
 
-func (c *Crontab) isScheduled(instance mysqlv1alpha1.Instance, scheduleType string) bool {
+func (c *DefaultCrontab) isScheduled(instance mysqlv1alpha1.Instance, scheduleType string) bool {
 	if c.Incarnation != instance.Status.Schedules.Incarnation {
 		return false
 	}
@@ -58,7 +65,7 @@ func (c *Crontab) isScheduled(instance mysqlv1alpha1.Instance, scheduleType stri
 	return true
 }
 
-func (c *Crontab) unSchedule(instance *mysqlv1alpha1.Instance, scheduleType string) bool {
+func (c *DefaultCrontab) unSchedule(instance *mysqlv1alpha1.Instance, scheduleType string) bool {
 
 	if !c.isScheduled(*instance, scheduleType) {
 		return false
@@ -87,7 +94,7 @@ func (c *Crontab) unSchedule(instance *mysqlv1alpha1.Instance, scheduleType stri
 	return true
 }
 
-func (c *Crontab) reScheduleAll(client client.Client, instance *mysqlv1alpha1.Instance, log logr.Logger, scheme *runtime.Scheme) bool {
+func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1alpha1.Instance, log logr.Logger, scheme *runtime.Scheme) bool {
 	changed := false
 	restarted := false
 	sc := []string{
@@ -164,7 +171,7 @@ func (c *Crontab) reScheduleAll(client client.Client, instance *mysqlv1alpha1.In
 	return changed
 }
 
-func (c *Crontab) schedule(log logr.Logger, instance *mysqlv1alpha1.Instance, scheduleType string, schedule string, cmd cron.Job) bool {
+func (c *DefaultCrontab) schedule(log logr.Logger, instance *mysqlv1alpha1.Instance, scheduleType string, schedule string, cmd cron.Job) bool {
 	switch scheduleType {
 	case BackupScheduling:
 		entry := instance.Status.Schedules.Backup.EntryID

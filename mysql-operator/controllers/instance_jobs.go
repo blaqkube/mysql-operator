@@ -72,11 +72,11 @@ type MaintenanceJob struct {
 	Instance types.NamespacedName
 	Log      logr.Logger
 	Scheme   *runtime.Scheme
-	Crontab  *Crontab
+	Crontab  Crontab
 }
 
 // NewMaintenanceJob creates a MaintenanceJob to schedule it
-func NewMaintenanceJob(client client.Client, instance types.NamespacedName, log logr.Logger, scheme *runtime.Scheme, crontab *Crontab) *MaintenanceJob {
+func NewMaintenanceJob(client client.Client, instance types.NamespacedName, log logr.Logger, scheme *runtime.Scheme, crontab Crontab) *MaintenanceJob {
 	return &MaintenanceJob{
 		Client:   client,
 		Instance: instance,
@@ -121,11 +121,11 @@ type UnMaintenanceJob struct {
 	Instance types.NamespacedName
 	Log      logr.Logger
 	Scheme   *runtime.Scheme
-	Crontab  *Crontab
+	Crontab  Crontab
 }
 
 // NewUnMaintenanceJob creates a MaintenanceJob to schedule it
-func NewUnMaintenanceJob(client client.Client, instance types.NamespacedName, log logr.Logger, scheme *runtime.Scheme, crontab *Crontab) *UnMaintenanceJob {
+func NewUnMaintenanceJob(client client.Client, instance types.NamespacedName, log logr.Logger, scheme *runtime.Scheme, crontab Crontab) *UnMaintenanceJob {
 	return &UnMaintenanceJob{
 		Client:   client,
 		Instance: instance,

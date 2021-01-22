@@ -45,13 +45,21 @@ var _ = Describe("Instance Controller", func() {
 				AgentVersion: "latest",
 				MySQLVersion: "8.0.22",
 			},
+			Crontab: NewMockCrontabCrontab(),
 		}
 		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
 
 		response := mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, instanceName, &response)).To(Succeed())
-		Expect(mysqlv1alpha1.InstanceExporterSecretCreated).
-			To(Equal(response.Status.Reason), "Expected reconcile to change the status to ExporterSecretCreated")
+		Expect(response.Status.Schedules.Incarnation).
+			To(Equal("00000000-0000-0000-0000-000000000001"), "Expected reconcile to change the status to ExporterSecretCreated")
+
+		Expect(reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
+
+		response = mysqlv1alpha1.Instance{}
+		Expect(k8sClient.Get(ctx, instanceName, &response)).To(Succeed())
+		Expect(response.Status.Reason).
+			To(Equal(mysqlv1alpha1.InstanceExporterSecretCreated), "Expected reconcile to change the status to ExporterSecretCreated")
 
 		secret := corev1.Secret{}
 		secretName := types.NamespacedName{Namespace: instance.Namespace, Name: instance.Name + "-exporter"}
@@ -132,10 +140,18 @@ var _ = Describe("Instance Controller", func() {
 				AgentVersion: "latest",
 				MySQLVersion: "8.0.22",
 			},
+			Crontab: NewMockCrontabCrontab(),
 		}
 		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
 
 		instanceResponse := mysqlv1alpha1.Instance{}
+		Expect(k8sClient.Get(ctx, instanceName, &instanceResponse)).To(Succeed())
+		Expect(instanceResponse.Status.Schedules.Incarnation).
+			To(Equal("00000000-0000-0000-0000-000000000001"), "Expected reconcile to change the status to ExporterSecretCreated")
+
+		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
+
+		instanceResponse = mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, instanceName, &instanceResponse)).To(Succeed())
 		Expect(mysqlv1alpha1.InstanceExporterSecretCreated).
 			To(Equal(instanceResponse.Status.Reason), "Expected reconcile to change the status to ExporterSecretCreated")
@@ -185,10 +201,18 @@ var _ = Describe("Instance Controller", func() {
 				AgentVersion: "latest",
 				MySQLVersion: "8.0.22",
 			},
+			Crontab: NewMockCrontabCrontab(),
 		}
 		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
 
 		instanceResponse := mysqlv1alpha1.Instance{}
+		Expect(k8sClient.Get(ctx, instanceName, &instanceResponse)).To(Succeed())
+		Expect(instanceResponse.Status.Schedules.Incarnation).
+			To(Equal("00000000-0000-0000-0000-000000000001"), "Expected reconcile to change the status to ExporterSecretCreated")
+
+		Expect(instanceReconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: instanceName})).To(Equal(ctrl.Result{}))
+
+		instanceResponse = mysqlv1alpha1.Instance{}
 		Expect(k8sClient.Get(ctx, instanceName, &instanceResponse)).To(Succeed())
 		Expect(mysqlv1alpha1.InstanceExporterSecretCreated).
 			To(Equal(instanceResponse.Status.Reason), "Expected reconcile to change the status to ExporterSecretCreated")
