@@ -103,6 +103,7 @@ func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1al
 		MaintenanceUnscheduling,
 	}
 	if instance.Status.Schedules.Incarnation != c.Incarnation {
+		log.Info("New incarnation", "incarnation", instance.Status.Schedules.Incarnation, "namespace", nn.Namespace, "instance", nn.Name)
 		instance.Status.Schedules.Incarnation = c.Incarnation
 		restarted = true
 		changed = true
@@ -136,14 +137,14 @@ func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1al
 					log.Info("Maintenance schedule after restart", "schedule", instance.Spec.MaintenanceSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name)
 					instance.Status.Schedules.Maintenance.EntryID = -1
 					cmd := NewMaintenanceJob(client, nn, log, scheme, c)
-					c.schedule(log, instance, v, instance.Spec.BackupSchedule.Schedule, cmd)
+					c.schedule(log, instance, v, instance.Spec.MaintenanceSchedule.Schedule, cmd)
 					changed = true
 				}
-				if !restarted && instance.Spec.BackupSchedule.Schedule != instance.Status.Schedules.Backup.Schedule {
+				if !restarted && instance.Spec.MaintenanceSchedule.Schedule != instance.Status.Schedules.Maintenance.Schedule {
 					log.Info("Maintenance schedule modified", "schedule", instance.Spec.MaintenanceSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name)
 					c.unSchedule(instance, MaintenanceScheduling)
 					cmd := NewMaintenanceJob(client, nn, log, scheme, c)
-					c.schedule(log, instance, v, instance.Spec.BackupSchedule.Schedule, cmd)
+					c.schedule(log, instance, v, instance.Spec.MaintenanceSchedule.Schedule, cmd)
 					changed = true
 				}
 			}
