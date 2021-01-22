@@ -117,6 +117,7 @@ func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1al
 			if instance.Spec.BackupSchedule.Schedule != "" {
 				if restarted {
 					log.Info("Backup schedule after restart", "schedule", instance.Spec.BackupSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name)
+					instance.Status.Schedules.Backup.EntryID = -1
 					cmd := NewBackupJob(client, nn, log, scheme)
 					c.schedule(log, instance, v, instance.Spec.BackupSchedule.Schedule, cmd)
 					changed = true
@@ -133,6 +134,7 @@ func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1al
 			if instance.Spec.MaintenanceSchedule.Schedule != "" {
 				if restarted {
 					log.Info("Maintenance schedule after restart", "schedule", instance.Spec.MaintenanceSchedule.Schedule, "namespace", nn.Namespace, "instance", nn.Name)
+					instance.Status.Schedules.Maintenance.EntryID = -1
 					cmd := NewMaintenanceJob(client, nn, log, scheme, c)
 					c.schedule(log, instance, v, instance.Spec.BackupSchedule.Schedule, cmd)
 					changed = true
@@ -149,6 +151,7 @@ func (c *DefaultCrontab) reScheduleAll(client client.Client, instance *mysqlv1al
 			if instance.Status.MaintenanceMode == true {
 				if restarted {
 					log.Info("Maintenance off schedule after restart", "namespace", nn.Namespace, "instance", nn.Name)
+					instance.Status.Schedules.MaintenanceOff.EntryID = -1
 					if instance.Status.Schedules.MaintenanceEndTime == nil || instance.Status.Schedules.MaintenanceEndTime.Time.Before(time.Now()) {
 						instance.Status.MaintenanceMode = false
 						instance.Status.Schedules.MaintenanceEndTime = nil

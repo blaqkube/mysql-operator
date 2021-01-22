@@ -86,8 +86,7 @@ type ScheduleEntry struct {
 	// The backup schedule that last applied
 	Schedule string `json:"schedule,omitempty"`
 	// The BackupJob ID in the Scheduler
-	// +kubebuilder:default:=-1
-	EntryID int `json:"entryID,omitempty"`
+	EntryID int `json:"entryID"`
 }
 
 // ScheduleStatus defines the schedule properties
