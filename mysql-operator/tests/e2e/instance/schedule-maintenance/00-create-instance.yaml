@@ -6,5 +6,5 @@ spec:
   database: blue
   maintenanceSchedule:
     schedule: "* * * * *"
-    duration: 120
+    duration: 1
 ---
