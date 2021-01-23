@@ -65,7 +65,6 @@ The script below does the steps above:
 ```shell
 cd $(git rev-parse --show-toplevel)
 cd mysql-operator
-make install
 export IMG=quay.io/blaqkube/mysql-controller:$(\
     git log --format='%H' -1 . | cut -c1-16)
 echo $IMG
