@@ -2,7 +2,7 @@
 
 ## v0.5.0 (Jan 24, 2021)
 
-🐋 contains enhancements and bug fixes.
+🐋 contains enhancements and a bug fix.
 
 #### Enhancements:
 
