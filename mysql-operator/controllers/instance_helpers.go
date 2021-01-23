@@ -182,17 +182,17 @@ func (im *InstanceManager) createStatefulSet(instance *mysqlv1alpha1.Instance, s
 	}
 	log.Info("Create StatefulSet", "statefulset", sts.Name)
 	if err := im.Reconciler.Client.Create(im.Context, sts); err != nil {
-		log.Error(err, "Statfulset creation failed", "statefulset", sts.Name)
+		log.Error(err, "Statefulset creation failed", "statefulset", sts.Name)
 		condition := metav1.Condition{
 			Type:               "available",
 			Status:             metav1.ConditionFalse,
 			LastTransitionTime: metav1.Now(),
 			Reason:             mysqlv1alpha1.InstanceStatefulSetFailed,
-			Message:            fmt.Sprintf("Statfulset creation failed: %v", err),
+			Message:            fmt.Sprintf("Statefulset creation failed: %v", err),
 		}
 		return im.setInstanceCondition(instance, condition)
 	}
-	log.Info("Statfulset creation succeeded", "statefulset", sts.Name)
+	log.Info("Statefulset creation succeeded", "statefulset", sts.Name)
 	instance.Status.StatefulSet = corev1.ObjectReference{
 		Kind:            sts.Kind,
 		Namespace:       sts.Namespace,

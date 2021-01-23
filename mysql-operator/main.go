@@ -115,6 +115,7 @@ func main() {
 			AgentVersion: DefaultAgentVersion,
 			MySQLVersion: DefaultMySQLVersion,
 		},
+		Crontab: controllers.NewDefaultCrontab(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Instance")
 		os.Exit(1)

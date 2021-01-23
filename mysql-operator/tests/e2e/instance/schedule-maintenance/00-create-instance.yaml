@@ -1,0 +1,10 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Instance
+metadata:
+  name: instance1
+spec:
+  database: blue
+  maintenanceSchedule:
+    schedule: "* * * * *"
+    duration: 1
+---
