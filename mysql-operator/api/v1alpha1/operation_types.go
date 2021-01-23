@@ -22,6 +22,18 @@ const (
 	OperationTypeRestart OperationType = "restart"
 )
 
+const (
+	// OperationWaitingForMaintenanceWindow operation is waiting for maintenance window
+	OperationWaitingForMaintenanceWindow = "WaitingMaintenanceWindow"
+	// OperationRunning the operation is currently running
+	OperationRunning = "Running"
+	// OperationExecutedWithFailure the operation is executed and it has failed
+	OperationExecutedWithFailure = "ExecutedWithFailure"
+	// OperationExecutedWithSuccess the operation is executed with success
+	OperationExecutedWithSuccess = "ExecutedWithSuccess"
+)
+
+
 // OperationSpec defines the desired state of Operation
 type OperationSpec struct {
 
@@ -41,8 +53,13 @@ type OperationSpec struct {
 
 // OperationStatus defines the observed state of Operation
 type OperationStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Defines the current Reason for the operation
+	Reason string `json:"reason,omitempty"`
+	// A human readable message indicating details about the operation and the
+	// associated condition.
+	Message string `json:"message,omitempty"`
+	// Conditions provides informations about the the last conditions
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

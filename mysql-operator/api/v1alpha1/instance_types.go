@@ -5,9 +5,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 const (
 	// InstanceInitializing instance creation has been requested
 	InstanceInitializing = "Initializing"
@@ -65,9 +62,6 @@ type MaintenanceScheduleSpec struct {
 
 // InstanceSpec defines the desired state of Instance
 type InstanceSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	// Restore when starting from an existing configuration
 	Restore RestoreSpec `json:"restore,omitempty"`
 
@@ -109,8 +103,6 @@ type ScheduleStatus struct {
 
 // InstanceStatus defines the observed state of Instance
 type InstanceStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 	// StatefulSet keeps track of the instance Statefulset
 	StatefulSet corev1.ObjectReference `json:"statefulset,omitempty"`
 	// ExporterSecret keeps track of the secret used for the exporter
