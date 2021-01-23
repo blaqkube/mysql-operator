@@ -45,7 +45,7 @@ cd mysql-operator
 make install
 kubectl apply -f .ci/squid.yaml
 kubectl port-forward squid 3128 &
-export HTTP_PROXY=http://localhost:3128
+export http_proxy=http://localhost:3128
 make run ENABLE_WEBHOOKS=false
 ```
 
