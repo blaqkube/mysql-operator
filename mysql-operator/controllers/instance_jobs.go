@@ -93,11 +93,11 @@ func (b *MaintenanceJob) Run() {
 	ctx := context.Background()
 	instance := mysqlv1alpha1.Instance{}
 	if err := b.Client.Get(ctx, b.Instance, &instance); err != nil {
-		b.Log.Info(fmt.Sprintf("job for %s/%s failed. Could not access instance...", b.Instance.Namespace, b.Instance.Name))
+		b.Log.Info(fmt.Sprintf("Maintenance job for %s/%s failed. Could not access instance...", b.Instance.Namespace, b.Instance.Name))
 		return
 	}
-	if instance.Status.MaintenanceMode == true && instance.Status.Schedules.MaintenanceEndTime.Time.After(time.Now()) {
-		b.Log.Info(fmt.Sprintf("job for %s/%s already in maintenance, do not reschedule...", b.Instance.Namespace, b.Instance.Name))
+	if instance.Status.MaintenanceMode == true {
+		b.Log.Info(fmt.Sprintf("Maintenance job for %s/%s already in maintenance, do not reschedule...", b.Instance.Namespace, b.Instance.Name))
 		return
 	}
 	instance.Status.MaintenanceMode = true
@@ -110,7 +110,7 @@ func (b *MaintenanceJob) Run() {
 		b.Log.Info(fmt.Sprintf("Error updating Status.Maintenance, err: %v", err))
 		return
 	}
-	b.Log.Info(fmt.Sprintf("Maintenance Mode for %s/%s enabled, job %d, schedule (%s)...", b.Instance.Namespace, b.Instance.Name, instance.Status.Schedules.Maintenance.EntryID, fmt.Sprintf("%s *", t.Format("4 15 2 1"))))
+	b.Log.Info(fmt.Sprintf("Maintenance Mode for %s/%s enabled, job %d, schedule (%s)...", b.Instance.Namespace, b.Instance.Name, instance.Status.Schedules.MaintenanceOff.EntryID, fmt.Sprintf("%s *", t.Format("4 15 2 1"))))
 }
 
 // UnMaintenanceJob is a struct that manages Jobs to stop maintenance
@@ -142,7 +142,7 @@ func (b *UnMaintenanceJob) Run() {
 		b.Log.Info(fmt.Sprintf("job for %s/%s failed. Could not access instance...", b.Instance.Namespace, b.Instance.Name))
 		return
 	}
-	if (instance.Status.MaintenanceMode == true) || (instance.Status.MaintenanceMode == true && instance.Status.Schedules.MaintenanceEndTime.Time.After(time.Now())) {
+	if (instance.Status.MaintenanceMode == false) || (instance.Status.MaintenanceMode == true && instance.Status.Schedules.MaintenanceEndTime.Time.After(time.Now())) {
 		b.Log.Info(fmt.Sprintf("job for %s/%s race condition with maintenance, should be have been rescheduled", b.Instance.Namespace, b.Instance.Name))
 		return
 	}
