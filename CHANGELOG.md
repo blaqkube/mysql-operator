@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.5.0 (Jan 24, 2021)
+## v0.5.0 (Jan 23, 2021)
 
 🐋 contains enhancements and a bug fix.
 
