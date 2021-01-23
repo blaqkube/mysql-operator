@@ -212,12 +212,13 @@ spec:
                     description: Properties for the backup schedule
                     properties:
                       entryID:
-                        default: -1
                         description: The BackupJob ID in the Scheduler
                         type: integer
                       schedule:
                         description: The backup schedule that last applied
                         type: string
+                    required:
+                    - entryID
                     type: object
                   incarnation:
                     default: 00000000-0000-0000-0000-000000000000
@@ -227,12 +228,13 @@ spec:
                     description: Properties for the maintenance schedule
                     properties:
                       entryID:
-                        default: -1
                         description: The BackupJob ID in the Scheduler
                         type: integer
                       schedule:
                         description: The backup schedule that last applied
                         type: string
+                    required:
+                    - entryID
                     type: object
                   maintenanceEndTime:
                     description: When the maintenance mode should be turned off
@@ -242,12 +244,13 @@ spec:
                     description: Properties to turn off the maintenance mode
                     properties:
                       entryID:
-                        default: -1
                         description: The BackupJob ID in the Scheduler
                         type: integer
                       schedule:
                         description: The backup schedule that last applied
                         type: string
+                    required:
+                    - entryID
                     type: object
                 type: object
               statefulset:
