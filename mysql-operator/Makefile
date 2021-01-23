@@ -1,5 +1,5 @@
 # Current Operator version
-VERSION ?= 0.4.0
+VERSION ?= 0.5.0
 SHELL = bash
 # Default bundle image tag
 BUNDLE_IMG ?= quay.io/blaqkube/mysql-operator:$(VERSION)

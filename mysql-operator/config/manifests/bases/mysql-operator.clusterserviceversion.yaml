@@ -6,7 +6,7 @@ metadata:
     capabilities: Basic Install
     categories: Database
     certified: "false"
-    containerImage: quay.io/blaqkube/mysql-operator:0.4.0
+    containerImage: quay.io/blaqkube/mysql-operator:0.5.0
     createdAt: "2020-12-30T06:00:00Z"
     description: An operator for MySQL Community Server
     repository: https://github.com/blaqkube/mysql-operator
@@ -58,7 +58,8 @@ spec:
     - Grant access 🕳 to databases for a user
     - Create a backup store 💯 in S3 and GCP storage
     - Generate a backup in the store 💥
-    - Create a new instance from a backup ❤
+    - Create a new instance from a backup ❤, i.e. clone an instance
+    - Plug Prometheus and Grafana
     
     ## Before you Start
 
