@@ -9,11 +9,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// DefaultCrontab provides a simple struct to manage cron EntryID for instances
+// MockCrontab provides a simple struct to mock cron EntryID
 type MockCrontab struct {
 	Incarnation string
 }
 
+// NewMockCrontabCrontab initialize a predictable incarnation to ease tests
 func NewMockCrontabCrontab() Crontab {
 	crontab := &MockCrontab{
 		Incarnation: "00000000-0000-0000-0000-000000000001",

@@ -23,6 +23,7 @@ const (
 	MaintenanceUnscheduling string = "removal"
 )
 
+// Crontab interface is provided to allow unit tests
 type Crontab interface {
 	isScheduled(mysqlv1alpha1.Instance, string) bool
 	unSchedule(*mysqlv1alpha1.Instance, string) bool
@@ -36,6 +37,7 @@ type DefaultCrontab struct {
 	Incarnation string
 }
 
+// NewDefaultCrontab provides contrab abilities to the operator
 func NewDefaultCrontab() Crontab {
 	crontab := &DefaultCrontab{
 		Cron:        cron.New(),
