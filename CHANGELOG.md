@@ -1,8 +1,8 @@
 # Changelog
 
-## v0.5.0 (**Not Released Yet**)
+## v0.5.0 (Jan 23, 2021)
 
-This release contains enhancements and bug fixes.
+🐋 contains enhancements and a bug fix.
 
 #### Enhancements:
 
@@ -16,7 +16,7 @@ This release contains enhancements and bug fixes.
 
 ## v0.4.0 (Jan 1, 2021)
 
-This release contains enhancements and bug fixes.
+🖖 contains enhancements and bug fixes.
 
 #### Enhancements:
 
