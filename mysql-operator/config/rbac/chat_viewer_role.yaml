@@ -1,0 +1,20 @@
+# permissions for end users to view chats.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: chat-viewer-role
+rules:
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
+  - chats
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - mysql.blaqkube.io
+  resources:
+  - chats/status
+  verbs:
+  - get

@@ -6,4 +6,5 @@ resources:
 - mysql_v1alpha1_user.yaml
 - mysql_v1alpha1_database.yaml
 - mysql_v1alpha1_grant.yaml
+- mysql_v1alpha1_chat.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples
