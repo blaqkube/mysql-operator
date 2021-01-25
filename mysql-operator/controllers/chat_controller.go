@@ -2,8 +2,11 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-logr/logr"
+	"github.com/slack-go/slack"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -16,25 +19,95 @@ type ChatReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
+	Chats  map[string]*slack.Client
 }
 
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=chats,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=chats/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=mysql.blaqkube.io,resources=chats/finalizers,verbs=update
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Chat object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
+// Reconcile implement the reconciliation loop for chats
 func (r *ChatReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("chat", req.NamespacedName)
+	log := r.Log.WithValues("chat", req.NamespacedName)
+	log.Info("Running a reconcile loop")
 
-	// your logic here
+	chat := mysqlv1alpha1.Chat{}
+	if err := r.Get(ctx, req.NamespacedName, &chat); err != nil {
+		log.Info("Unable to fetch chat from kubernetes")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	cm := &ChatManager{
+		Context:     ctx,
+		Reconciler:  r,
+		TimeManager: NewTimeManager(),
+	}
+
+	if chat.Status.Reason == "" {
+		chat.Status.Reason = mysqlv1alpha1.ChatPending
+		chat.Status.Ready = metav1.ConditionUnknown
+
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionUnknown,
+			LastTransitionTime: metav1.Now(),
+			Reason:             mysqlv1alpha1.ChatPending,
+			Message:            "A new check has been requested",
+		}
+		return cm.setChatCondition(&chat, condition)
+	}
+
+	// TODO: Reconciler should be able to
+	// - detect a change in the ConfigMap or Secret and reload the associated data
+	// - Retry on regular basis in the event of a failure
+	// - Update chat status when stchat chatore moves to success
+	if chat.Status.Reason == mysqlv1alpha1.ChatPending {
+		api, channel, err := cm.GetAPIwithChannel(&chat)
+		condition := metav1.Condition{}
+		if err != nil {
+			switch err {
+			case ErrChannelNotFound:
+				chat.Status.Reason = mysqlv1alpha1.ChatSlackChannelError
+				chat.Status.Ready = metav1.ConditionFalse
+
+				condition = metav1.Condition{
+					Type:               "available",
+					Status:             metav1.ConditionUnknown,
+					LastTransitionTime: metav1.Now(),
+					Reason:             mysqlv1alpha1.ChatSlackChannelError,
+					Message:            "Could not find Slack Channel",
+				}
+			case ErrChatConnectionFailed:
+				chat.Status.Reason = mysqlv1alpha1.ChatSlackConnectionError
+				chat.Status.Ready = metav1.ConditionFalse
+
+				condition = metav1.Condition{
+					Type:               "available",
+					Status:             metav1.ConditionUnknown,
+					LastTransitionTime: metav1.Now(),
+					Reason:             mysqlv1alpha1.ChatSlackConnectionError,
+					Message:            "Could not connect to Slack",
+				}
+			}
+			return cm.setChatCondition(&chat, condition)
+		}
+		api.PostMessage(channel, slack.MsgOptionText(
+			fmt.Sprintf("Blaqkube Chat %s/%s succeeded", chat.Namespace, chat.Name),
+			false,
+		))
+		chat.Status.Reason = mysqlv1alpha1.ChatSucceeded
+		chat.Status.Ready = metav1.ConditionTrue
+		condition = metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionTrue,
+			LastTransitionTime: metav1.Now(),
+			Reason:             mysqlv1alpha1.ChatSucceeded,
+			Message:            fmt.Sprintf("A message has been sent to %s", chat.Spec.Slack.Channel),
+		}
+		return cm.setChatCondition(&chat, condition)
+	}
 
 	return ctrl.Result{}, nil
 }

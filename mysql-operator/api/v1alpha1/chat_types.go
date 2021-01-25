@@ -41,7 +41,6 @@ type TokenSource struct {
 	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
 }
 
-
 // ChatSpec defines the desired state of Chat
 type ChatSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -57,16 +56,15 @@ type ChatStatus struct {
 	Ready metav1.ConditionStatus `json:"ready,omitempty"`
 	// Defines the Reason behind Slack can be considered as ready or not
 	Reason string `json:"reason,omitempty"`
-	// A human readable message indicating details about why the store is in
-	// this condition.
-	Message string `json:"message,omitempty"`
-	// A human readable message indicating details about why the store is in
+	// A human readable message indicating details about why the chat is in
 	// this condition.
 	Conditions []metav1.Condition `json:"Conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.ready",description="Chat ready"
+// +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.reason",description="Chat phase"
 
 // Chat is the Schema for the chats API
 type Chat struct {

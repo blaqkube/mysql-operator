@@ -1,0 +1,7 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Chat
+metadata:
+  name: slack-bot
+  namespace: default
+status:
+  reason: "Succeeded"

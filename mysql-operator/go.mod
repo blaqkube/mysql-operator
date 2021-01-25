@@ -13,6 +13,7 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/joho/godotenv v1.3.0
+	github.com/nlopes/slack v0.6.0
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
 	github.com/prometheus/common v0.10.0
