@@ -7,6 +7,6 @@ spec:
   slack: 
     channel: doesnotexist
     tokenFrom:
-      secretRef:
+      secretKeyRef:
         name: slack-bot
         key: token
