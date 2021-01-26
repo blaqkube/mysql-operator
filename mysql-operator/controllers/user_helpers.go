@@ -44,7 +44,7 @@ func (um *UserManager) setUserCondition(user *mysqlv1alpha1.User, condition meta
 	if condition.Reason == user.Status.Reason {
 		c := len(user.Status.Conditions) - 1
 		d := um.TimeManager.Next(user.Status.Conditions[c].LastTransitionTime.Time)
-		if condition.Reason != mysqlv1alpha1.DatabaseSucceeded {
+		if condition.Reason != mysqlv1alpha1.UserSucceeded {
 			return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
 		}
 		return ctrl.Result{}, nil

@@ -36,7 +36,7 @@ func (cm *ChatManager) setChatCondition(chat *mysqlv1alpha1.Chat, condition meta
 	if condition.Reason == chat.Status.Reason {
 		c := len(chat.Status.Conditions) - 1
 		d := cm.TimeManager.Next(chat.Status.Conditions[c].LastTransitionTime.Time)
-		if condition.Reason != mysqlv1alpha1.DatabaseSucceeded {
+		if condition.Reason != mysqlv1alpha1.ChatSucceeded {
 			return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
 		}
 		return ctrl.Result{}, nil
