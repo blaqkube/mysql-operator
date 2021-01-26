@@ -104,8 +104,23 @@ func (cm *ChatManager) getSlackToken(chat *mysqlv1alpha1.Chat) (string, error) {
 	return "", ErrMissingPassword
 }
 
+// SlackConnector is an interface to the SlackConnector and is used to perform tests
+type SlackConnector interface {
+	GetAPIwithChannel(cm *ChatManager, chat *mysqlv1alpha1.Chat) (*slack.Client, string, error)
+	PostMessage(api *slack.Client, channel string, message string) error
+}
+
+// DefaultSlackConnector an implementation of the SlackConnector
+type DefaultSlackConnector struct {
+}
+
+// NewDefaultSlackConnector generates a Slack connector based on slack-go
+func NewDefaultSlackConnector() SlackConnector {
+	return &DefaultSlackConnector{}
+}
+
 // GetAPIwithChannel returns the API with the Channel ID for a named group or channel
-func (cm *ChatManager) GetAPIwithChannel(chat *mysqlv1alpha1.Chat) (*slack.Client, string, error) {
+func (cc *DefaultSlackConnector) GetAPIwithChannel(cm *ChatManager, chat *mysqlv1alpha1.Chat) (*slack.Client, string, error) {
 	key := fmt.Sprintf("%s/%s", chat.Namespace, chat.Name)
 	api, ok := cm.Reconciler.Chats[key]
 	if !ok || api == nil {
@@ -140,4 +155,14 @@ func (cm *ChatManager) GetAPIwithChannel(chat *mysqlv1alpha1.Chat) (*slack.Clien
 			return nil, "", ErrChannelNotFound
 		}
 	}
+}
+
+// PostMessage Post a message on the API
+func (cc *DefaultSlackConnector) PostMessage(api *slack.Client, channel string, message string) error {
+	// TODO: check the api and channel are correct
+	api.PostMessage(channel, slack.MsgOptionText(
+		message,
+		false,
+	))
+	return nil
 }

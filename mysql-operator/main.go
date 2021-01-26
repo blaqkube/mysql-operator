@@ -146,10 +146,11 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controllers.ChatReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Chat"),
-		Scheme: mgr.GetScheme(),
-		Chats:  map[string]*slack.Client{},
+		Client:    mgr.GetClient(),
+		Log:       ctrl.Log.WithName("controllers").WithName("Chat"),
+		Scheme:    mgr.GetScheme(),
+		Connector: controllers.NewDefaultSlackConnector(),
+		Chats:     map[string]*slack.Client{},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Chat")
 		os.Exit(1)
