@@ -69,7 +69,7 @@ func (r *ChatReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			case ErrChannelNotFound:
 				condition = metav1.Condition{
 					Type:               "available",
-					Status:             metav1.ConditionUnknown,
+					Status:             metav1.ConditionFalse,
 					LastTransitionTime: metav1.Now(),
 					Reason:             mysqlv1alpha1.ChatSlackChannelError,
 					Message:            "Could not find Slack Channel",
@@ -77,7 +77,7 @@ func (r *ChatReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			case ErrChatConnectionFailed:
 				condition = metav1.Condition{
 					Type:               "available",
-					Status:             metav1.ConditionUnknown,
+					Status:             metav1.ConditionFalse,
 					LastTransitionTime: metav1.Now(),
 					Reason:             mysqlv1alpha1.ChatSlackConnectionError,
 					Message:            "Could not connect to Slack",
