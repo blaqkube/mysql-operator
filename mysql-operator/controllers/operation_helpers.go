@@ -36,10 +36,10 @@ func (om *OperationManager) setOperationCondition(operation *mysqlv1alpha1.Opera
 		conditions = conditions[1:]
 	}
 	operation.Status.Conditions = conditions
-	log := om.Reconciler.Log.WithValues("namespace", operation.Namespace, "chat", operation.Name)
-	log.Info("Updating chat with new Status", "Reason", condition.Reason, "Message", condition.Message)
+	log := om.Reconciler.Log.WithValues("namespace", operation.Namespace, "operation", operation.Name)
+	log.Info("Updating operation with new Status", "Reason", condition.Reason, "Message", condition.Message)
 	if err := om.Reconciler.Status().Update(om.Context, operation); err != nil {
-		log.Error(err, "Unable to update chat")
+		log.Error(err, "Unable to update operation")
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil

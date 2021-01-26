@@ -60,22 +60,7 @@ func (r *OperationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// TODO: Reconciler should be able to
 	// - detect a change in the ConfigMap or Secret and reload the associated data
 	// - Retry on regular basis in the event of a failure
-	// - Update chat status when stchat chatore moves to success
-	if operation.Status.Reason == mysqlv1alpha1.OperationRequested {
-		switch operation.Spec.Type {
-		case mysqlv1alpha1.OperationTypeNoop:
-			om.NoOp()
-		}
-		condition := metav1.Condition{
-			Type:               "available",
-			Status:             metav1.ConditionTrue,
-			LastTransitionTime: metav1.Now(),
-			Reason:             mysqlv1alpha1.OperationSucceeded,
-			Message:            "The operation has been executed with success",
-		}
-		return om.setOperationCondition(&operation, condition)
-	}
-
+	// - Update operation status when operation moves to success
 	if operation.Status.Reason == mysqlv1alpha1.OperationPending {
 		instance := mysqlv1alpha1.Instance{}
 		i := types.NamespacedName{
@@ -83,7 +68,7 @@ func (r *OperationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			Name:      operation.Spec.Instance,
 		}
 		if err := r.Get(ctx, i, &instance); err != nil {
-			log.Info("Unable to fetch operation from kubernetes")
+			log.Info("Unable to fetch instance from kubernetes", "namespace", i.Namespace, "name", i.Name)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
 		if instance.Status.MaintenanceMode == true {
@@ -98,7 +83,23 @@ func (r *OperationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 		c := len(operation.Status.Conditions) - 1
 		d := om.TimeManager.Next(operation.Status.Conditions[c].LastTransitionTime.Time)
+		log.Info("Retry checking instance", "namespace", i.Namespace, "name", i.Name, "timing", d)
 		return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
+	}
+
+	if operation.Status.Reason == mysqlv1alpha1.OperationRequested {
+		switch operation.Spec.Type {
+		case mysqlv1alpha1.OperationTypeNoop:
+			om.NoOp()
+		}
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionTrue,
+			LastTransitionTime: metav1.Now(),
+			Reason:             mysqlv1alpha1.OperationSucceeded,
+			Message:            "The operation has been executed with success",
+		}
+		return om.setOperationCondition(&operation, condition)
 	}
 
 	return ctrl.Result{}, nil
