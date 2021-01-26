@@ -6,7 +6,7 @@ v0.6.0 contains enhancements.
 
 #### Enhancements:
 
-- [#156](https://github.com/blaqkube/mysql-operator/issues/156) Support for Slack Notifications
+- [#157](https://github.com/blaqkube/mysql-operator/pull/157) Connect MySQL Operator to Slack
 
 ## v0.5.0 (Jan 23, 2021)
 
