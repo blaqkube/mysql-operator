@@ -20,6 +20,19 @@ type OperationType string
 const (
 	// OperationTypeRestart a restart operation
 	OperationTypeRestart OperationType = "restart"
+	// OperationTypeNoOp a do nothing operation
+	OperationTypeNoop OperationType = "noop"
+)
+
+const (
+	// OperationPending did not attempt to run the operation yet
+	OperationPending = "Pending"
+	// OperationRequested has requested the operation to start
+	OperationRequested = "Requested"
+	// OperationError failed running the operation
+	OperationError = "OperationError"
+	// OperationSucceeded could successfully generate the operation
+	OperationSucceeded = "Succeeded"
 )
 
 const (
@@ -33,7 +46,6 @@ const (
 	OperationExecutedWithSuccess = "ExecutedWithSuccess"
 )
 
-
 // OperationSpec defines the desired state of Operation
 type OperationSpec struct {
 
@@ -42,10 +54,10 @@ type OperationSpec struct {
 	// +kubebuilder:default:="maintenance"
 	Mode OperationMode `json:"mode,omitempty"`
 
-	// Type defines the operation type. For now, only restart is supported
-	// +kubebuilder:validation:Enum=restart
-	// +kubebuilder:default:="restart"
-	Type string `json:"type,omitempty"`
+	// Type defines the operation type. For now, only noop is supported
+	// +kubebuilder:validation:Enum=noop
+	// +kubebuilder:default:="noop"
+	Type OperationType `json:"type,omitempty"`
 
 	// Defines the instance the operation applies to
 	Instance string `json:"instance,omitempty"`
@@ -53,6 +65,8 @@ type OperationSpec struct {
 
 // OperationStatus defines the observed state of Operation
 type OperationStatus struct {
+	// Defines if the operation can be considered as ready or not
+	Ready metav1.ConditionStatus `json:"ready,omitempty"`
 	// Defines the current Reason for the operation
 	Reason string `json:"reason,omitempty"`
 	// A human readable message indicating details about the operation and the

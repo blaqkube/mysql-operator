@@ -1,0 +1,8 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Operation
+metadata:
+  name: noop-operation
+spec:
+  instance: instance1
+  mode: immediate
+  type: noop

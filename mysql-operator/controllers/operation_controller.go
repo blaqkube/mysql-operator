@@ -1,26 +1,12 @@
-/*
-Copyright 2020 blaqkube.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controllers
 
 import (
 	"context"
 
 	"github.com/go-logr/logr"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -40,17 +26,80 @@ type OperationReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Operation object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *OperationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("operation", req.NamespacedName)
+	log := r.Log.WithValues("operation", req.NamespacedName)
+	log.Info("Running a reconcile loop")
 
-	// your logic here
+	operation := mysqlv1alpha1.Operation{}
+	if err := r.Get(ctx, req.NamespacedName, &operation); err != nil {
+		log.Info("Unable to fetch operation from kubernetes")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	om := &OperationManager{
+		Context:     ctx,
+		Reconciler:  r,
+		TimeManager: NewTimeManager(),
+	}
+
+	if operation.Status.Reason == "" {
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionFalse,
+			LastTransitionTime: metav1.Now(),
+			Reason:             mysqlv1alpha1.OperationPending,
+			Message:            "The operation is waiting for next Maintenance Window",
+		}
+		if operation.Spec.Mode == mysqlv1alpha1.OperationModeImmediate {
+			condition.Reason = mysqlv1alpha1.OperationRequested
+			condition.Message = "The operation will be started"
+		}
+		return om.setOperationCondition(&operation, condition)
+	}
+
+	// TODO: Reconciler should be able to
+	// - detect a change in the ConfigMap or Secret and reload the associated data
+	// - Retry on regular basis in the event of a failure
+	// - Update chat status when stchat chatore moves to success
+	if operation.Status.Reason == mysqlv1alpha1.OperationRequested {
+		switch operation.Spec.Type {
+		case mysqlv1alpha1.OperationTypeNoop:
+			om.NoOp()
+		}
+		condition := metav1.Condition{
+			Type:               "available",
+			Status:             metav1.ConditionTrue,
+			LastTransitionTime: metav1.Now(),
+			Reason:             mysqlv1alpha1.OperationSucceeded,
+			Message:            "The operation has been executed with success",
+		}
+		return om.setOperationCondition(&operation, condition)
+	}
+
+	if operation.Status.Reason == mysqlv1alpha1.OperationPending {
+		instance := mysqlv1alpha1.Instance{}
+		i := types.NamespacedName{
+			Namespace: operation.Namespace,
+			Name:      operation.Spec.Instance,
+		}
+		if err := r.Get(ctx, i, &instance); err != nil {
+			log.Info("Unable to fetch operation from kubernetes")
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+		if instance.Status.MaintenanceMode == true {
+			condition := metav1.Condition{
+				Type:               "available",
+				Status:             metav1.ConditionFalse,
+				LastTransitionTime: metav1.Now(),
+				Reason:             mysqlv1alpha1.OperationRequested,
+				Message:            "The operation will be started",
+			}
+			return om.setOperationCondition(&operation, condition)
+		}
+		c := len(operation.Status.Conditions) - 1
+		d := om.TimeManager.Next(operation.Status.Conditions[c].LastTransitionTime.Time)
+		return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
+	}
 
 	return ctrl.Result{}, nil
 }
