@@ -1,0 +1,8 @@
+apiVersion: mysql.blaqkube.io/v1alpha1
+kind: Chat
+metadata:
+  name: mysql-operator
+spec:
+  slack:
+    token: xoxb-123...
+    channel: mysql-operator

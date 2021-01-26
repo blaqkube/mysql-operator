@@ -38,8 +38,7 @@ type DatabaseStatus struct {
 	// A human readable message indicating details about why the store is in
 	// this condition.
 	Message string `json:"message,omitempty"`
-	// A human readable message indicating details about why the store is in
-	// this condition.
+	// Allow to understand the history of conditions
 	Conditions []metav1.Condition `json:"Conditions,omitempty"`
 }
 

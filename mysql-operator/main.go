@@ -12,6 +12,7 @@ import (
 	bhstorage "github.com/blaqkube/mysql-operator/agent/backend/blackhole"
 	gcpstorage "github.com/blaqkube/mysql-operator/agent/backend/gcp"
 	s3storage "github.com/blaqkube/mysql-operator/agent/backend/s3"
+	"github.com/slack-go/slack"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -142,6 +143,16 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Grant")
+		os.Exit(1)
+	}
+	if err = (&controllers.ChatReconciler{
+		Client:    mgr.GetClient(),
+		Log:       ctrl.Log.WithName("controllers").WithName("Chat"),
+		Scheme:    mgr.GetScheme(),
+		Connector: controllers.NewDefaultSlackConnector(),
+		Chats:     map[string]*slack.Client{},
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Chat")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
