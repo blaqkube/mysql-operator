@@ -67,9 +67,11 @@ func (r *OperationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			Namespace: operation.Namespace,
 			Name:      operation.Spec.Instance,
 		}
+		c := len(operation.Status.Conditions) - 1
+		d := om.TimeManager.Next(operation.Status.Conditions[c].LastTransitionTime.Time)
 		if err := r.Get(ctx, i, &instance); err != nil {
 			log.Info("Unable to fetch instance from kubernetes", "namespace", i.Namespace, "name", i.Name)
-			return ctrl.Result{}, client.IgnoreNotFound(err)
+			return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
 		}
 		if instance.Status.MaintenanceMode == true {
 			condition := metav1.Condition{
@@ -81,8 +83,6 @@ func (r *OperationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			}
 			return om.setOperationCondition(&operation, condition)
 		}
-		c := len(operation.Status.Conditions) - 1
-		d := om.TimeManager.Next(operation.Status.Conditions[c].LastTransitionTime.Time)
 		log.Info("Retry checking instance", "namespace", i.Namespace, "name", i.Name, "timing", d)
 		return ctrl.Result{Requeue: true, RequeueAfter: d}, nil
 	}
