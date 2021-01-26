@@ -18,7 +18,8 @@ From a simple manifest, you can:
 - Create a backup store 💯 with S3 and GCP
 - Generate a backup in the store 💥
 - Create a new instance from a backup ❤, i.e. clone an instance
-- Plug Prometheus and Grafana
+- Plug Prometheus and 🧐 Grafana
+- Send events to 🤖 Slack
 
 ## Getting started
 

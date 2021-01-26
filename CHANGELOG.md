@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.6.0 (**Not Releaased**)
+
+v0.6.0 contains enhancements.
+
+#### Enhancements:
+
+- [#156](https://github.com/blaqkube/mysql-operator/issues/156) Support for Slack Notifications
+
 ## v0.5.0 (Jan 23, 2021)
 
 🐋 contains enhancements and a bug fix.

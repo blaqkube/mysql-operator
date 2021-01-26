@@ -6,29 +6,29 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: databases.mysql.blaqkube.io
+  name: chats.mysql.blaqkube.io
 spec:
   group: mysql.blaqkube.io
   names:
-    kind: Database
-    listKind: DatabaseList
-    plural: databases
-    singular: database
+    kind: Chat
+    listKind: ChatList
+    plural: chats
+    singular: chat
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - description: Database ready
+    - description: Chat ready
       jsonPath: .status.ready
       name: Ready
       type: string
-    - description: Database phase
+    - description: Chat phase
       jsonPath: .status.reason
       name: Phase
       type: string
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Database is the Schema for the databases API
+        description: Chat is the Schema for the chats API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -43,18 +43,61 @@ spec:
           metadata:
             type: object
           spec:
-            description: DatabaseSpec defines the desired state of Database
+            description: ChatSpec defines the desired state of Chat
             properties:
-              instance:
-                type: string
-              name:
-                type: string
-            required:
-            - instance
-            - name
+              slack:
+                description: Slack provides a slack configuration
+                properties:
+                  channel:
+                    description: Channel is the name of the channel to use
+                    type: string
+                  token:
+                    description: Token's value
+                    type: string
+                  tokenFrom:
+                    description: Source for the Token's value. Cannot be used if Token
+                      is not empty.
+                    properties:
+                      configMapKeyRef:
+                        description: Selects a key of a ConfigMap.
+                        properties:
+                          key:
+                            description: The key to select.
+                            type: string
+                          name:
+                            description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              TODO: Add other useful fields. apiVersion, kind, uid?'
+                            type: string
+                          optional:
+                            description: Specify whether the ConfigMap or its key
+                              must be defined
+                            type: boolean
+                        required:
+                        - key
+                        type: object
+                      secretKeyRef:
+                        description: Selects a key of a secret in the pod's namespace
+                        properties:
+                          key:
+                            description: The key of the secret to select from.  Must
+                              be a valid secret key.
+                            type: string
+                          name:
+                            description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              TODO: Add other useful fields. apiVersion, kind, uid?'
+                            type: string
+                          optional:
+                            description: Specify whether the Secret or its key must
+                              be defined
+                            type: boolean
+                        required:
+                        - key
+                        type: object
+                    type: object
+                type: object
             type: object
           status:
-            description: DatabaseStatus defines the observed state of Database
+            description: ChatStatus defines the observed state of Chat
             properties:
               Conditions:
                 description: Allow to understand the history of conditions
@@ -128,13 +171,14 @@ spec:
                 type: array
               message:
                 description: A human readable message indicating details about why
-                  the store is in this condition.
+                  the chant is in this condition.
                 type: string
               ready:
-                description: Defines if the store can be considered as ready or not
+                description: Defines if slack can be considered as ready or not
                 type: string
               reason:
-                description: Defines if the store current Reason
+                description: Defines the Reason behind Slack can be considered as
+                  ready or not
                 type: string
             type: object
         type: object

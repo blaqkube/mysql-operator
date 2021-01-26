@@ -56,8 +56,10 @@ type ChatStatus struct {
 	Ready metav1.ConditionStatus `json:"ready,omitempty"`
 	// Defines the Reason behind Slack can be considered as ready or not
 	Reason string `json:"reason,omitempty"`
-	// A human readable message indicating details about why the chat is in
+	// A human readable message indicating details about why the chant is in
 	// this condition.
+	Message string `json:"message,omitempty"`
+	// Allow to understand the history of conditions
 	Conditions []metav1.Condition `json:"Conditions,omitempty"`
 }
 
