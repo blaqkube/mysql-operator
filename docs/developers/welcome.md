@@ -61,7 +61,7 @@ To run it from outside of the cluster, for development purpose:
 - Install the CRDs to your default namespace `make install`
 - Make sure you have installed an HTTP proxy as described in the previous
   section `export http_proxy=http://localhost:3128`
-- Run controllers outside of your cluster `make run ENABLE_WEBHOOKS=false`
+- Run controllers outside of your cluster `make run ENABLE_WEBHOOKS=false ARGS="--zap-encoder=console"`
 
 The operator should start. Once done, you can create a MySQL instance with a
 manifest like the one below; run `kubectl apply -f blue-instance.yaml` to

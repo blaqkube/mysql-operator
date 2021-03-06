@@ -46,7 +46,7 @@ make install
 kubectl apply -f .ci/squid.yaml
 kubectl port-forward squid 3128 &
 export http_proxy=http://localhost:3128
-make run ENABLE_WEBHOOKS=false
+make run ARGS="--zap-encoder=console" ENABLE_WEBHOOKS=false
 ```
 
 ## Running the Operator in a Container 
@@ -99,7 +99,7 @@ make install
 kubectl apply -f .ci/squid.yaml
 kubectl port-forward squid 3128 &
 export http_proxy=http://localhost:3128
-make run ENABLE_WEBHOOKS=false
+make run ARGS="--zap-encoder=console" ENABLE_WEBHOOKS=false
 ```
 
 Running `kuttl` tests should be as simple as 
@@ -148,7 +148,7 @@ make install
 kubectl apply -f .ci/squid.yaml
 kubectl port-forward squid 3128 &
 export http_proxy=http://localhost:3128
-make run ENABLE_WEBHOOKS=false
+make run ARGS="--zap-encoder=console" ENABLE_WEBHOOKS=false
 ```
 
 Running the test should then be as easy as running:
