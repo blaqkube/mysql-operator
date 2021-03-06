@@ -99,7 +99,7 @@ spec:
     or open an issue on the [Github repository](https://github.com/blaqkube/mysql-operator)
 
 
-  displayName: Blaqkube MySQL Operator
+  displayName: MySQL Operator for Kubernetes
   icon:
   - base64data: >-
       iVBORw0KGgoAAAANSUhEUgAAAFAAAAAoCAYAAABpYH0BAAAUR3pUWHRSYXcgcHJv
