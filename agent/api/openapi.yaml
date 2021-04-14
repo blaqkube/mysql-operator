@@ -14,7 +14,7 @@ info:
   version: 0.0.1
 externalDocs:
   description: Find out more about blaqkube MySQL operator
-  url: https://docs.blaqkube.io
+  url: https://github.com/blaqkube/mysql-operator
 servers:
 - url: /
 tags:

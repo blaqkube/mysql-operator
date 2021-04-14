@@ -2,6 +2,14 @@
 
 [![mysql-operator](https://circleci.com/gh/blaqkube/mysql-operator.svg?style=svg)](https://circleci.com/gh/blaqkube/mysql-operator)
 
+## **Important**
+
+This project has been fun and we have learned a lot from it. Nevertheless, 💔
+we have decided to stop it 🖖 and move our MySQL databases to a managed 🌦
+service. If you are interested to understand our motivations or react to it,
+check [#159](https://github.com/blaqkube/mysql-operator/issues/159). You can
+obviously hand it over if you need/want.
+
 ## Features
 
 `blaqkube/mysql-operator` supports
@@ -23,14 +31,5 @@ From a simple manifest, you can:
 
 ## Getting started
 
-Get ready 🚀, check our [online documentation](https://docs.blaqkube.io)
-
-## Contribute
-
-Contributions are welcomed: open issues; ask for help; comment and
-request enhancements. Do not hesitate to open PR to correct the documentation
-or the code.
-
-If you want to know more about how to modify, build or test the code, check the 
-[online developers guide](https://docs.blaqkube.io/developers/welcome) or the
-[developers section](docs/developers) of this project.
+Get ready 🚀, check the [user documentation](./docs/users) or best the
+[developer documentation](./docs/developers)

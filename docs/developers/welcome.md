@@ -21,8 +21,7 @@ MySQL instances.
 - `docker-gally` is an artifact used on CircleCI to build and deploy
   the right component. It is based on
   [missena-corp/gally](https://github.com/missena-corp/gally)
-- `docs` contains the project documentation that is available online
-  one [docs.blaqkube.io](https://docs.blaqkube.io/)
+- `docs` contains the project documentation
 - `mysql-operator` contains everything related to the operator; this
   includes controllers, API, tests, artifact builds and more. 
 

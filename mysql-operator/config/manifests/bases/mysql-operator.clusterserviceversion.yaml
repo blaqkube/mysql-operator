@@ -95,8 +95,8 @@ spec:
      
     ## Continuing...
     
-    If you want to know more, check the [documentation](https://docs.blaqkube.io)
-    or open an issue on the [Github repository](https://github.com/blaqkube/mysql-operator)
+    If you want to know more, open an issue on the
+    [Github repository](https://github.com/blaqkube/mysql-operator)
 
 
   displayName: MySQL Operator for Kubernetes
@@ -299,8 +299,6 @@ spec:
     operatorframework.io/arch.amd64: supported
     operatorframework.io/os.linux: supported
   links:
-  - name: documentation
-    url: https://docs.blaqkube.io
   - name: blaqkube.io
     url: https://blaqkube.io
   - name: Github Project
