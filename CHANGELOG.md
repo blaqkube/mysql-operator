@@ -1,9 +1,5 @@
 # Changelog
 
-## v0.6.0 (**Not Releaased**)
-
-v0.6.0 contains enhancements.
-
 #### Enhancements:
 
 - [#157](https://github.com/blaqkube/mysql-operator/pull/157) Connect MySQL Operator to Slack
